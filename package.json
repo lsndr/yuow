@@ -24,7 +24,7 @@
   },
   "pre-commit": [
     "lint:fix-staged",
-    "test:unit"
+    "test"
   ],
   "peerDependencies": {
     "knex": "^2.1.0"
