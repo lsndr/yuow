@@ -8,48 +8,44 @@ export type IsolationLevel =
   | 'repeatable read'
   | 'serializable';
 
-export type Events<S> = {
+export type Events = {
   flush: {
     knex: Knex;
   };
-  commit: {
-    state: S;
-  };
+  commit: undefined;
   rollback: undefined;
 };
 
-export type EventListener<E extends keyof Events<S>, S> = (
-  payload: Events<S>[E],
+export type EventListener<E extends keyof Events> = (
+  payload: Events[E],
 ) => void | Promise<void>;
-export abstract class Transaction<S = any> {
-  public readonly state: S;
-  private readonly eventEmitter: EventEmitter<Events<S>>;
+export abstract class Transaction {
+  private readonly eventEmitter: EventEmitter<Events>;
   abstract knex: Knex;
 
   abstract flush(): Promise<void>;
 
-  protected constructor(state: S) {
+  protected constructor() {
     this.eventEmitter = new EventEmitter();
-    this.state = state;
   }
 
-  protected async emit<E extends keyof Events<S>>(
+  protected async emit<E extends keyof Events>(
     event: E,
-    payload: Events<S>[E],
+    payload: Events[E],
   ): Promise<void> {
     await this.eventEmitter.emit(event, payload);
   }
 
-  public on<E extends keyof Events<S>>(
+  public on<E extends keyof Events>(
     event: E,
-    listener: (payload: Events<S>[E]) => void | Promise<void>,
+    listener: (payload: Events[E]) => void | Promise<void>,
   ) {
     this.eventEmitter.on(event, listener);
   }
 
-  public off<E extends keyof Events<S>>(
+  public off<E extends keyof Events>(
     event: E,
-    listener: (payload: Events<S>[E]) => void | Promise<void>,
+    listener: (payload: Events[E]) => void | Promise<void>,
   ) {
     this.eventEmitter.off(event, listener);
   }

@@ -1,4 +1,10 @@
-export * from './unit-of-work';
-export * from './db-context';
-export * from './repository';
-export * from './data-mapper';
+export { uow, Uow, UowConfig, UowOptions } from './unit-of-work';
+export { DBContext } from './db-context';
+export {
+  Repository,
+  RepositoryConstructor,
+  RepositoryEvents,
+} from './repository';
+export { DataMapper, DataMapperConstructor } from './data-mapper';
+export { IsolationLevel } from './transaction/transaction.interface';
+export { OptimisticError } from './transaction/optimistic.error';

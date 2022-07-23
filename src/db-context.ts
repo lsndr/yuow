@@ -4,21 +4,14 @@ import {
   Events,
 } from './transaction/transaction.interface';
 
-export class DBContext<S = unknown> {
+export class DBContext {
   public get knex() {
     return this.transaction.knex;
   }
 
-  public get state() {
-    return this.transaction.state;
-  }
+  constructor(private readonly transaction: Transaction) {}
 
-  constructor(private readonly transaction: Transaction<S>) {}
-
-  public on<E extends keyof Events<S>>(
-    event: E,
-    listener: EventListener<E, S>,
-  ) {
+  public on<E extends keyof Events>(event: E, listener: EventListener<E>) {
     this.transaction.on(event, listener);
   }
 }

@@ -5,14 +5,13 @@ import { IsolationLevel, Transaction } from './transaction.interface';
 
 type Unit<R> = (uow: Context) => R | Promise<R>;
 
-export type Options<R, S = any> = {
+export type Options<R> = {
   unit: Unit<R>;
   knex: Knex;
-  isolationLevel: IsolationLevel;
   maxAttempts: number;
-  initialState?: S;
+  isolationLevel: IsolationLevel;
   onFlush?: (payload: { knex: Knex }) => void;
-  onCommit?: (payload: { state: S }) => void;
+  onCommit?: () => void;
   onRollback?: () => void;
 };
 
@@ -20,9 +19,8 @@ export class LocalTransaction extends Transaction {
   protected constructor(
     public readonly knex: Knex,
     public readonly isolationLevel: IsolationLevel,
-    state: any,
   ) {
-    super(state);
+    super();
   }
 
   async flush(): Promise<void> {
@@ -43,9 +41,7 @@ export class LocalTransaction extends Transaction {
       throw e;
     }
 
-    this.emit('commit', {
-      state: this.state,
-    }).catch(console.error);
+    this.emit('commit', undefined).catch(console.error);
   }
 
   static async run<R>({
@@ -54,11 +50,10 @@ export class LocalTransaction extends Transaction {
     unit,
     maxAttempts,
     onCommit,
-    initialState,
     onFlush,
     onRollback,
   }: Options<R>): Promise<R> {
-    const transaction = new this(knex, isolationLevel, initialState);
+    const transaction = new this(knex, isolationLevel);
 
     if (onCommit) {
       transaction.on('commit', onCommit);

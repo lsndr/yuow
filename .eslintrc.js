@@ -7,7 +7,7 @@ module.exports = {
     'plugin:import/typescript',
   ],
   plugins: ['@typescript-eslint'],
-  ignorePatterns: ['**/dist/*', '/coverage', 'node_modules'],
+  ignorePatterns: ['**/dist/*', '/coverage', 'node_modules', '!.vscode'],
   env: {
     node: true,
   },

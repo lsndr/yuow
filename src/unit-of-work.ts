@@ -4,52 +4,56 @@ import { LocalTransaction } from './transaction/local.transaction';
 import { GlobalTransaction } from './transaction/global.transaction';
 import { IsolationLevel } from './transaction/transaction.interface';
 
-export type UowOptions<S = any> = {
+export type UowConfig = {
   isolationLevel: IsolationLevel;
   maxAttempts: number;
   globalTransaction: boolean;
-  initialState?: S;
   onFlush?: (payload: { knex: Knex }) => void;
-  onCommit?: (payload: { state: S }) => void;
+  onCommit?: () => void;
   onRollback?: () => void;
 };
 
-export type Uow<S = unknown> = <R>(
-  unit: (uow: Context) => R | Promise<R>,
-  options?: Partial<UowOptions<S>>,
-) => Promise<R>;
+export type UowOptions = Partial<UowConfig>;
 
-export function uowFactory<S>(knex: Knex): Uow<S> {
-  return async (unit, partialOptions) => {
-    const options: UowOptions<S> = {
-      isolationLevel: 'read committed',
-      globalTransaction: false,
-      maxAttempts: 3,
-      ...partialOptions,
-    };
+export type Unit<R> = (uow: Context) => R | Promise<R>;
 
-    if (!options.globalTransaction) {
-      return LocalTransaction.run({
-        unit,
-        knex,
-        initialState: options.initialState,
-        isolationLevel: options.isolationLevel,
-        maxAttempts: options.maxAttempts,
-        onCommit: options.onCommit,
-        onFlush: options.onFlush,
-        onRollback: options.onRollback,
-      });
-    } else {
-      return GlobalTransaction.run({
-        unit,
-        knex,
-        initialState: options.initialState,
-        isolationLevel: options.isolationLevel,
-        maxAttempts: options.maxAttempts,
-        onCommit: options.onCommit,
-        onFlush: options.onFlush,
-        onRollback: options.onRollback,
-      });
-    }
+export type Uow = <R>(
+  unit: Unit<R>,
+  knex: Knex,
+  options?: UowOptions,
+) => R | Promise<R>;
+
+export const uow: Uow = <R>(
+  unit: Unit<R>,
+  knex: Knex,
+  options?: UowOptions,
+) => {
+  const config: UowConfig = {
+    isolationLevel: 'read committed',
+    globalTransaction: false,
+    maxAttempts: 3,
+    ...options,
   };
-}
+
+  if (!config.globalTransaction) {
+    return LocalTransaction.run({
+      unit,
+      knex,
+      isolationLevel: config.isolationLevel,
+      maxAttempts: config.maxAttempts,
+      onCommit: config.onCommit,
+      onFlush: config.onFlush,
+      onRollback: config.onRollback,
+    });
+  } else {
+    return GlobalTransaction.run({
+      unit,
+      knex,
+      isolationLevel: config.isolationLevel,
+      maxAttempts: config.maxAttempts,
+      onCommit: config.onCommit,
+      onFlush: config.onFlush,
+      onRollback: config.onRollback,
+    });
+  }
+};

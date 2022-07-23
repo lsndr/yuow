@@ -5,23 +5,19 @@ import { IsolationLevel, Transaction } from './transaction.interface';
 
 type Unit<R> = (uow: Context) => R | Promise<R>;
 
-export type Options<R, S = any> = {
+export type Options<R> = {
   unit: Unit<R>;
   knex: Knex;
   maxAttempts: number;
   isolationLevel: IsolationLevel;
-  initialState?: S;
   onFlush?: (payload: { knex: Knex }) => void;
-  onCommit?: (payload: { state: S }) => void;
+  onCommit?: () => void;
   onRollback?: () => void;
 };
 
 export class GlobalTransaction extends Transaction {
-  protected constructor(
-    public readonly transaction: Knex.Transaction,
-    state: any,
-  ) {
-    super(state);
+  protected constructor(public readonly transaction: Knex.Transaction) {
+    super();
   }
 
   get knex() {
@@ -36,9 +32,7 @@ export class GlobalTransaction extends Transaction {
 
   async commit() {
     await this.transaction.commit();
-    this.emit('commit', {
-      state: this.state,
-    }).catch(console.error);
+    this.emit('commit', undefined).catch(console.error);
   }
 
   async rollback() {
@@ -52,7 +46,6 @@ export class GlobalTransaction extends Transaction {
     unit,
     onCommit,
     maxAttempts,
-    initialState,
     onFlush,
     onRollback,
   }: Options<R>): Promise<R> {
@@ -61,7 +54,7 @@ export class GlobalTransaction extends Transaction {
         isolationLevel: isolationLevel,
       });
 
-      const transaction = new this(trx, initialState);
+      const transaction = new this(trx);
 
       if (onCommit) {
         transaction.on('commit', onCommit);

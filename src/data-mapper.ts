@@ -29,7 +29,7 @@ export abstract class DataMapper<E extends object> {
   }
 
   protected increaseVersion(entity: E): number {
-    const currentVersion = this.getVersion(entity);
+    const currentVersion = versionMap.get(entity) || 0;
     const version = currentVersion + 1;
 
     versionMap.set(entity, version);

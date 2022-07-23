@@ -37,34 +37,24 @@ class EntityWrapper<E extends object> {
 export type RepositoryConstructor<
   E extends object,
   M extends DataMapper<E>,
-  S extends object,
-> = new (context: DBContext<S>) => Repository<E, M, S>;
+> = new (context: DBContext) => Repository<E, M>;
 
-export type RepositoryEvents<E, S> = {
+export type RepositoryEvents<E> = {
   flush: {
     entity: E;
-    state: S;
   };
   inserted: {
     entity: E;
-    state: S;
   };
   updated: {
     entity: E;
-    state: S;
   };
   deleted: {
     entity: E;
-    state: S;
   };
 };
-export abstract class Repository<
-  E extends object,
-  M extends DataMapper<E>,
-  S extends object = object,
-> {
-  private eventEmitter: EventEmitter<RepositoryEvents<E, S>> =
-    new EventEmitter();
+export abstract class Repository<E extends object, M extends DataMapper<E>> {
+  private eventEmitter: EventEmitter<RepositoryEvents<E>> = new EventEmitter();
   private identityMap: WeakIdentityMap<unknown, EntityWrapper<E>> =
     new WeakIdentityMap();
 
@@ -72,7 +62,7 @@ export abstract class Repository<
 
   protected abstract extractIdentity(entity: E): unknown;
 
-  constructor(protected readonly context: DBContext<S>) {
+  constructor(protected readonly context: DBContext) {
     this.register();
   }
 
@@ -84,51 +74,49 @@ export abstract class Repository<
       return;
     }
 
-    this.track(entity, 'persisted');
-
-    return entity;
+    return this.track(entity, 'persisted');
   }
 
   add(entity: E): boolean {
-    return this.track(entity, 'created');
+    return this.track(entity, 'created') === entity;
   }
 
   delete(entity: E) {
     return this.untrack(entity);
   }
 
-  private async emit<Event extends keyof RepositoryEvents<E, S>>(
+  private async emit<Event extends keyof RepositoryEvents<E>>(
     event: Event,
-    payload: RepositoryEvents<E, S>[Event],
+    payload: RepositoryEvents<E>[Event],
   ): Promise<void> {
     await this.eventEmitter.emit(event, payload);
   }
 
-  public on<Event extends keyof RepositoryEvents<E, S>>(
+  protected on<Event extends keyof RepositoryEvents<E>>(
     event: Event,
-    listener: (payload: RepositoryEvents<E, S>[Event]) => void | Promise<void>,
+    listener: (payload: RepositoryEvents<E>[Event]) => void | Promise<void>,
   ) {
     this.eventEmitter.on(event, listener);
   }
 
-  public off<Event extends keyof RepositoryEvents<E, S>>(
+  protected off<Event extends keyof RepositoryEvents<E>>(
     event: Event,
-    listener: (payload: RepositoryEvents<E, S>[Event]) => void | Promise<void>,
+    listener: (payload: RepositoryEvents<E>[Event]) => void | Promise<void>,
   ) {
     this.eventEmitter.on(event, listener);
   }
 
-  protected track(entity: E, state: EntityState): boolean {
+  protected track(entity: E, state: EntityState): E {
     const identity = this.extractIdentity(entity);
     const trackedEntity = this.identityMap.get(identity);
 
     if (!trackedEntity) {
       this.identityMap.set(identity, new EntityWrapper(entity, state));
 
-      return true;
+      return entity;
     }
 
-    return false;
+    return trackedEntity.entity;
   }
 
   protected untrack(entity: E): boolean {
@@ -155,14 +143,12 @@ export abstract class Repository<
 
           this.emit('inserted', {
             entity: wrapper.entity,
-            state: this.context.state,
           }).catch(console.error);
         } else if (wrapper.state === 'persisted' && !wrapper.verify()) {
           await assertChange(() => this.update(wrapper.entity, knex));
 
           this.emit('updated', {
             entity: wrapper.entity,
-            state: this.context.state,
           }).catch(console.error);
         } else if (wrapper.state === 'deleted') {
           await assertChange(() => this.remove(wrapper.entity, knex));
@@ -171,7 +157,6 @@ export abstract class Repository<
 
           this.emit('deleted', {
             entity: wrapper.entity,
-            state: this.context.state,
           }).catch(console.error);
         }
       }
