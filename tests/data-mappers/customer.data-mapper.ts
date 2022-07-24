@@ -14,7 +14,7 @@ export class CustomerDataMapper extends DataMapper<Customer> {
     });
   }
 
-  async findOne(id: string): Promise<Customer | undefined> {
+  async findById(id: string): Promise<Customer | undefined> {
     const record = await this.knex
       .select('*')
       .from('customers')

@@ -6,7 +6,13 @@ export class CustomerRepository extends Repository<
   Customer,
   CustomerDataMapper
 > {
-  protected mapper = CustomerDataMapper;
+  protected mapperConstructor = CustomerDataMapper;
+
+  async findById(...args: Parameters<CustomerDataMapper['findById']>) {
+    const result = await this.mapper.findById(...args);
+
+    return this.propagate(result, 'loaded');
+  }
 
   protected extractIdentity(customer: Customer) {
     return customer.id;

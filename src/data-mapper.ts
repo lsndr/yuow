@@ -10,8 +10,6 @@ const versionMap = new WeakMap<object, number>();
 export abstract class DataMapper<E extends object> {
   constructor(protected readonly knex: Knex) {}
 
-  abstract findOne(...args: unknown[]): Promise<E | undefined>;
-
   abstract insert(entity: E): Promise<boolean>;
 
   abstract update(entity: E): Promise<boolean>;

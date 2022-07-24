@@ -6,12 +6,12 @@ import { OptimisticError } from './transaction/optimistic.error';
 import { serialize } from 'node:v8';
 import * as EventEmitter from 'emittery';
 
-type EntityState = 'created' | 'persisted' | 'deleted';
+type EntityState = 'added' | 'loaded' | 'deleted';
 
 class EntityWrapper<E extends object> {
   public readonly entity: E;
-  private snapshot: Buffer;
   public state: EntityState;
+  private snapshot: Buffer;
 
   constructor(entity: E, state: EntityState) {
     this.entity = entity;
@@ -34,10 +34,9 @@ class EntityWrapper<E extends object> {
   }
 }
 
-export type RepositoryConstructor<
-  E extends object,
-  M extends DataMapper<E>,
-> = new (context: DBContext) => Repository<E, M>;
+export interface RepositoryConstructor<R> {
+  new (context: DBContext): R;
+}
 
 export type RepositoryEvents<E> = {
   flush: {
@@ -57,32 +56,46 @@ export abstract class Repository<E extends object, M extends DataMapper<E>> {
   private eventEmitter: EventEmitter<RepositoryEvents<E>> = new EventEmitter();
   private identityMap: WeakIdentityMap<unknown, EntityWrapper<E>> =
     new WeakIdentityMap();
-
-  protected abstract mapper: DataMapperConstructor<E, M>;
-
+  protected abstract readonly mapperConstructor: DataMapperConstructor<E, M>;
   protected abstract extractIdentity(entity: E): unknown;
+  protected readonly context: DBContext;
+  protected mapperInstance?: M;
 
-  constructor(protected readonly context: DBContext) {
+  protected get mapper() {
+    if (!this.mapperInstance) {
+      this.mapperInstance = new this.mapperConstructor(this.context.knex);
+    }
+
+    return this.mapperInstance;
+  }
+
+  constructor(context: DBContext) {
+    this.context = context;
+
     this.register();
   }
 
-  async findOne(...args: Parameters<M['findOne']>): Promise<E | undefined> {
-    const mapper = new this.mapper(this.context.knex);
-    const entity = await mapper.findOne(...args);
-
-    if (!entity) {
-      return;
+  protected propagate<P extends E | undefined>(
+    entitity: P,
+    state: EntityState,
+  ): E | undefined;
+  protected propagate<P extends E[]>(entities: P, state: EntityState): E[];
+  protected propagate(entities: E | E[] | undefined, state: EntityState) {
+    if (typeof entities === 'undefined') {
+      return entities;
+    } else if (Array.isArray(entities)) {
+      return entities.map((entity) => this.track(entity, state));
+    } else {
+      return this.track(entities, state);
     }
-
-    return this.track(entity, 'persisted');
   }
 
   add(entity: E): boolean {
-    return this.track(entity, 'created') === entity;
+    return this.track(entity, 'added') === entity;
   }
 
   delete(entity: E) {
-    return this.untrack(entity);
+    return this.track(entity, 'deleted') === entity;
   }
 
   private async emit<Event extends keyof RepositoryEvents<E>>(
@@ -137,14 +150,14 @@ export abstract class Repository<E extends object, M extends DataMapper<E>> {
           }
         };
 
-        if (wrapper.state === 'created') {
+        if (wrapper.state === 'added') {
           await assertChange(() => this.insert(wrapper.entity, knex));
-          wrapper.state = 'persisted';
+          wrapper.state = 'loaded';
 
           this.emit('inserted', {
             entity: wrapper.entity,
           }).catch(console.error);
-        } else if (wrapper.state === 'persisted' && !wrapper.verify()) {
+        } else if (wrapper.state === 'loaded' && !wrapper.verify()) {
           await assertChange(() => this.update(wrapper.entity, knex));
 
           this.emit('updated', {
@@ -164,19 +177,19 @@ export abstract class Repository<E extends object, M extends DataMapper<E>> {
   }
 
   private insert(entity: E, knex: Knex): Promise<boolean> {
-    const mapper = new this.mapper(knex);
+    const mapper = new this.mapperConstructor(knex);
 
     return mapper.insert(entity);
   }
 
   private update(entity: E, knex: Knex): Promise<boolean> {
-    const mapper = new this.mapper(knex);
+    const mapper = new this.mapperConstructor(knex);
 
     return mapper.update(entity);
   }
 
   private remove(entity: E, knex: Knex): Promise<boolean> {
-    const mapper = new this.mapper(knex);
+    const mapper = new this.mapperConstructor(knex);
 
     return mapper.delete(entity);
   }

@@ -137,7 +137,7 @@ describe('Unit of Work', () => {
 
       const customerRepository = ctx.getRepository(CustomerRepository);
 
-      const customer = await customerRepository.findOne(id);
+      const customer = await customerRepository.findById(id);
 
       if (!customer) {
         throw new Error('Customer not found');
@@ -174,8 +174,8 @@ describe('Unit of Work', () => {
     await uow(async (ctx) => {
       const customerRepository = ctx.getRepository(CustomerRepository);
 
-      const customer1 = await customerRepository.findOne(id);
-      const customer2 = await customerRepository.findOne(id);
+      const customer1 = await customerRepository.findById(id);
+      const customer2 = await customerRepository.findById(id);
 
       expect(customer1).not.toBeUndefined();
       expect(customer1).toBe(customer2);
@@ -238,7 +238,7 @@ describe('Unit of Work', () => {
 
       const customerRepository = ctx.getRepository(CustomerRepository);
 
-      const customer = await customerRepository.findOne(id);
+      const customer = await customerRepository.findById(id);
 
       if (!customer) {
         throw new Error('Customer not found');
@@ -288,7 +288,7 @@ describe('Unit of Work', () => {
 
         const customerRepository = ctx.getRepository(CustomerRepository);
 
-        const customer = await customerRepository.findOne(id);
+        const customer = await customerRepository.findById(id);
 
         if (!customer) {
           throw new Error('Customer not found');
@@ -340,7 +340,7 @@ describe('Unit of Work', () => {
 
         const customerRepository = ctx.getRepository(CustomerRepository);
 
-        const customer = await customerRepository.findOne(id);
+        const customer = await customerRepository.findById(id);
 
         if (!customer) {
           throw new Error('Customer not found');
