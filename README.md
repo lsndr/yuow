@@ -20,9 +20,7 @@ With `yuow` you can build a truly isolated domain model.
     return uow(async (ctx) => {
         const userRepository = ctx.getRepository(UserRepository);
 
-        const user = await userRepository.findOne({
-            id: userId
-        });
+        const user = await userRepository.findById(userId);
 
         if (!user) {
             throw new Error('User not found');
