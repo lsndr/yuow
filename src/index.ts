@@ -1,4 +1,4 @@
-export { uow, Uow, UowConfig, UowOptions } from './unit-of-work';
+export { uowFactory, Uow, UowConfig, UowOptions } from './unit-of-work';
 export { DBContext } from './db-context';
 export {
   Repository,

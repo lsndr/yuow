@@ -17,43 +17,37 @@ export type UowOptions = Partial<UowConfig>;
 
 export type Unit<R> = (uow: Context) => R | Promise<R>;
 
-export type Uow = <R>(
-  unit: Unit<R>,
-  knex: Knex,
-  options?: UowOptions,
-) => R | Promise<R>;
+export type Uow = <R>(unit: Unit<R>, options?: UowOptions) => R | Promise<R>;
 
-export const uow: Uow = <R>(
-  unit: Unit<R>,
-  knex: Knex,
-  options?: UowOptions,
-) => {
-  const config: UowConfig = {
-    isolationLevel: 'read committed',
-    globalTransaction: false,
-    maxAttempts: 3,
-    ...options,
+export const uowFactory = (knex: Knex): Uow => {
+  return <R>(unit: Unit<R>, options?: UowOptions) => {
+    const config: UowConfig = {
+      isolationLevel: 'read committed',
+      globalTransaction: false,
+      maxAttempts: 3,
+      ...options,
+    };
+
+    if (!config.globalTransaction) {
+      return LocalTransaction.run({
+        unit,
+        knex,
+        isolationLevel: config.isolationLevel,
+        maxAttempts: config.maxAttempts,
+        onCommit: config.onCommit,
+        onFlush: config.onFlush,
+        onRollback: config.onRollback,
+      });
+    } else {
+      return GlobalTransaction.run({
+        unit,
+        knex,
+        isolationLevel: config.isolationLevel,
+        maxAttempts: config.maxAttempts,
+        onCommit: config.onCommit,
+        onFlush: config.onFlush,
+        onRollback: config.onRollback,
+      });
+    }
   };
-
-  if (!config.globalTransaction) {
-    return LocalTransaction.run({
-      unit,
-      knex,
-      isolationLevel: config.isolationLevel,
-      maxAttempts: config.maxAttempts,
-      onCommit: config.onCommit,
-      onFlush: config.onFlush,
-      onRollback: config.onRollback,
-    });
-  } else {
-    return GlobalTransaction.run({
-      unit,
-      knex,
-      isolationLevel: config.isolationLevel,
-      maxAttempts: config.maxAttempts,
-      onCommit: config.onCommit,
-      onFlush: config.onFlush,
-      onRollback: config.onRollback,
-    });
-  }
 };

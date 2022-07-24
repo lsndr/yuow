@@ -1,11 +1,12 @@
 import { Knex, knex } from 'knex';
-import { OptimisticError, uow } from '../src';
+import { OptimisticError, Uow, uowFactory } from '../src';
 import { Customer } from './model/customer';
 import { CustomerRepository } from './repositories/customer.repository';
 import { resolve } from 'path';
 
 describe('Unit of Work', () => {
   let client: Knex;
+  let uow: Uow;
 
   beforeEach(async () => {
     client = knex({
@@ -16,6 +17,8 @@ describe('Unit of Work', () => {
         directory: resolve(__dirname, 'migrations'),
       },
     });
+
+    uow = uowFactory(client);
 
     await client.migrate.up();
   });
@@ -37,7 +40,7 @@ describe('Unit of Work', () => {
       const customer = Customer.create(id, name);
 
       customerRepository.add(customer);
-    }, client);
+    });
 
     const record = await client
       .select('*')
@@ -67,7 +70,7 @@ describe('Unit of Work', () => {
 
       customerRepository.add(customer);
       customerRepository.add(customer);
-    }, client);
+    });
 
     const record = await client
       .select('*')
@@ -101,7 +104,7 @@ describe('Unit of Work', () => {
 
       expect(added1).toBe(true);
       expect(added2).toBe(false);
-    }, client);
+    });
 
     const record = await client
       .select('*')
@@ -141,7 +144,7 @@ describe('Unit of Work', () => {
       }
 
       customer.changeName('Billy Wagner');
-    }, client);
+    });
 
     const record = await client
       .select('*')
@@ -176,7 +179,7 @@ describe('Unit of Work', () => {
 
       expect(customer1).not.toBeUndefined();
       expect(customer1).toBe(customer2);
-    }, client);
+    });
   });
 
   it('should propagate an error', () => {
@@ -186,7 +189,7 @@ describe('Unit of Work', () => {
       uow(() => {
         attempts++;
         throw new Error('Test error');
-      }, client);
+      });
 
     expect(action()).rejects.toThrowError('Test error');
     expect(attempts).toBe(1);
@@ -195,7 +198,7 @@ describe('Unit of Work', () => {
   it('should propagate a result', async () => {
     const result = await uow(() => {
       return 'test result';
-    }, client);
+    });
 
     expect(result).toBe('test result');
   });
@@ -207,7 +210,7 @@ describe('Unit of Work', () => {
       uow(() => {
         attempts++;
         throw new Error('Test error');
-      }, client);
+      });
 
     await expect(action()).rejects.toThrowError('Test error');
     expect(attempts).toBe(1);
@@ -246,7 +249,7 @@ describe('Unit of Work', () => {
       if (attempts < 3) {
         await modify();
       }
-    }, client);
+    });
 
     const record = await client
       .select('*')
@@ -296,7 +299,7 @@ describe('Unit of Work', () => {
         if (attempts < 4) {
           await modify();
         }
-      }, client);
+      });
 
     await expect(action()).rejects.toThrowError(OptimisticError);
 
@@ -349,7 +352,6 @@ describe('Unit of Work', () => {
           await modify();
         }
       },
-      client,
       {
         maxAttempts: 7,
       },
