@@ -1,4 +1,4 @@
-# Moject
+# Yuow
 
 [![npm version](https://badge.fury.io/js/yuow.svg)](https://badge.fury.io/js/yuow)
 [![npm downloads/month](https://img.shields.io/npm/dm/yuow.svg)](https://www.npmjs.com/package/yuow)
