@@ -1,6 +1,6 @@
 import { Knex } from 'knex';
 import { Context } from './../context';
-import { OptimisticError } from './optimistic.error';
+import { PersistenceError } from './persistence.error';
 import { IsolationLevel, Transaction } from './transaction.interface';
 
 type Unit<R> = (uow: Context) => R | Promise<R>;
@@ -77,7 +77,7 @@ export class LocalTransaction extends Transaction {
 
         return result;
       } catch (e) {
-        if (e instanceof OptimisticError && attempt < maxAttempts) {
+        if (e instanceof PersistenceError && attempt < maxAttempts) {
           return await run(attempt + 1);
         }
 

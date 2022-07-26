@@ -7,4 +7,4 @@ export {
 } from './repository';
 export { DataMapper, DataMapperConstructor } from './data-mapper';
 export { IsolationLevel } from './transaction/transaction.interface';
-export { OptimisticError } from './transaction/optimistic.error';
+export { PersistenceError } from './transaction/persistence.error';

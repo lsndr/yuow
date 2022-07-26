@@ -2,7 +2,10 @@ import { Knex } from 'knex';
 import { WeakIdentityMap } from 'weak-identity-map';
 import { DataMapper, DataMapperConstructor } from './data-mapper';
 import { DBContext } from './db-context';
-import { OptimisticError } from './transaction/optimistic.error';
+import {
+  PersistenceError,
+  PersistenceOperation,
+} from './transaction/persistence.error';
 import { serialize } from 'node:v8';
 import * as EventEmitter from 'emittery';
 
@@ -142,29 +145,36 @@ export abstract class Repository<E extends object, M extends DataMapper<E>> {
       for (const [id, wrapper] of this.identityMap.entries()) {
         const identity = this.extractIdentity(wrapper.entity);
 
-        const assertChange = async (action: () => Promise<boolean>) => {
+        const assertChange = async (
+          action: () => Promise<boolean>,
+          operation: PersistenceOperation,
+        ) => {
           const isChanged = await action();
 
           if (!isChanged) {
-            throw new OptimisticError(this.constructor.name, identity);
+            throw new PersistenceError(
+              this.constructor.name,
+              identity,
+              operation,
+            );
           }
         };
 
         if (wrapper.state === 'added') {
-          await assertChange(() => this.insert(wrapper.entity, knex));
+          await assertChange(() => this.insert(wrapper.entity, knex), 'insert');
           wrapper.state = 'loaded';
 
           this.emit('inserted', {
             entity: wrapper.entity,
           }).catch(console.error);
         } else if (wrapper.state === 'loaded' && !wrapper.verify()) {
-          await assertChange(() => this.update(wrapper.entity, knex));
+          await assertChange(() => this.update(wrapper.entity, knex), 'update');
 
           this.emit('updated', {
             entity: wrapper.entity,
           }).catch(console.error);
         } else if (wrapper.state === 'deleted') {
-          await assertChange(() => this.remove(wrapper.entity, knex));
+          await assertChange(() => this.remove(wrapper.entity, knex), 'delete');
 
           this.identityMap.delete(id);
 
