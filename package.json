@@ -28,7 +28,7 @@
     "test"
   ],
   "peerDependencies": {
-    "knex": "^1.0.0"
+    "knex": "^0.95.0 || ^1.0.0 || ^2.0.0"
   },
   "dependencies": {
     "weak-identity-map": "^1.0.2"
