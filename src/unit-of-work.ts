@@ -5,9 +5,9 @@ import { GlobalTransaction } from './transaction/global.transaction';
 import { IsolationLevel } from './transaction/transaction.interface';
 
 export type UowConfig = {
-  isolationLevel: IsolationLevel;
-  maxAttempts: number;
   globalTransaction: boolean;
+  isolationLevel?: IsolationLevel;
+  retries?: number;
   onFlush?: (payload: { knex: Knex }) => void;
   onCommit?: () => void;
   onRollback?: () => void;
@@ -24,7 +24,6 @@ export const uowFactory = (knex: Knex): Uow => {
     const config: UowConfig = {
       isolationLevel: 'read committed',
       globalTransaction: false,
-      maxAttempts: 3,
       ...options,
     };
 
@@ -33,7 +32,7 @@ export const uowFactory = (knex: Knex): Uow => {
         unit,
         knex,
         isolationLevel: config.isolationLevel,
-        maxAttempts: config.maxAttempts,
+        retries: config.retries,
         onCommit: config.onCommit,
         onFlush: config.onFlush,
         onRollback: config.onRollback,
@@ -43,7 +42,7 @@ export const uowFactory = (knex: Knex): Uow => {
         unit,
         knex,
         isolationLevel: config.isolationLevel,
-        maxAttempts: config.maxAttempts,
+        retries: config.retries,
         onCommit: config.onCommit,
         onFlush: config.onFlush,
         onRollback: config.onRollback,

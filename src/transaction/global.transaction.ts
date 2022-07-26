@@ -8,8 +8,8 @@ type Unit<R> = (uow: Context) => R | Promise<R>;
 export type Options<R> = {
   unit: Unit<R>;
   knex: Knex;
-  maxAttempts: number;
-  isolationLevel: IsolationLevel;
+  retries?: number;
+  isolationLevel?: IsolationLevel;
   onFlush?: (payload: { knex: Knex }) => void;
   onCommit?: () => void;
   onRollback?: () => void;
@@ -45,13 +45,15 @@ export class GlobalTransaction extends Transaction {
     isolationLevel,
     unit,
     onCommit,
-    maxAttempts,
+    retries,
     onFlush,
     onRollback,
   }: Options<R>): Promise<R> {
+    const maxAttempts = retries || 0;
+
     const run = async (attempt: number): Promise<R> => {
       const trx = await knex.transaction(null, {
-        isolationLevel: isolationLevel,
+        isolationLevel: isolationLevel || 'read committed',
       });
 
       const transaction = new this(trx);
