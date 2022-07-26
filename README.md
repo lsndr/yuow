@@ -5,7 +5,7 @@
 [![npm downloads](https://img.shields.io/npm/dt/yuow.svg)](https://www.npmjs.com/package/yuow)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/lsndr/yuow/blob/master/LICENSE.md)
 
-`Yuow` is a generic implementation of Unity of Work, Repository and IdentityMap patterns built on top of Knex library.
+`Yuow` is a generic implementation of Unity of Work, Repository and IdentityMap patterns built on top of [Knex](http://knexjs.org/) library.
 
 With `yuow` you can build a truly isolated domain model.
 
