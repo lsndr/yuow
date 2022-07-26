@@ -19,5 +19,6 @@
     "target": "es2021",
     "sourceMap": true,
     "incremental": true
-  }
+  },
+  "exclude": ["tests"]
 }
