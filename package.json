@@ -14,6 +14,7 @@
     "lint:fix-staged": "lint-staged",
     "prepublish": "npm run build"
   },
+  "repository": "lsndr/yuow",
   "author": {
     "name": "lsndr",
     "email": "alexander@lsndr.me",
