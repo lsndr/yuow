@@ -20,5 +20,5 @@
     "sourceMap": true,
     "incremental": true
   },
-  "exclude": ["tests"]
+  "include": ["./src/**/*"]
 }
