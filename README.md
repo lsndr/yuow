@@ -43,4 +43,4 @@ TODO
 
 ## License
 
-Moject is [MIT licensed](LICENSE.md).
+Yuow is [MIT licensed](LICENSE.md).
