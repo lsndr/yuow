@@ -23,7 +23,7 @@ See [examples folder](https://github.com/lsndr/yuow/tree/master/examples/)
   npm install yuow 
 ```
 
-In order to use Unit Of Work, you will need to implement [Data Mapper](#data-mapper) and [Repository](#repository) for each your model.
+`Yuow` requires you to implement [Data Mapper](#data-mapper) and [Repository](#repository) for each your model.
 
 ```typescript
 import { uowFactory } from 'yuow';
@@ -61,7 +61,7 @@ uow(unit, {
 
 `Yuow` offers two ways to handle transactions. By default `globalTransaction` is `false`, which means that only computed changes will be queried inside a database transaction. This approach works well if you want to implement an optimistic concurency control.
 
-If you pass `true`, all database interactions inside unit of work will be wrapped with one global transaction. This is helful in case you need a pessimistic concurency control.
+If you pass `true`, all database interactions inside unit of work will be wrapped with one global transaction. This is helpful in case you need a pessimistic concurency control.
 
 ### retries
 
@@ -81,7 +81,7 @@ You can set the same isolation level as provided by Knex library.
 
 ### Implementation 
 
-In order to write a data mapper for `Yuow`, you will need to extend an abstract `DataMapper` class exported from `Yuow` package.
+Your data mapper must extend an abstract `DataMapper` class exported from `Yuow` package.
 
 There are only three required abstract methods: `insert`, `update` and `delete`. Selection is also a necessary operation, but it is not as trivial as others, so you will need to implement it on your own.
 
@@ -148,7 +148,7 @@ As you can see, this is mostly a trivial operation. But some of the step can rai
 
 #### Hydration
 
-In order to protect your domain model invariants you can decide to make constructors protected. This is neccessary if you want the domain model classes to describe exisiting analytic domain model as close as possible.
+You can decide to make constructors protected in order to protect your domain model invariants. This is neccessary if you want the domain model classes to describe exisiting analytic domain model as close as possible.
 
 In such cases hydrators can be used to "recover" your domain model state from database.
 
@@ -176,7 +176,7 @@ This is an optional step and can be avoided of you are going to use pessimistic 
 
 ### Insert, Delete, Update
 
-Insert, delete and update methods are necessary in order to persist your domain model state.
+Insert, delete and update methods are necessary to be able to persist your domain model state.
 
 Those methods are pretty trivial and structurually the same.
 
