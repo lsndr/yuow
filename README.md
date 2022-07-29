@@ -238,7 +238,61 @@ It's necessary to always return a boolean result of an operation. Depending on t
 
 ## Repository
 
-TODO
+> A Repository mediates between the domain and data mapping layers, acting like an in-memory domain object collection
+>
+> – [Martin Fowler](https://martinfowler.com/eaaCatalog/repository.html)
+
+`Yuow` requires you to create a simple repository in order to perform entities manipulation.
+
+Only two methods and properties are required: `extractIdentity` and `mapperConstructor`. Also, you should mirror your selection methods from data mapper. 
+
+```typescript
+import { Repository } from 'yuow';
+import { CustomerDataMapper } from './data-mappers/customer.data-mapper';
+import { Customer } from './model/customer';
+
+export class CustomerRepository extends Repository<
+  Customer,
+  CustomerDataMapper
+> {
+  protected mapperConstructor = /* Implement */;
+
+  protected extractIdentity(customer: Customer) {
+    // Implement
+  }
+
+  async findById(...args: Parameters<CustomerDataMapper['findById']>) {
+    // Implement
+  }
+}
+```
+
+### mapperConstructor
+
+Set it equal to your Data Mapper constructor as shown below:
+
+```typescript
+protected mapperConstructor = CustomerDataMapper;
+```
+
+Once it's done, you can directly access the data mappers' instance by referencing `this.mapper` property.
+
+### extractIdentity
+
+To emulate a collection-like behaviour, a repository uses an Identity Map pattern to keep identity <–> entity references. Since, with `Yuow` your domain model can live truly isolated, it's necessary to give the repository information on how to extract identity from your entity.
+
+### Mirroring selection
+To use selection methods from your data mapper, create a twin selection method and track result using `this.trackAll` method.
+
+```typescript
+async findById(...args: Parameters<CustomerDataMapper['findById']>) {
+  const result = await this.mapper.findById(...args);
+
+  return this.trackAll(result, 'loaded');
+}
+```
+
+You can also use `this.track` and `this.untrack` to track/untrack each entity manually.
 
 ## License
 
