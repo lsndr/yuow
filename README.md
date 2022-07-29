@@ -8,7 +8,7 @@
 
 `Yuow` is a generic implementation of Unity of Work, Repository and IdentityMap patterns built on top of [Knex](http://knexjs.org/) library.
 
-With `yuow` you can build a truly isolated domain model.
+With `Yuow` you can build a truly isolated domain model.
 
 1. [Quick Start](#quick-start)
 2. [Options](#options)
