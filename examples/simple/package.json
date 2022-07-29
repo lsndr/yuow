@@ -11,7 +11,7 @@
   "dependencies": {
     "knex": "^2.2.0",
     "sqlite3": "^5.0.10",
-    "yuow": "^1.0.0-alpha.2"
+    "yuow": "^1.0.0-alpha.3"
   },
   "devDependencies": {
     "ts-node": "^10.9.1",
