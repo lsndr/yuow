@@ -1,7 +1,13 @@
 {
   "name": "yuow",
   "version": "1.0.0-alpha.3",
-  "description": "Generic implementation of Unit of Work and Repository patterns to build isolated domain models",
+  "keywords": [
+    "unit of work",
+    "repository",
+    "ddd",
+    "domain model"
+  ],
+  "description": "Generic implementation of Unit of Work and Repository patterns to build isolated domain model",
   "types": "dist/index.d.ts",
   "main": "dist/index.js",
   "scripts": {
