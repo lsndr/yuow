@@ -10,9 +10,6 @@ export type Options<R> = {
   knex: Knex;
   retries?: number;
   isolationLevel?: IsolationLevel;
-  onFlush?: (payload: { knex: Knex }) => void;
-  onCommit?: () => void;
-  onRollback?: () => void;
 };
 
 export class GlobalTransaction extends Transaction {
@@ -41,13 +38,10 @@ export class GlobalTransaction extends Transaction {
   }
 
   static async run<R>({
+    unit,
     knex,
     isolationLevel,
-    unit,
-    onCommit,
     retries,
-    onFlush,
-    onRollback,
   }: Options<R>): Promise<R> {
     const maxAttempts = retries || 0;
 
@@ -57,18 +51,6 @@ export class GlobalTransaction extends Transaction {
       });
 
       const transaction = new this(trx);
-
-      if (onCommit) {
-        transaction.on('commit', onCommit);
-      }
-
-      if (onFlush) {
-        transaction.on('flush', onFlush);
-      }
-
-      if (onRollback) {
-        transaction.on('rollback', onRollback);
-      }
 
       try {
         const context = new Context(transaction);

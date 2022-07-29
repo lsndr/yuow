@@ -8,9 +8,6 @@ export type UowConfig = {
   globalTransaction: boolean;
   isolationLevel?: IsolationLevel;
   retries?: number;
-  onFlush?: (payload: { knex: Knex }) => void;
-  onCommit?: () => void;
-  onRollback?: () => void;
 };
 
 export type UowOptions = Partial<UowConfig>;
@@ -33,9 +30,6 @@ export const uowFactory = (knex: Knex): Uow => {
         knex,
         isolationLevel: config.isolationLevel,
         retries: config.retries,
-        onCommit: config.onCommit,
-        onFlush: config.onFlush,
-        onRollback: config.onRollback,
       });
     } else {
       return GlobalTransaction.run({
@@ -43,9 +37,6 @@ export const uowFactory = (knex: Knex): Uow => {
         knex,
         isolationLevel: config.isolationLevel,
         retries: config.retries,
-        onCommit: config.onCommit,
-        onFlush: config.onFlush,
-        onRollback: config.onRollback,
       });
     }
   };

@@ -10,9 +10,6 @@ export type Options<R> = {
   knex: Knex;
   retries?: number;
   isolationLevel?: IsolationLevel;
-  onFlush?: (payload: { knex: Knex }) => void;
-  onCommit?: () => void;
-  onRollback?: () => void;
 };
 
 export class LocalTransaction extends Transaction {
@@ -49,23 +46,8 @@ export class LocalTransaction extends Transaction {
     isolationLevel,
     unit,
     retries,
-    onCommit,
-    onFlush,
-    onRollback,
   }: Options<R>): Promise<R> {
     const transaction = new this(knex, isolationLevel || 'read committed');
-
-    if (onCommit) {
-      transaction.on('commit', onCommit);
-    }
-
-    if (onFlush) {
-      transaction.on('flush', onFlush);
-    }
-
-    if (onRollback) {
-      transaction.on('rollback', onRollback);
-    }
 
     const maxAttempts = retries || 3;
 
