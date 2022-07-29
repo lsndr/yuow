@@ -67,6 +67,8 @@ If you pass `true`, all database interactions inside unit of work will be wrappe
 
 `retries` specifies how many times unit of work must be retried before it throws an error. Retries are perfromed only if `PersistenceError` is thrown. Check out [Data Mapper](#data-mapper) section to see when it's thrown.
 
+When `globalTransaction` is set to `false`, retries is equal `3` by default, otherwise it is `0`.
+
 ### isolationLevel
 
 You can set the same isolation level as provided by Knex library.
