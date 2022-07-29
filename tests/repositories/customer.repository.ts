@@ -11,7 +11,7 @@ export class CustomerRepository extends Repository<
   async findById(...args: Parameters<CustomerDataMapper['findById']>) {
     const result = await this.mapper.findById(...args);
 
-    return this.propagate(result, 'loaded');
+    return this.trackAll(result, 'loaded');
   }
 
   protected extractIdentity(customer: Customer) {

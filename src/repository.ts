@@ -78,12 +78,12 @@ export abstract class Repository<E extends object, M extends DataMapper<E>> {
     this.register();
   }
 
-  protected propagate<P extends E | undefined>(
+  protected trackAll<P extends E | undefined>(
     entitity: P,
     state: EntityState,
   ): E | undefined;
-  protected propagate<P extends E[]>(entities: P, state: EntityState): E[];
-  protected propagate(entities: E | E[] | undefined, state: EntityState) {
+  protected trackAll<P extends E[]>(entities: P, state: EntityState): E[];
+  protected trackAll(entities: E | E[] | undefined, state: EntityState) {
     if (typeof entities === 'undefined') {
       return entities;
     } else if (Array.isArray(entities)) {
