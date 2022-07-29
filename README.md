@@ -281,6 +281,12 @@ Once it's done, you can directly access the data mappers' instance by referencin
 
 To emulate a collection-like behaviour, a repository uses an Identity Map pattern to keep identity <–> entity references. Since, with `Yuow` your domain model can live truly isolated, it's necessary to give the repository information on how to extract identity from your entity.
 
+```typescript
+protected extractIdentity(customer: Customer) {
+  return customer.id;
+}
+```
+
 ### Mirroring selection
 To use selection methods from your data mapper, create a twin selection method and track result using `this.trackAll` method.
 
