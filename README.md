@@ -23,6 +23,8 @@ See [examples folder](https://github.com/lsndr/yuow/tree/master/examples/)
   npm install yuow 
 ```
 
+In order to use Unit Of Work, you will need to implement [Data Mapper](#data-mapper) and [Repository](#repository) for each your model.
+
 ```typescript
 import { uowFactory } from 'yuow';
 
