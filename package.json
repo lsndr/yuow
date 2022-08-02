@@ -11,14 +11,14 @@
   "types": "dist/index.d.ts",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "rimraf ./dist && tsc",
     "watch": "tsc --watch",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "lint": "eslint \"**/*.{ts,js,json}\" --max-warnings=0",
     "lint:fix": "npm run lint -- --fix",
     "lint:fix-staged": "lint-staged",
-    "prepare": "rimraf ./dist && npm run build"
+    "prepare": "npm run build"
   },
   "repository": "lsndr/yuow",
   "author": {
