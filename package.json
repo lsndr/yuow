@@ -18,7 +18,7 @@
     "lint": "eslint \"**/*.{ts,js,json}\" --max-warnings=0",
     "lint:fix": "npm run lint -- --fix",
     "lint:fix-staged": "lint-staged",
-    "prepublish": "npm run build"
+    "prepare": "npm run build"
   },
   "repository": "lsndr/yuow",
   "author": {
