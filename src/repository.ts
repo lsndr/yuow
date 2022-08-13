@@ -62,7 +62,7 @@ export abstract class Repository<E extends object, M extends DataMapper<E>> {
   protected abstract readonly mapperConstructor: DataMapperConstructor<E, M>;
   protected abstract extractIdentity(entity: E): unknown;
   protected readonly context: DBContext;
-  protected mapperInstance?: M;
+  private mapperInstance?: M;
 
   protected get mapper() {
     if (!this.mapperInstance) {
