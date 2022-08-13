@@ -21,6 +21,7 @@
     "prepare": "npm run build"
   },
   "repository": "lsndr/yuow",
+  "license": "MIT",
   "author": {
     "name": "lsndr",
     "email": "alexander@lsndr.me",
