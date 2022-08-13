@@ -14,7 +14,7 @@ export type UowOptions = Partial<UowConfig>;
 
 export type Unit<R> = (uow: Context) => R | Promise<R>;
 
-export type Uow = <R>(unit: Unit<R>, options?: UowOptions) => R | Promise<R>;
+export type Uow = <R>(unit: Unit<R>, options?: UowOptions) => Promise<R>;
 
 export const uowFactory = (knex: Knex): Uow => {
   return <R>(unit: Unit<R>, options?: UowOptions) => {
