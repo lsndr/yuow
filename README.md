@@ -91,7 +91,7 @@ import { DataMapper } from 'yuow';
 import { Customer } from './model/customer';
 
 export class CustomerDataMapper extends DataMapper<Customer> {
-  async findById(id: string): : Promise<Customer | undefined>  {
+  async findById(id: string): Promise<Customer | undefined>  {
     //  There can be different variations of selection: findOne, findMany, findByName and e.t.c. You can implement any of them.
   }
 
