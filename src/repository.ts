@@ -79,7 +79,7 @@ export abstract class Repository<E extends object, M extends DataMapper<E>> {
   }
 
   protected trackAll<P extends E | undefined>(
-    entitity: P,
+    entity: P,
     state: EntityState,
   ): E | undefined;
   protected trackAll<P extends E[]>(entities: P, state: EntityState): E[];
