@@ -39,6 +39,8 @@
     "weak-identity-map": "^1.0.2"
   },
   "devDependencies": {
+    "@commitlint/cli": "^17.7.1",
+    "@commitlint/config-conventional": "^17.7.0",
     "@semantic-release/git": "^10.0.1",
     "@types/jest": "^29.2.2",
     "@typescript-eslint/eslint-plugin": "^5.30.6",
