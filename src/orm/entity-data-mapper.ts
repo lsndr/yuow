@@ -6,6 +6,7 @@ import { ObjectOperator } from './object-operator';
 export interface EntityDataMapperOptions<E extends object> {
   // eslint-disable-next-line @typescript-eslint/ban-types
   entityConstructor: Function & { prototype: E };
+  identity: string | string[];
   properties: EntityPropertiesMap;
   table: string;
   version?: boolean | string;
@@ -27,14 +28,8 @@ export function createDataMapper<E extends object>(
     typeof options.version === 'string' ? options.version : 'version';
 
   return class extends DataMapper<E> {
-    private readonly table: string;
-    private readonly properties: EntityPropertiesMap;
-
     constructor(knex: Knex) {
       super(knex);
-
-      this.table = options.table;
-      this.properties = options.properties;
     }
 
     async find(
@@ -44,7 +39,7 @@ export function createDataMapper<E extends object>(
 
       const record = await knex
         .select('*')
-        .from(this.table)
+        .from(options.table)
         .where(where)
         .first();
 
@@ -63,11 +58,10 @@ export function createDataMapper<E extends object>(
     }
 
     override async insert(entity: E): Promise<boolean> {
-      const knex = this.knex.queryBuilder();
       const objectOperator = new ObjectOperator(entity);
       const data: Record<string, unknown> = {};
 
-      for (const [path, property] of this.properties.entries()) {
+      for (const [path, property] of options.properties.entries()) {
         const value = await property.toDatabaseValue(
           objectOperator.extract(path),
           {
@@ -82,15 +76,55 @@ export function createDataMapper<E extends object>(
         data[versionFieldName] = this.getVersion(entity);
       }
 
-      const result = await knex.insert(data).into(this.table);
+      const result = await this.knex.insert(data).into(options.table);
 
       return (result[0] || 0) > 0;
     }
 
-    override update(_entity: E): Promise<boolean> {
-      return Promise.resolve(false);
+    override async update(entity: E): Promise<boolean> {
+      const objectOperator = new ObjectOperator(entity);
+      const data: Record<string, unknown> = {};
+
+      for (const [path, property] of options.properties.entries()) {
+        const value = await property.toDatabaseValue(
+          objectOperator.extract(path),
+          {
+            knex: this.knex,
+          },
+        );
+
+        data[property.name] = value;
+      }
+
+      const query = this.knex(options.table).update(data);
+      const identityPaths = Array.isArray(options.identity)
+        ? options.identity
+        : [options.identity];
+
+      for (const identityPath of identityPaths) {
+        const property = options.properties.get(identityPath);
+        const value = objectOperator.extract(identityPath);
+
+        if (typeof property === 'undefined') {
+          throw new Error(`Couldn't find identity property: ${identityPath}`);
+        }
+
+        query.where(property.name, value as any);
+      }
+
+      if (options.version) {
+        const version = this.increaseVersion(entity);
+
+        query.where('version', version - 1);
+        query.update(versionFieldName, version);
+      }
+
+      const result = await query;
+
+      return result > 0;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     override delete(_entity: E): Promise<boolean> {
       return Promise.resolve(false);
     }
@@ -98,7 +132,7 @@ export function createDataMapper<E extends object>(
     private async hydrate(entity: E, data: any) {
       const objectOperator = new ObjectOperator(entity);
 
-      for (const [path, property] of this.properties.entries()) {
+      for (const [path, property] of options.properties.entries()) {
         const value = await property.fromDatabaseValue(data[property.name], {
           knex: this.knex,
         });

@@ -5,6 +5,10 @@ export type EntityProperties = Record<string, BaseProperty>;
 export class EntityPropertiesMap {
   constructor(private readonly properties: EntityProperties) {}
 
+  get(path: string) {
+    return this.properties[path];
+  }
+
   getPropertyPath(databaseName: string) {
     let path: string | undefined;
 

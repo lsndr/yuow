@@ -23,6 +23,7 @@ export class Schema<E extends object> {
   public createRepository() {
     const dataMapper = createDataMapper<E>({
       entityConstructor: this.entityConstructor,
+      identity: this.options.identity,
       properties: this.properties,
       table: this.options.table,
       version: this.options.version,

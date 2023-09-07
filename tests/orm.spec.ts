@@ -76,4 +76,43 @@ describe('Unit of Work', () => {
     expect(result?.id).toBe(id);
     expect(result?.name).toBe(name);
   });
+
+  it('should update an existing customer', async () => {
+    const id = '5eb795ba-8a71-5f28-8277-48e110d5f463';
+    const name = 'Gabriel Pena';
+
+    await client
+      .insert({
+        id,
+        name,
+        version: 1,
+      })
+      .into('customers');
+
+    await uow(async (ctx) => {
+      const customerRepository = ctx.getRepository(CustomerRepository);
+
+      const customer = await customerRepository.find((queryBuilder) =>
+        queryBuilder.where('id', id),
+      );
+
+      if (!customer) {
+        throw new Error('Customer not found');
+      }
+
+      customer.changeName('Landon Ray');
+    });
+
+    const record = await client
+      .select('*')
+      .from('customers')
+      .where('id', id)
+      .first();
+
+    expect(record).toEqual({
+      id,
+      name: 'Landon Ray',
+      version: 2,
+    });
+  });
 });
