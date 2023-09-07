@@ -73,10 +73,7 @@ describe('Unit of Work', () => {
     });
 
     expect(result).toBeInstanceOf(Customer);
-    // @ts-expect-error
-    expect(result.id).toBe(id);
-    // TODO: fix
-    // @ts-expect-error
-    expect(result.name).toBe(name);
+    expect(result?.id).toBe(id);
+    expect(result?.name).toBe(name);
   });
 });

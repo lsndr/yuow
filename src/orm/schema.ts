@@ -8,12 +8,12 @@ export interface SchemaOptions {
   table: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-export class Schema<E extends object, C extends Function & { prototype: E }> {
+export class Schema<E extends object> {
   public readonly properties: EntityPropertiesMap;
 
   constructor(
-    public readonly entityConstructor: C,
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    public readonly entityConstructor: Function & { prototype: E },
     properties: EntityProperties,
     public readonly options: SchemaOptions,
   ) {

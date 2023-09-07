@@ -2,10 +2,9 @@ import { Knex } from 'knex';
 import { DataMapper, DataMapperConstructor } from '../data-mapper';
 import { EntityPropertiesMap } from './entity-properties-map';
 
-export interface EntityDataMapperOptions {
-  // TODO: fix
+export interface EntityDataMapperOptions<E extends object> {
   // eslint-disable-next-line @typescript-eslint/ban-types
-  entityConstructor: Function & { prototype: object };
+  entityConstructor: Function & { prototype: E };
   properties: EntityPropertiesMap;
   table: string;
   version?: boolean | string;
@@ -21,7 +20,7 @@ export type EntityDataMapperConstructor<E extends object> =
   DataMapperConstructor<E, EntityDataMapper<E>>;
 
 export function createDataMapper<E extends object>(
-  options: EntityDataMapperOptions,
+  options: EntityDataMapperOptions<E>,
 ): EntityDataMapperConstructor<E> {
   const versionFieldName =
     typeof options.version === 'string' ? options.version : 'version';
