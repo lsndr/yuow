@@ -1,6 +1,7 @@
 import { Knex } from 'knex';
 import { DataMapper, DataMapperConstructor } from '../data-mapper';
 import { EntityPropertiesMap } from './entity-properties-map';
+import { ObjectOperator } from './object-operator';
 
 export interface EntityDataMapperOptions<E extends object> {
   // eslint-disable-next-line @typescript-eslint/ban-types
@@ -63,12 +64,12 @@ export function createDataMapper<E extends object>(
 
     override async insert(entity: E): Promise<boolean> {
       const knex = this.knex.queryBuilder();
-
+      const objectOperator = new ObjectOperator(entity);
       const data: Record<string, unknown> = {};
 
       for (const [path, property] of this.properties.entries()) {
         const value = await property.toDatabaseValue(
-          this.extract(entity, path),
+          objectOperator.extract(path),
           {
             knex: this.knex,
           },
@@ -95,43 +96,14 @@ export function createDataMapper<E extends object>(
     }
 
     private async hydrate(entity: E, data: any) {
+      const objectOperator = new ObjectOperator(entity);
+
       for (const [path, property] of this.properties.entries()) {
         const value = await property.fromDatabaseValue(data[property.name], {
           knex: this.knex,
         });
 
-        this.put(entity, path, value);
-      }
-    }
-
-    private extract(entity: object, path: string) {
-      const keys = path.split('.');
-
-      return keys.reduce<unknown>((value, key) => {
-        return (value as any)[key];
-      }, entity);
-    }
-
-    private put(object: object, path: string, value: unknown) {
-      const stack = path.split('.');
-      let dataObject = object;
-
-      while (stack.length > 0) {
-        const key = stack.shift();
-
-        if (typeof key === 'undefined') {
-          throw new Error('Unexpectedly exhausted the stack');
-        }
-
-        if (stack.length === 0) {
-          (dataObject as any)[key] = value;
-        } else {
-          if (!(key in dataObject)) {
-            (dataObject as any)[key] = {};
-          }
-
-          dataObject = (dataObject as any)[key] ?? {};
-        }
+        objectOperator.put(path, value);
       }
     }
   };

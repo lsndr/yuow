@@ -4,7 +4,7 @@ import { createRepository } from './entity-repository';
 
 export interface SchemaOptions {
   version?: boolean | 'string';
-  identity: string;
+  identity: string | string[];
   table: string;
 }
 

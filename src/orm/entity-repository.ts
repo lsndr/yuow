@@ -4,9 +4,10 @@ import {
   EntityDataMapperConstructor,
 } from './entity-data-mapper';
 import { EntityPropertiesMap } from './entity-properties-map';
+import { ObjectOperator } from './object-operator';
 
 export interface EntityRepositoryOptions<E extends object> {
-  identity: string;
+  identity: string | string[];
   properties: EntityPropertiesMap;
   dataMapperConstructor: EntityDataMapperConstructor<E>;
 }
@@ -36,7 +37,18 @@ export function createRepository<E extends object>(
     }
 
     protected override extractIdentity(entity: E): unknown {
-      return (entity as any)[options.identity];
+      const objectOperator = new ObjectOperator(entity);
+      const identityPaths = Array.isArray(options.identity)
+        ? options.identity
+        : [options.identity];
+
+      const identities = identityPaths.reduce<unknown[]>((array, path) => {
+        array.push(objectOperator.extract(path));
+
+        return array;
+      }, []);
+
+      return JSON.stringify(identities);
     }
   };
 }
