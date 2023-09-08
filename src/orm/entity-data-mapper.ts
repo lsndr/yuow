@@ -4,7 +4,7 @@ import { EntityPropertiesMap } from './entity-properties-map';
 import { ObjectOperator } from './object-operator';
 
 export interface EntityDataMapperOptions<E extends object> {
-  // eslint-disable-next-line @typescript-eslint/ban-types
+  // eslint-disable-next-line @typescript-eslint/ban-types -- Entity constructor can be private or protected
   entityConstructor: Function & { prototype: E };
   identity: string | string[];
   properties: EntityPropertiesMap;
