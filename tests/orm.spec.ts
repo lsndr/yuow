@@ -4,7 +4,7 @@ import { Customer } from './model/customer';
 import { resolve } from 'path';
 import { CustomerRepository } from './schemas/customer.schema';
 
-describe('Unit of Work', () => {
+describe('ORM', () => {
   let client: Knex;
   let uow: Uow;
 
@@ -114,5 +114,36 @@ describe('Unit of Work', () => {
       name: 'Landon Ray',
       version: 2,
     });
+  });
+
+  it('should delete an existing customer', async () => {
+    const id = '362abd00-343a-57f3-b016-322289a40be6';
+    const name = 'Eugene James';
+
+    await client
+      .insert({
+        id,
+        name,
+        version: 1,
+      })
+      .into('customers');
+
+    await uow(async (ctx) => {
+      const customerRepository = ctx.getRepository(CustomerRepository);
+
+      const customer = await customerRepository.find((queryBuilder) =>
+        queryBuilder.where('id', id),
+      );
+
+      if (!customer) {
+        throw new Error('Customer not found');
+      }
+
+      customerRepository.delete(customer);
+    });
+
+    const records = await client.select('*').from('customers');
+
+    expect(records).toEqual([]);
   });
 });

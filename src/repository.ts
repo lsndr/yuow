@@ -130,6 +130,8 @@ export abstract class Repository<E extends object, M extends DataMapper<E>> {
       this.identityMap.set(identity, new EntityWrapper(entity, state));
 
       return entity;
+    } else {
+      trackedEntity.state = state;
     }
 
     return trackedEntity.entity;
