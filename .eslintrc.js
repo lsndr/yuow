@@ -35,11 +35,18 @@ module.exports = {
         '@typescript-eslint/no-for-in-array': 'error',
         'no-implied-eval': 'off',
         '@typescript-eslint/no-implied-eval': 'error',
-        '@typescript-eslint/no-misused-promises': 'error',
         'require-await': 'off',
         '@typescript-eslint/require-await': 'error',
         '@typescript-eslint/restrict-plus-operands': 'error',
         '@typescript-eslint/unbound-method': 'error',
+        '@typescript-eslint/no-misused-promises': [
+          'error',
+          {
+            checksVoidReturn: {
+              arguments: false,
+            },
+          },
+        ],
       },
       settings: {
         'import/parsers': {
