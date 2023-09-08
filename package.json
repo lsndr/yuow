@@ -35,7 +35,7 @@
     "knex": "^0.95.0 || ^1.0.0 || ^2.0.0"
   },
   "dependencies": {
-    "emittery": "^0.13.1",
+    "emittery": "^1.0.1",
     "weak-identity-map": "^1.0.2"
   },
   "devDependencies": {
