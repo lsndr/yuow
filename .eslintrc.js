@@ -1,12 +1,12 @@
 module.exports = {
+  root: true,
   extends: [
     'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
     'plugin:import/recommended',
-    'plugin:import/typescript',
+    'plugin:eslint-comments/recommended',
+    'plugin:json/recommended',
   ],
-  plugins: ['@typescript-eslint'],
   ignorePatterns: ['**/dist/*', '/coverage', 'node_modules', '!.vscode'],
   env: {
     node: true,
@@ -14,11 +14,9 @@ module.exports = {
   overrides: [
     {
       files: ['*.ts'],
+      plugins: ['@typescript-eslint'],
       extends: [
-        'eslint:recommended',
         'plugin:@typescript-eslint/recommended',
-        'plugin:prettier/recommended',
-        'plugin:import/recommended',
         'plugin:import/typescript',
       ],
       parserOptions: {
@@ -39,6 +37,10 @@ module.exports = {
         '@typescript-eslint/require-await': 'error',
         '@typescript-eslint/restrict-plus-operands': 'error',
         '@typescript-eslint/unbound-method': 'error',
+        'import/no-default-export': 'error',
+        'eslint-comments/require-description': 'error',
+        'eslint-comments/disable-enable-pair': 'off',
+        'eslint-comments/no-unlimited-disable': 'off',
         '@typescript-eslint/no-misused-promises': [
           'error',
           {
@@ -53,9 +55,12 @@ module.exports = {
           '@typescript-eslint/parser': ['.ts'],
         },
         'import/resolver': {
-          typescript: {},
+          typescript: {
+            project: './tsconfig.eslint.json',
+          },
         },
       },
+      reportUnusedDisableDirectives: true,
     },
   ],
 };

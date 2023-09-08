@@ -12,7 +12,7 @@ export class Schema<E extends object> {
   public readonly properties: EntityPropertiesMap;
 
   constructor(
-    // eslint-disable-next-line @typescript-eslint/ban-types
+    // eslint-disable-next-line @typescript-eslint/ban-types -- Entity constructor can be private or protected
     public readonly entityConstructor: Function & { prototype: E },
     properties: EntityProperties,
     public readonly options: SchemaOptions,
