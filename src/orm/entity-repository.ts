@@ -28,7 +28,7 @@ export function createRepository<E extends object>(
   options: EntityRepositoryOptions<E>,
 ): EntityRepositoryConstructor<E> {
   return class extends Repository<E, EntityDataMapper<E>> {
-    protected mapperConstructor = options.dataMapperConstructor;
+    [Repository.DataMapper] = options.dataMapperConstructor;
 
     async find(...args: Parameters<EntityDataMapper<E>['find']>) {
       const result = await this.mapper.find(...args);

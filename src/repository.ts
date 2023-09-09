@@ -55,18 +55,28 @@ export type RepositoryEvents<E> = {
     entity: E;
   };
 };
+
+export const RepositoryDataMapper: unique symbol = Symbol(
+  'Repository.DataMapper',
+);
+
 export abstract class Repository<E extends object, M extends DataMapper<E>> {
+  public static readonly DataMapper: typeof RepositoryDataMapper =
+    RepositoryDataMapper;
   private eventEmitter: EventEmitter<RepositoryEvents<E>> = new EventEmitter();
   private identityMap: WeakIdentityMap<unknown, EntityWrapper<E>> =
     new WeakIdentityMap();
-  protected abstract readonly mapperConstructor: DataMapperConstructor<E, M>;
+  protected abstract readonly [RepositoryDataMapper]: DataMapperConstructor<
+    E,
+    M
+  >;
   protected abstract extractIdentity(entity: E): unknown;
   protected readonly context: DBContext;
   private mapperInstance?: M;
 
   protected get mapper() {
     if (!this.mapperInstance) {
-      this.mapperInstance = new this.mapperConstructor(this.context.knex);
+      this.mapperInstance = new this[RepositoryDataMapper](this.context.knex);
     }
 
     return this.mapperInstance;
@@ -189,19 +199,19 @@ export abstract class Repository<E extends object, M extends DataMapper<E>> {
   }
 
   private insert(entity: E, knex: Knex): Promise<boolean> {
-    const mapper = new this.mapperConstructor(knex);
+    const mapper = new this[RepositoryDataMapper](knex);
 
     return mapper.insert(entity);
   }
 
   private update(entity: E, knex: Knex): Promise<boolean> {
-    const mapper = new this.mapperConstructor(knex);
+    const mapper = new this[RepositoryDataMapper](knex);
 
     return mapper.update(entity);
   }
 
   private remove(entity: E, knex: Knex): Promise<boolean> {
-    const mapper = new this.mapperConstructor(knex);
+    const mapper = new this[RepositoryDataMapper](knex);
 
     return mapper.delete(entity);
   }

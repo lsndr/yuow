@@ -244,7 +244,7 @@ It's necessary to always return a boolean result of an operation. Depending on t
 
 `Yuow` requires you to create a simple repository in order to perform entities manipulation.
 
-Only two methods and properties are required: `extractIdentity` and `mapperConstructor`. Also, you should mirror your selection methods from data mapper. 
+Only two methods and properties are required: `extractIdentity` and `[Repository.DataMapper]`. Also, you should mirror your selection methods from data mapper. 
 
 ```typescript
 import { Repository } from 'yuow';
@@ -255,7 +255,7 @@ export class CustomerRepository extends Repository<
   Customer,
   CustomerDataMapper
 > {
-  protected mapperConstructor = /* Implement */;
+  protected [Repository.DataMapper] = /* Implement */;
 
   protected extractIdentity(customer: Customer) {
     // Implement
@@ -267,12 +267,12 @@ export class CustomerRepository extends Repository<
 }
 ```
 
-### mapperConstructor
+### Repository.DataMapper
 
 Set it equal to your Data Mapper constructor as shown below:
 
 ```typescript
-protected mapperConstructor = CustomerDataMapper;
+protected [Repository.DataMapper] = CustomerDataMapper;
 ```
 
 Once it's done, you can directly access the data mappers' instance by referencing `this.mapper` property.
