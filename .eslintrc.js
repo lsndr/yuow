@@ -7,7 +7,13 @@ module.exports = {
     'plugin:eslint-comments/recommended',
     'plugin:json/recommended',
   ],
-  ignorePatterns: ['**/dist/*', '/coverage', 'node_modules', '!.vscode'],
+  ignorePatterns: [
+    '**/dist/*',
+    '/coverage',
+    'node_modules',
+    '!.vscode',
+    '!.devcontainer',
+  ],
   env: {
     node: true,
   },

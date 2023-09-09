@@ -1,0 +1,32 @@
+{
+    "name": "Yuow",
+    "dockerComposeFile": "docker-compose.yml",
+    "workspaceFolder": "/workspace",
+    "service": "app",
+    "remoteUser": "node",
+    "waitFor": "postCreateCommand",
+    "postCreateCommand": "sudo chown node node_modules && npm ci && chmod +x ./node_modules/husky/lib/bin.js",
+    "postAttachCommand": "git config core.fileMode false && git config --global --add safe.directory ${containerWorkspaceFolder}",
+    "customizations": {
+      "vscode": {
+        "extensions": [
+          "dbaeumer.vscode-eslint",
+          "vivaxy.vscode-conventional-commits",
+          "firsttris.vscode-jest-runner",
+          "redhat.vscode-yaml",
+          "Gruntfuggly.todo-tree",
+          "eamodio.gitlens"
+        ],
+        "settings": {
+          "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+          "eslint.format.enable": true,
+          "[typescript]": {
+            "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+          },
+          "[javascript]": {
+            "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+          }
+        }
+      }
+    }
+  }
