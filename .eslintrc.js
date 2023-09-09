@@ -1,21 +1,26 @@
 module.exports = {
   root: true,
+  plugins: ['json-format'],
   extends: [
     'eslint:recommended',
     'plugin:prettier/recommended',
     'plugin:import/recommended',
     'plugin:eslint-comments/recommended',
-    'plugin:json/recommended',
   ],
   ignorePatterns: [
     '**/dist/*',
     '/coverage',
     'node_modules',
     '!.vscode',
+    'package-lock.json',
     '!.devcontainer',
   ],
   env: {
     node: true,
+  },
+  settings: {
+    'json/sort-package-json': false,
+    'json/json-with-comments-files': [],
   },
   overrides: [
     {
