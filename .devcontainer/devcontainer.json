@@ -3,9 +3,8 @@
   "dockerComposeFile": "docker-compose.yml",
   "workspaceFolder": "/workspace",
   "service": "app",
-  "remoteUser": "node",
   "waitFor": "postCreateCommand",
-  "postCreateCommand": "sudo chown node node_modules && npm ci && chmod +x ./node_modules/husky/lib/bin.js",
+  "postCreateCommand": "npm ci",
   "postAttachCommand": "git config core.fileMode false && git config --global --add safe.directory ${containerWorkspaceFolder}",
   "customizations": {
     "vscode": {
