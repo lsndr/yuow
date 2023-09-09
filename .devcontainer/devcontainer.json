@@ -4,7 +4,8 @@
   "workspaceFolder": "/workspace",
   "service": "app",
   "waitFor": "postCreateCommand",
-  "postCreateCommand": "git config core.fileMode false && git config --global --add safe.directory ${containerWorkspaceFolder} && git config pull.ff only && npm ci",
+  "postCreateCommand": "npm ci",
+  "postStartCommand": "git config --global core.fileMode false && git config --global --add safe.directory ${containerWorkspaceFolder} && git config --global pull.ff only",
   "customizations": {
     "vscode": {
       "extensions": [
