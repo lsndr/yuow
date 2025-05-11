@@ -1,7 +1,7 @@
 import { Knex, knex } from 'knex';
 import { PersistenceError, Uow, uowFactory } from '../src';
-import { Customer } from './model/customer';
-import { CustomerRepository } from './repositories/customer.repository';
+import { Customer } from './utils/customer';
+import { CustomerRepository } from './utils/customer.repository';
 import { resolve } from 'path';
 
 describe('Unit of Work', () => {

@@ -1,5 +1,5 @@
 import { Property, Schema } from '../../src/orm';
-import { Customer } from '../model/customer';
+import { Customer } from './customer';
 
 const schema = new Schema(
   Customer,

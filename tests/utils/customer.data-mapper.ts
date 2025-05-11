@@ -1,6 +1,6 @@
 import { DataMapper } from '../../src';
-import { CustomerHydrator } from '../hydrators/customer.hydrator';
-import { Customer } from '../model/customer';
+import { CustomerHydrator } from './customer.hydrator';
+import { Customer } from './customer';
 
 export type FindOneCustomerQuery = {
   id: string;

@@ -1,6 +1,6 @@
 import { Repository } from '../../src';
-import { CustomerDataMapper } from '../data-mappers/customer.data-mapper';
-import { Customer } from '../model/customer';
+import { CustomerDataMapper } from './customer.data-mapper';
+import { Customer } from './customer';
 
 export class CustomerRepository extends Repository<
   Customer,

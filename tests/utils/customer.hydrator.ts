@@ -1,4 +1,4 @@
-import { Customer, CustomerState } from '../model/customer';
+import { Customer, CustomerState } from './customer';
 
 export class CustomerHydrator extends Customer {
   constructor(state: CustomerState) {
