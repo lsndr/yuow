@@ -4,6 +4,7 @@ export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable('customers', (table) => {
     table.uuid('id').primary().unique();
     table.text('name').notNullable();
+    table.jsonb('cards').notNullable();
     table.smallint('version').notNullable();
   });
 }

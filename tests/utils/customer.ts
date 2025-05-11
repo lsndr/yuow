@@ -1,6 +1,7 @@
 export type CustomerState = {
   id: string;
   name: string;
+  cards: string[];
 };
 
 export class Customer {
@@ -14,6 +15,10 @@ export class Customer {
     return this.state.name;
   }
 
+  get cards() {
+    return this.state.cards;
+  }
+
   protected constructor(state: CustomerState) {
     this.state = state;
   }
@@ -22,10 +27,7 @@ export class Customer {
     this.state.name = name;
   }
 
-  static create(id: string, name: string) {
-    return new this({
-      id,
-      name,
-    });
+  static create(state: CustomerState) {
+    return new this(state);
   }
 }
