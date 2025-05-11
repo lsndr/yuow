@@ -15,21 +15,23 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - node: 18.x
-            script: lint
-          - node: 18.x
-            script: build
-          - node: 16.x
-            script: test
-          - node: 18.x
-            script: test
           - node: 20.x
             script: test
+          - node: 20.x
+            script: lint
+          - node: 20.x
+            script: format
+          - node: 22.x
+            script: test
+          - node: 22.x
+            script: lint
+          - node: 22.x
+            script: format
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           cache: 'npm'
