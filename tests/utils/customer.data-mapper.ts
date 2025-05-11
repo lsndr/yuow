@@ -11,6 +11,7 @@ export class CustomerDataMapper extends DataMapper<Customer> {
     return new CustomerHydrator({
       id: record.id,
       name: record.name,
+      cards: JSON.parse(record.cards),
     });
   }
 
@@ -39,6 +40,7 @@ export class CustomerDataMapper extends DataMapper<Customer> {
       .insert({
         id: customer.id,
         name: customer.name,
+        cards: JSON.stringify(customer.cards),
         version,
       })
       .into('customers');
@@ -53,6 +55,7 @@ export class CustomerDataMapper extends DataMapper<Customer> {
       .update({
         id: customer.id,
         name: customer.name,
+        cards: JSON.stringify(customer.cards),
         version,
       })
       .where('customers.id', customer.id)

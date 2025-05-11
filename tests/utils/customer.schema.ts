@@ -1,4 +1,4 @@
-import { Property, Schema } from '../../src/orm';
+import { JsonProperty, Property, Schema } from '../../src/orm';
 import { Customer } from './customer';
 
 const schema = new Schema(
@@ -9,6 +9,9 @@ const schema = new Schema(
     }),
     'state.name': new Property({
       name: 'name',
+    }),
+    'state.cards': new JsonProperty({
+      name: 'cards',
     }),
   },
   {

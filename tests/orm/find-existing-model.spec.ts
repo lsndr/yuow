@@ -33,7 +33,9 @@ describe('ORM – Find Existing Model', () => {
     const id = faker.string.uuid();
     const name = faker.person.fullName();
     await uow((ctx) =>
-      ctx.getRepository(CustomerRepository).add(Customer.create(id, name)),
+      ctx
+        .getRepository(CustomerRepository)
+        .add(Customer.create({ id, name, cards: [] })),
     );
 
     // act
@@ -52,9 +54,13 @@ describe('ORM – Find Existing Model', () => {
   it("should fail to find model if it doesn't exist", async () => {
     // arrange
     await uow((ctx) =>
-      ctx
-        .getRepository(CustomerRepository)
-        .add(Customer.create(faker.string.uuid(), faker.person.fullName())),
+      ctx.getRepository(CustomerRepository).add(
+        Customer.create({
+          id: faker.string.uuid(),
+          name: faker.person.fullName(),
+          cards: [],
+        }),
+      ),
     );
 
     // act

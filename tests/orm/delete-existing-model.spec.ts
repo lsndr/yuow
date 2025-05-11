@@ -34,7 +34,7 @@ describe('ORM – Delete Existing Model', () => {
     await uow((ctx) =>
       ctx
         .getRepository(CustomerRepository)
-        .add(Customer.create(id, faker.person.fullName())),
+        .add(Customer.create({ id, name: faker.person.fullName(), cards: [] })),
     );
 
     // act

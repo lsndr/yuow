@@ -38,7 +38,7 @@ describe('Unit of Work', () => {
 
         const customerRepository = ctx.getRepository(CustomerRepository);
 
-        const customer = Customer.create(id, name);
+        const customer = Customer.create({ id, name, cards: [] });
 
         customerRepository.add(customer);
       });
@@ -52,6 +52,7 @@ describe('Unit of Work', () => {
       expect(record).toEqual({
         id: '2d2cdc62-f70e-4f1b-9407-b0702a72384a',
         name: 'Ted Cannon',
+        cards: '[]',
         version: 1,
       });
       expect(attempts).toBe(1);
@@ -67,7 +68,7 @@ describe('Unit of Work', () => {
 
         const customerRepository = ctx.getRepository(CustomerRepository);
 
-        const customer = Customer.create(id, name);
+        const customer = Customer.create({ id, name, cards: [] });
 
         customerRepository.add(customer);
         customerRepository.add(customer);
@@ -82,6 +83,7 @@ describe('Unit of Work', () => {
       expect(record).toEqual({
         id: '524f314e-700f-4467-8648-df08587fda8a',
         name: 'Gerald Silva',
+        cards: '[]',
         version: 1,
       });
       expect(attempts).toBe(1);
@@ -97,8 +99,8 @@ describe('Unit of Work', () => {
 
         const customerRepository = ctx.getRepository(CustomerRepository);
 
-        const customer1 = Customer.create(id, name);
-        const customer2 = Customer.create(id, name);
+        const customer1 = Customer.create({ id, name, cards: [] });
+        const customer2 = Customer.create({ id, name, cards: [] });
 
         const added1 = customerRepository.add(customer1);
         const added2 = customerRepository.add(customer2);
@@ -116,6 +118,7 @@ describe('Unit of Work', () => {
       expect(record).toEqual({
         id: '815a6749-5cf6-44e9-84e7-429bc008b3dc',
         name: 'Jasmine Hill',
+        cards: '[]',
         version: 1,
       });
       expect(attempts).toBe(1);
@@ -129,6 +132,7 @@ describe('Unit of Work', () => {
         .insert({
           id,
           name: 'Leslie Cunningham',
+          cards: '[]',
           version: 1,
         })
         .into('customers');
@@ -156,6 +160,7 @@ describe('Unit of Work', () => {
       expect(record).toEqual({
         id: 'adcde8c4-6211-49ba-9e5a-5fd3d2b98957',
         name: 'Billy Wagner',
+        cards: '[]',
         version: 2,
       });
       expect(attempts).toBe(1);
@@ -168,6 +173,7 @@ describe('Unit of Work', () => {
         .insert({
           id,
           name: 'Shaun Daniel',
+          cards: '[]',
           version: 1,
         })
         .into('customers');
@@ -212,6 +218,7 @@ describe('Unit of Work', () => {
         .insert({
           id,
           name: 'Archie Reese',
+          cards: '[]',
           version: 1,
         })
         .into('customers');
@@ -248,6 +255,7 @@ describe('Unit of Work', () => {
       expect(record).toEqual({
         id: '95dd88db-e52e-4213-86aa-a757563c034d',
         name: 'Hector Chambers',
+        cards: '[]',
         version: 4,
       });
       expect(attempts).toBe(3);
@@ -261,6 +269,7 @@ describe('Unit of Work', () => {
         .insert({
           id,
           name: 'Vivian Bridges',
+          cards: '[]',
           version: 1,
         })
         .into('customers');
@@ -300,6 +309,7 @@ describe('Unit of Work', () => {
       expect(record).toEqual({
         id: '71bf5067-891f-4d75-b727-5751a84446bc',
         name: 'Vivian Bridges',
+        cards: '[]',
         version: 4,
       });
       expect(attempts).toBe(3);
@@ -313,6 +323,7 @@ describe('Unit of Work', () => {
         .insert({
           id,
           name: 'Percy Mcbride',
+          cards: '[]',
           version: 1,
         })
         .into('customers');
@@ -354,6 +365,7 @@ describe('Unit of Work', () => {
       expect(record).toEqual({
         id: '39852832-f07b-49f9-9fe3-bec3a64c8d3f',
         name: 'Wilbur Nash',
+        cards: '[]',
         version: 8,
       });
       expect(attempts).toBe(7);
@@ -372,7 +384,7 @@ describe('Unit of Work', () => {
 
           const customerRepository = ctx.getRepository(CustomerRepository);
 
-          const customer = Customer.create(id, name);
+          const customer = Customer.create({ id, name, cards: [] });
 
           customerRepository.add(customer);
         },
@@ -390,6 +402,7 @@ describe('Unit of Work', () => {
       expect(record).toEqual({
         id: '2d2cdc62-f70e-4f1b-9407-b0702a72384a',
         name: 'Ted Cannon',
+        cards: '[]',
         version: 1,
       });
       expect(attempts).toBe(1);
@@ -406,7 +419,7 @@ describe('Unit of Work', () => {
 
           const customerRepository = ctx.getRepository(CustomerRepository);
 
-          const customer = Customer.create(id, name);
+          const customer = Customer.create({ id, name, cards: [] });
 
           customerRepository.add(customer);
           customerRepository.add(customer);
@@ -425,6 +438,7 @@ describe('Unit of Work', () => {
       expect(record).toEqual({
         id: '524f314e-700f-4467-8648-df08587fda8a',
         name: 'Gerald Silva',
+        cards: '[]',
         version: 1,
       });
       expect(attempts).toBe(1);
@@ -438,6 +452,7 @@ describe('Unit of Work', () => {
         .insert({
           id,
           name: 'Leslie Cunningham',
+          cards: '[]',
           version: 1,
         })
         .into('customers');
@@ -470,6 +485,7 @@ describe('Unit of Work', () => {
       expect(record).toEqual({
         id: 'adcde8c4-6211-49ba-9e5a-5fd3d2b98957',
         name: 'Billy Wagner',
+        cards: '[]',
         version: 2,
       });
       expect(attempts).toBe(1);

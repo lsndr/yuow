@@ -34,7 +34,9 @@ describe('ORM – Update Existing Model', () => {
     const name = faker.person.fullName();
     const newName = faker.person.fullName();
     await uow((ctx) =>
-      ctx.getRepository(CustomerRepository).add(Customer.create(id, name)),
+      ctx
+        .getRepository(CustomerRepository)
+        .add(Customer.create({ id, name, cards: [] })),
     );
 
     // act

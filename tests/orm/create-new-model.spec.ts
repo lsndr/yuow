@@ -32,10 +32,16 @@ describe('ORM - Create New Model', () => {
     // arrange
     const id = faker.string.uuid();
     const name = faker.person.fullName();
+    const cards = [
+      faker.finance.creditCardNumber(),
+      faker.finance.creditCardNumber(),
+    ];
 
     // act
     await uow((ctx) => {
-      ctx.getRepository(CustomerRepository).add(Customer.create(id, name));
+      ctx
+        .getRepository(CustomerRepository)
+        .add(Customer.create({ id, name, cards }));
     });
 
     // assert
@@ -45,5 +51,6 @@ describe('ORM - Create New Model', () => {
 
     expect(model?.id).toBe(id);
     expect(model?.name).toBe(name);
+    expect(model?.cards).toEqual(cards);
   });
 });
