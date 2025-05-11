@@ -12,9 +12,8 @@ export class Schema<E extends object> {
   public readonly properties: EntityPropertiesMap;
 
   constructor(
-    public readonly entityConstructor: (
-      ...args: any[]
-    ) => any & { prototype: E },
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type -- Required for entity constructor
+    public readonly entityConstructor: Function & { prototype: E },
     properties: EntityProperties,
     public readonly options: SchemaOptions,
   ) {

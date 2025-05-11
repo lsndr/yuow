@@ -4,7 +4,8 @@ import { EntityPropertiesMap } from './entity-properties-map';
 import { ObjectOperator } from './object-operator';
 
 export interface EntityDataMapperOptions<E extends object> {
-  entityConstructor: (...args: any[]) => any & { prototype: E };
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type -- Required for entity constructor
+  entityConstructor: Function & { prototype: E };
   identity: string | string[];
   properties: EntityPropertiesMap;
   table: string;
