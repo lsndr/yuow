@@ -5,7 +5,6 @@
 [![npm downloads](https://img.shields.io/npm/dt/yuow.svg)](https://www.npmjs.com/package/yuow)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/lsndr/yuow/blob/master/LICENSE.md)
 
-
 `Yuow` is a generic implementation of Unit of Work, Repository and IdentityMap patterns built on top of [Knex](http://knexjs.org/) library.
 
 With `Yuow` you can build a truly isolated domain model.
@@ -20,7 +19,7 @@ With `Yuow` you can build a truly isolated domain model.
 See [examples folder](https://github.com/lsndr/yuow/tree/master/examples/)
 
 ```
-  npm install yuow 
+  npm install yuow
 ```
 
 `Yuow` requires you to implement [Data Mapper](#data-mapper) and [Repository](#repository) for each your model.
@@ -42,7 +41,7 @@ await uow(async (ctx) => {
 
   return {
     id: user.id,
-    name: user.name
+    name: user.name,
   };
 });
 ```
@@ -53,7 +52,7 @@ await uow(async (ctx) => {
 uow(unit, {
   globalTransaction: false,
   isolationLevel: 'read commited',
-  retries: 3
+  retries: 3,
 });
 ```
 
@@ -79,19 +78,18 @@ You can set the same isolation level as provided by Knex library.
 >
 > – [Martin Fowler](https://martinfowler.com/eaaCatalog/dataMapper.html)
 
-### Implementation 
+### Implementation
 
 Your data mapper must extend an abstract `DataMapper` class exported from `Yuow` package.
 
 There are only three required abstract methods: `insert`, `update` and `delete`. Selection is also a necessary operation, but it is not as trivial as others, so you will need to implement it on your own.
-
 
 ```typescript
 import { DataMapper } from 'yuow';
 import { Customer } from './model/customer';
 
 export class CustomerDataMapper extends DataMapper<Customer> {
-  async findById(id: string): Promise<Customer | undefined>  {
+  async findById(id: string): Promise<Customer | undefined> {
     //  There can be different variations of selection: findOne, findMany, findByName and e.t.c. You can implement any of them.
   }
 
@@ -103,12 +101,11 @@ export class CustomerDataMapper extends DataMapper<Customer> {
     // Implement
   }
 
-  async delete(customer: Customer) : Promise<boolean> {
+  async delete(customer: Customer): Promise<boolean> {
     // Implement
   }
 }
 ```
-
 
 ### Selection
 
@@ -136,7 +133,7 @@ async findById(id: string): Promise<Cutomer | undefined> {
     name: record.name,
   });;
 
-  // 4. Remember its version 
+  // 4. Remember its version
   this.setVersion(customer, record.version);
 
   // 5. Return
@@ -164,7 +161,6 @@ export class CustomerHydrator extends Customer {
 }
 ```
 
-
 #### Versioning
 
 Versioning is a common approach to implement optimistic concurency control.
@@ -172,7 +168,6 @@ Versioning is a common approach to implement optimistic concurency control.
 Abstract DataMapper provides 3 methods that makes versioning easy: `setVersion`, `increaseVersion` and `getVersion`.
 
 This is an optional step and can be avoided of you are going to use pessimistic concurency control.
-
 
 ### Insert, Delete, Update
 
@@ -185,7 +180,7 @@ async insert(customer: Customer) {
   // 1. Get version
   const version = this.getVersion(customer);
 
-  // 2. Insert 
+  // 2. Insert
   const result = await this.knex
     .insert({
       id: customer.id,
@@ -234,7 +229,7 @@ async delete(customer: Customer) {
 
 In the example above method `getVersion` is used to get a current version of an entity, if no version has been previusoly set using `setVersion` method it will return `1`. Method `increaseVersion` increaes version by one and returns it.
 
-It's necessary to always return a boolean result of an operation. Depending on the result, `Youw` decides whether to throw `PersistenceError` and retry an operation. 
+It's necessary to always return a boolean result of an operation. Depending on the result, `Youw` decides whether to throw `PersistenceError` and retry an operation.
 
 ## Repository
 
@@ -244,7 +239,7 @@ It's necessary to always return a boolean result of an operation. Depending on t
 
 `Yuow` requires you to create a simple repository in order to perform entities manipulation.
 
-Only two methods and properties are required: `extractIdentity` and `[Repository.DataMapper]`. Also, you should mirror your selection methods from data mapper. 
+Only two methods and properties are required: `extractIdentity` and `[Repository.DataMapper]`. Also, you should mirror your selection methods from data mapper.
 
 ```typescript
 import { Repository } from 'yuow';
@@ -272,7 +267,7 @@ export class CustomerRepository extends Repository<
 Set it equal to your Data Mapper constructor as shown below:
 
 ```typescript
-protected [Repository.DataMapper] = CustomerDataMapper;
+protected[Repository.DataMapper] = CustomerDataMapper;
 ```
 
 Once it's done, you can directly access the data mappers' instance by referencing `this.mapper` property.
@@ -288,6 +283,7 @@ protected extractIdentity(customer: Customer) {
 ```
 
 ### Mirroring selection
+
 To use selection methods from your data mapper, create a twin selection method and track result using `this.trackAll` method.
 
 ```typescript

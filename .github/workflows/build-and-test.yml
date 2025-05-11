@@ -2,7 +2,7 @@ name: Build & Test
 
 on:
   pull_request:
-    branches: [master, next, "*.x", beta, alpha]
+    branches: [master, next, '*.x', beta, alpha]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

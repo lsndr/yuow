@@ -1,30 +1,18 @@
 module.exports = {
   root: true,
-  plugins: ['json-format'],
   extends: [
     'eslint:recommended',
-    'plugin:prettier/recommended',
     'plugin:import/recommended',
     'plugin:eslint-comments/recommended',
+    'prettier',
   ],
-  ignorePatterns: [
-    '**/dist/*',
-    '/coverage',
-    'node_modules',
-    '!.vscode',
-    'package-lock.json',
-    '!.devcontainer',
-  ],
+  ignorePatterns: ['**/dist/**/*', '**/node_modules'],
   env: {
     node: true,
   },
-  settings: {
-    'json/sort-package-json': false,
-    'json/json-with-comments-files': [],
-  },
   overrides: [
     {
-      files: ['*.ts'],
+      files: ['*.ts', '*.tsx'],
       plugins: ['@typescript-eslint'],
       extends: [
         'plugin:@typescript-eslint/recommended',
@@ -44,6 +32,7 @@ module.exports = {
         '@typescript-eslint/no-for-in-array': 'error',
         'no-implied-eval': 'off',
         '@typescript-eslint/no-implied-eval': 'error',
+        '@typescript-eslint/no-misused-promises': 'error',
         'require-await': 'off',
         '@typescript-eslint/require-await': 'error',
         '@typescript-eslint/restrict-plus-operands': 'error',
@@ -52,14 +41,7 @@ module.exports = {
         'eslint-comments/require-description': 'error',
         'eslint-comments/disable-enable-pair': 'off',
         'eslint-comments/no-unlimited-disable': 'off',
-        '@typescript-eslint/no-misused-promises': [
-          'error',
-          {
-            checksVoidReturn: {
-              arguments: false,
-            },
-          },
-        ],
+        'no-restricted-imports': ['error', '@nestjs/cqrs'],
       },
       settings: {
         'import/parsers': {

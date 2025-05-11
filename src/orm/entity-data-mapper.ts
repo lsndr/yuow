@@ -4,8 +4,7 @@ import { EntityPropertiesMap } from './entity-properties-map';
 import { ObjectOperator } from './object-operator';
 
 export interface EntityDataMapperOptions<E extends object> {
-  // eslint-disable-next-line @typescript-eslint/ban-types -- Entity constructor can be private or protected
-  entityConstructor: Function & { prototype: E };
+  entityConstructor: (...args: any[]) => any & { prototype: E };
   identity: string | string[];
   properties: EntityPropertiesMap;
   table: string;
@@ -13,9 +12,7 @@ export interface EntityDataMapperOptions<E extends object> {
 }
 
 export interface EntityDataMapper<E extends object> extends DataMapper<E> {
-  find(
-    where: (queryBuilder: Knex.QueryBuilder) => void,
-  ): Promise<E | undefined>;
+  find(where: (queryBuilder: Knex.QueryBuilder) => any): Promise<E | undefined>;
 }
 
 export type EntityDataMapperConstructor<E extends object> =
