@@ -25,8 +25,8 @@
   "license": "MIT",
   "author": {
     "name": "lsndr",
-    "email": "alexander@lsndr.me",
-    "url": "https://lsndr.me"
+    "email": "alexander@lsndr.com",
+    "url": "https://lsndr.com"
   },
   "lint-staged": {
     "**/*.{js,ts,json} !(package-lock.json)": "eslint --fix --max-warnings=0"
