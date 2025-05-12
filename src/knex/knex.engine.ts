@@ -8,8 +8,6 @@ export class KnexEngine
   constructor(private readonly knex: Knex) {}
 
   async createTransaction(options: KnexTransactionOptions) {
-    const trx = await this.knex.transaction();
-
-    return new KnexTransaction(trx, options);
+    return await KnexTransaction.create(this.knex, options);
   }
 }

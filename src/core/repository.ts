@@ -173,7 +173,7 @@ export abstract class Repository<
             entity: wrapper.entity,
           }).catch(console.error);
         } else if (wrapper.state === 'loaded' && !wrapper.verify()) {
-          await assertChange(() => this.update(wrapper.entity), 'update');
+          await assertChange(async () => this.update(wrapper.entity), 'update');
 
           this.emit('updated', {
             entity: wrapper.entity,

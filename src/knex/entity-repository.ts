@@ -7,6 +7,7 @@ import { EntityPropertiesMap } from '../core/orm/entity-properties-map';
 import { ObjectOperator } from '../core/orm/object-operator';
 import { KnexTransaction } from './knex.transaction';
 import { DBContext } from '../core/db-context';
+import { Knex } from 'knex';
 
 export interface EntityRepositoryOptions<E extends object> {
   identity: string | string[];
@@ -16,9 +17,7 @@ export interface EntityRepositoryOptions<E extends object> {
 
 export interface EntityRepository<E extends object>
   extends Repository<E, KnexTransaction> {
-  find(
-    ...args: Parameters<EntityDataMapper<E>['find']>
-  ): Promise<E | undefined>;
+  find(where: (queryBuilder: Knex.QueryBuilder) => any): Promise<E | undefined>;
 }
 
 export type EntityRepositoryConstructor<E extends object> =
@@ -38,8 +37,11 @@ export function createRepository<E extends object>(
       );
     }
 
-    async find(...args: Parameters<EntityDataMapper<E>['find']>) {
-      const result = await this.mapper.find(...args);
+    async find(where: (qb: Knex.QueryBuilder) => any) {
+      const result = await this.mapper.find(
+        this.context.transaction.knex,
+        where,
+      );
 
       return this.trackAll(result, 'loaded');
     }
@@ -60,15 +62,15 @@ export function createRepository<E extends object>(
     }
 
     protected insert(entity: E): Promise<boolean> {
-      return this.mapper.insert(entity);
+      return this.mapper.insert(this.context.transaction.knex, entity);
     }
 
     protected update(entity: E): Promise<boolean> {
-      return this.mapper.update(entity);
+      return this.mapper.update(this.context.transaction.knex, entity);
     }
 
     protected remove(entity: E): Promise<boolean> {
-      return this.mapper.delete(entity);
+      return this.mapper.delete(this.context.transaction.knex, entity);
     }
   };
 }

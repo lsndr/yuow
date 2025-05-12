@@ -34,10 +34,11 @@ export class Uow<
     let attempt = 0;
     const errors: any[] = [];
 
+    const transaction = await this.engine.createTransaction(config.transaction);
+
     const run = async (): Promise<R> => {
-      const transaction = await this.engine.createTransaction(
-        config.transaction,
-      );
+      attempt += 1;
+
       const context = new Context<T, N>(transaction);
 
       try {
@@ -55,7 +56,6 @@ export class Uow<
         }
 
         errors.push(error);
-        attempt += 1;
 
         if (attempt >= config.retries) {
           throw new RunError(errors);

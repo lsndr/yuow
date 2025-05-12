@@ -13,7 +13,13 @@ export interface EntityDataMapperOptions<E extends object> {
 }
 
 export interface EntityDataMapper<E extends object> extends DataMapper<E> {
-  find(where: (queryBuilder: Knex.QueryBuilder) => any): Promise<E | undefined>;
+  find(
+    knex: Knex,
+    where: (queryBuilder: Knex.QueryBuilder) => any,
+  ): Promise<E | undefined>;
+  insert(knex: Knex, entity: E): Promise<boolean>;
+  update(knex: Knex, entity: E): Promise<boolean>;
+  delete(knex: Knex, entity: E): Promise<boolean>;
 }
 
 export type EntityDataMapperConstructor<E extends object> =
@@ -33,10 +39,6 @@ export function createDataMapper<E extends object>(
       : [options.identity];
     private readonly useVersion = !!options.version;
 
-    constructor(private readonly knex: Knex) {
-      super();
-    }
-
     private *extractIdentities(entity: E) {
       const entityOperator = new ObjectOperator(entity);
 
@@ -53,15 +55,12 @@ export function createDataMapper<E extends object>(
     }
 
     async find(
+      knex: Knex,
       where: (queryBuilder: Knex.QueryBuilder) => void,
     ): Promise<E | undefined> {
-      const knex = this.knex.queryBuilder();
+      const qb = knex.queryBuilder();
 
-      const record = await knex
-        .select('*')
-        .from(this.table)
-        .where(where)
-        .first();
+      const record = await qb.select('*').from(this.table).where(where).first();
 
       if (!record) {
         return;
@@ -77,7 +76,7 @@ export function createDataMapper<E extends object>(
       return entity;
     }
 
-    override async insert(entity: E): Promise<boolean> {
+    async insert(knex: Knex, entity: E): Promise<boolean> {
       const objectOperator = new ObjectOperator(entity);
       const data: Record<string, unknown> = {};
 
@@ -93,12 +92,12 @@ export function createDataMapper<E extends object>(
         data[this.versionDatabaseFieldName] = this.getVersion(entity);
       }
 
-      const result = await this.knex.insert(data).into(this.table);
+      const result = await knex.insert(data).into(this.table);
 
       return (result[0] || 0) > 0;
     }
 
-    override async update(entity: E): Promise<boolean> {
+    async update(knex: Knex, entity: E): Promise<boolean> {
       const objectOperator = new ObjectOperator(entity);
       const data: Record<string, unknown> = {};
 
@@ -110,7 +109,7 @@ export function createDataMapper<E extends object>(
         data[property.name] = value;
       }
 
-      const query = this.knex(this.table).update(data);
+      const query = knex(this.table).update(data);
 
       for (const [name, value] of this.extractIdentities(entity)) {
         query.where(name, value as any);
@@ -128,8 +127,8 @@ export function createDataMapper<E extends object>(
       return result > 0;
     }
 
-    override async delete(entity: E): Promise<boolean> {
-      const query = this.knex.delete().from(options.table);
+    async delete(knex: Knex, entity: E): Promise<boolean> {
+      const query = knex.delete().from(options.table);
 
       for (const [name, value] of this.extractIdentities(entity)) {
         query.where(name, value as any);
