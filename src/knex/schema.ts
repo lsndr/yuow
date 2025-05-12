@@ -1,5 +1,8 @@
 import { createDataMapper } from './entity-data-mapper';
-import { EntityProperties, EntityPropertiesMap } from './entity-properties-map';
+import {
+  EntityProperties,
+  EntityPropertiesMap,
+} from '../core/orm/entity-properties-map';
 import { createRepository } from './entity-repository';
 
 export interface SchemaOptions {

@@ -1,7 +1,7 @@
 import { Knex } from 'knex';
-import { DataMapper, DataMapperConstructor } from '../data-mapper';
-import { EntityPropertiesMap } from './entity-properties-map';
-import { ObjectOperator } from './object-operator';
+import { DataMapper, DataMapperConstructor } from '../core/data-mapper';
+import { EntityPropertiesMap } from '../core/orm/entity-properties-map';
+import { ObjectOperator } from '../core/orm/object-operator';
 
 export interface EntityDataMapperOptions<E extends object> {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type -- Required for entity constructor
@@ -33,8 +33,8 @@ export function createDataMapper<E extends object>(
       : [options.identity];
     private readonly useVersion = !!options.version;
 
-    constructor(knex: Knex) {
-      super(knex);
+    constructor(private readonly knex: Knex) {
+      super();
     }
 
     private *extractIdentities(entity: E) {
@@ -84,9 +84,6 @@ export function createDataMapper<E extends object>(
       for (const [path, property] of this.properties.entries()) {
         const value = await property.toDatabaseValue(
           objectOperator.extract(path),
-          {
-            knex: this.knex,
-          },
         );
 
         data[property.name] = value;
@@ -108,9 +105,6 @@ export function createDataMapper<E extends object>(
       for (const [path, property] of this.properties.entries()) {
         const value = await property.toDatabaseValue(
           objectOperator.extract(path),
-          {
-            knex: this.knex,
-          },
         );
 
         data[property.name] = value;
@@ -156,9 +150,7 @@ export function createDataMapper<E extends object>(
       const objectOperator = new ObjectOperator(entity);
 
       for (const [path, property] of options.properties.entries()) {
-        const value = await property.fromDatabaseValue(data[property.name], {
-          knex: this.knex,
-        });
+        const value = await property.fromDatabaseValue(data[property.name]);
 
         objectOperator.put(path, value);
       }

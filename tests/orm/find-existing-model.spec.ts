@@ -1,5 +1,10 @@
 import { Knex, knex } from 'knex';
-import { Uow, uowFactory } from '../../src';
+import {
+  KnexEngine,
+  KnexTransaction,
+  KnexTransactionOptions,
+  Uow,
+} from '../../src';
 import { resolve } from 'path';
 import { CustomerRepository } from '../utils/customer.schema';
 import { faker } from '@faker-js/faker/locale/yo_NG';
@@ -7,7 +12,7 @@ import { Customer } from '../utils/customer';
 
 describe('ORM – Find Existing Model', () => {
   let db: Knex;
-  let uow: Uow;
+  let uow: Uow<KnexEngine, KnexTransaction, KnexTransactionOptions>;
 
   beforeEach(async () => {
     db = knex({
@@ -19,7 +24,7 @@ describe('ORM – Find Existing Model', () => {
       },
     });
 
-    uow = uowFactory(db);
+    uow = new Uow(new KnexEngine(db));
 
     await db.migrate.up();
   });
@@ -32,14 +37,14 @@ describe('ORM – Find Existing Model', () => {
     // arrange
     const id = faker.string.uuid();
     const name = faker.person.fullName();
-    await uow((ctx) =>
+    await uow.run((ctx) =>
       ctx
         .getRepository(CustomerRepository)
         .add(Customer.create({ id, name, cards: [] })),
     );
 
     // act
-    const result = await uow((ctx) =>
+    const result = await uow.run((ctx) =>
       ctx
         .getRepository(CustomerRepository)
         .find((queryBuilder) => queryBuilder.where('id', id)),
@@ -53,7 +58,7 @@ describe('ORM – Find Existing Model', () => {
 
   it("should fail to find model if it doesn't exist", async () => {
     // arrange
-    await uow((ctx) =>
+    await uow.run((ctx) =>
       ctx.getRepository(CustomerRepository).add(
         Customer.create({
           id: faker.string.uuid(),
@@ -64,7 +69,7 @@ describe('ORM – Find Existing Model', () => {
     );
 
     // act
-    const result = await uow((ctx) =>
+    const result = await uow.run((ctx) =>
       ctx
         .getRepository(CustomerRepository)
         .find((queryBuilder) => queryBuilder.where('id', crypto.randomUUID())),

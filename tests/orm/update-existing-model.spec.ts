@@ -1,5 +1,10 @@
 import { Knex, knex } from 'knex';
-import { Uow, uowFactory } from '../../src';
+import {
+  KnexEngine,
+  KnexTransaction,
+  KnexTransactionOptions,
+  Uow,
+} from '../../src';
 import { resolve } from 'path';
 import { CustomerRepository } from '../utils/customer.schema';
 import { faker } from '@faker-js/faker/locale/yo_NG';
@@ -7,7 +12,7 @@ import { Customer } from '../utils/customer';
 
 describe('ORM – Update Existing Model', () => {
   let db: Knex;
-  let uow: Uow;
+  let uow: Uow<KnexEngine, KnexTransaction, KnexTransactionOptions>;
 
   beforeEach(async () => {
     db = knex({
@@ -19,7 +24,7 @@ describe('ORM – Update Existing Model', () => {
       },
     });
 
-    uow = uowFactory(db);
+    uow = new Uow(new KnexEngine(db));
 
     await db.migrate.up();
   });
@@ -33,14 +38,14 @@ describe('ORM – Update Existing Model', () => {
     const id = faker.string.uuid();
     const name = faker.person.fullName();
     const newName = faker.person.fullName();
-    await uow((ctx) =>
+    await uow.run((ctx) =>
       ctx
         .getRepository(CustomerRepository)
         .add(Customer.create({ id, name, cards: [] })),
     );
 
     // act
-    await uow(async (ctx) => {
+    await uow.run(async (ctx) => {
       const customer = await ctx
         .getRepository(CustomerRepository)
         .find((qb) => qb.where('id', id));
@@ -49,7 +54,7 @@ describe('ORM – Update Existing Model', () => {
     });
 
     // assert
-    const model = await uow((ctx) =>
+    const model = await uow.run((ctx) =>
       ctx.getRepository(CustomerRepository).find((qb) => qb.where('id', id)),
     );
 

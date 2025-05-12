@@ -1,13 +1,9 @@
-import { Knex } from 'knex';
 import { WeakIdentityMap } from 'weak-identity-map';
-import { DataMapper, DataMapperConstructor } from './data-mapper';
 import { DBContext } from './db-context';
-import {
-  PersistenceError,
-  PersistenceOperation,
-} from './transaction/persistence.error';
+import { PersistenceError, PersistenceOperation } from './persistence.error';
 import { serialize } from 'node:v8';
 import * as EventEmitter from 'emittery';
+import { Transaction, TransactionEvents } from './transaction/transaction';
 
 type EntityState = 'added' | 'loaded' | 'deleted';
 
@@ -37,8 +33,13 @@ class EntityWrapper<E extends object> {
   }
 }
 
-export interface RepositoryConstructor<R> {
-  new (context: DBContext): R;
+export interface RepositoryConstructor<
+  R,
+  T extends Transaction<O, TE>,
+  O = undefined,
+  TE extends TransactionEvents = TransactionEvents,
+> {
+  new (context: DBContext<T, O, TE>): R;
 }
 
 export type RepositoryEvents<E> = {
@@ -56,36 +57,38 @@ export type RepositoryEvents<E> = {
   };
 };
 
-export const RepositoryDataMapper: unique symbol = Symbol(
-  'Repository.DataMapper',
-);
-
-export abstract class Repository<E extends object, M extends DataMapper<E>> {
-  public static readonly DataMapper: typeof RepositoryDataMapper =
-    RepositoryDataMapper;
+export abstract class Repository<
+  E extends object,
+  T extends Transaction<O, TE>,
+  O = undefined,
+  TE extends TransactionEvents = TransactionEvents,
+> {
   private eventEmitter: EventEmitter<RepositoryEvents<E>> = new EventEmitter();
   private identityMap: WeakIdentityMap<unknown, EntityWrapper<E>> =
     new WeakIdentityMap();
-  protected abstract readonly [RepositoryDataMapper]: DataMapperConstructor<
-    E,
-    M
-  >;
+
+  protected readonly context: DBContext<T, O, TE>;
+
   protected abstract extractIdentity(entity: E): unknown;
-  protected readonly context: DBContext;
-  private mapperInstance?: M;
 
-  protected get mapper() {
-    if (!this.mapperInstance) {
-      this.mapperInstance = new this[RepositoryDataMapper](this.context.knex);
-    }
+  protected abstract update(entity: E): Promise<boolean>;
 
-    return this.mapperInstance;
-  }
+  protected abstract remove(entity: E): Promise<boolean>;
 
-  constructor(context: DBContext) {
+  protected abstract insert(entity: E): Promise<boolean>;
+
+  constructor(context: DBContext<T, O, TE>) {
     this.context = context;
 
     this.register();
+  }
+
+  add(entity: E): boolean {
+    return this.track(entity, 'added') === entity;
+  }
+
+  delete(entity: E) {
+    return this.track(entity, 'deleted') === entity;
   }
 
   protected trackAll<P extends E | undefined>(
@@ -103,19 +106,9 @@ export abstract class Repository<E extends object, M extends DataMapper<E>> {
     }
   }
 
-  add(entity: E): boolean {
-    return this.track(entity, 'added') === entity;
-  }
-
-  delete(entity: E) {
-    return this.track(entity, 'deleted') === entity;
-  }
-
-  private async emit<Event extends keyof RepositoryEvents<E>>(
-    event: Event,
-    payload: RepositoryEvents<E>[Event],
-  ): Promise<void> {
-    await this.eventEmitter.emit(event, payload);
+  protected untrack(entity: E): boolean {
+    const identity = this.extractIdentity(entity);
+    return this.identityMap.delete(identity);
   }
 
   protected on<Event extends keyof RepositoryEvents<E>>(
@@ -147,13 +140,15 @@ export abstract class Repository<E extends object, M extends DataMapper<E>> {
     return trackedEntity.entity;
   }
 
-  protected untrack(entity: E): boolean {
-    const identity = this.extractIdentity(entity);
-    return this.identityMap.delete(identity);
+  private async emit<Event extends keyof RepositoryEvents<E>>(
+    event: Event,
+    payload: RepositoryEvents<E>[Event],
+  ): Promise<void> {
+    await this.eventEmitter.emit(event, payload);
   }
 
   private register() {
-    this.context.on('flush', async ({ knex }) => {
+    this.context.transaction.on('flush', async () => {
       for (const [id, wrapper] of this.identityMap.entries()) {
         const identity = this.extractIdentity(wrapper.entity);
 
@@ -173,20 +168,20 @@ export abstract class Repository<E extends object, M extends DataMapper<E>> {
         };
 
         if (wrapper.state === 'added') {
-          await assertChange(() => this.insert(wrapper.entity, knex), 'insert');
+          await assertChange(() => this.insert(wrapper.entity), 'insert');
           wrapper.state = 'loaded';
 
           this.emit('inserted', {
             entity: wrapper.entity,
           }).catch(console.error);
         } else if (wrapper.state === 'loaded' && !wrapper.verify()) {
-          await assertChange(() => this.update(wrapper.entity, knex), 'update');
+          await assertChange(() => this.update(wrapper.entity), 'update');
 
           this.emit('updated', {
             entity: wrapper.entity,
           }).catch(console.error);
         } else if (wrapper.state === 'deleted') {
-          await assertChange(() => this.remove(wrapper.entity, knex), 'delete');
+          await assertChange(() => this.remove(wrapper.entity), 'delete');
 
           this.identityMap.delete(id);
 
@@ -196,23 +191,5 @@ export abstract class Repository<E extends object, M extends DataMapper<E>> {
         }
       }
     });
-  }
-
-  private insert(entity: E, knex: Knex): Promise<boolean> {
-    const mapper = new this[RepositoryDataMapper](knex);
-
-    return mapper.insert(entity);
-  }
-
-  private update(entity: E, knex: Knex): Promise<boolean> {
-    const mapper = new this[RepositoryDataMapper](knex);
-
-    return mapper.update(entity);
-  }
-
-  private remove(entity: E, knex: Knex): Promise<boolean> {
-    const mapper = new this[RepositoryDataMapper](knex);
-
-    return mapper.delete(entity);
   }
 }

@@ -1,18 +1,15 @@
 import { DataMapper } from '../../src';
 import { CustomerHydrator } from './customer.hydrator';
 import { Customer } from './customer';
+import { Knex } from 'knex';
 
 export type FindOneCustomerQuery = {
   id: string;
 };
 
 export class CustomerDataMapper extends DataMapper<Customer> {
-  private map(record: any) {
-    return new CustomerHydrator({
-      id: record.id,
-      name: record.name,
-      cards: JSON.parse(record.cards),
-    });
+  constructor(private readonly knex: Knex) {
+    super();
   }
 
   async findById(id: string): Promise<Customer | undefined> {
@@ -74,5 +71,13 @@ export class CustomerDataMapper extends DataMapper<Customer> {
       .andWhere('customers.version', version);
 
     return result > 0;
+  }
+
+  private map(record: any) {
+    return new CustomerHydrator({
+      id: record.id,
+      name: record.name,
+      cards: JSON.parse(record.cards),
+    });
   }
 }

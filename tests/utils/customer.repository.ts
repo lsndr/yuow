@@ -1,12 +1,20 @@
-import { Repository } from '../../src';
+import { DBContext, Repository } from '../../src';
 import { CustomerDataMapper } from './customer.data-mapper';
 import { Customer } from './customer';
+import { KnexTransaction, KnexTransactionOptions } from './knex.transaction';
 
 export class CustomerRepository extends Repository<
   Customer,
-  CustomerDataMapper
+  KnexTransaction,
+  KnexTransactionOptions
 > {
-  [Repository.DataMapper] = CustomerDataMapper;
+  private readonly mapper: CustomerDataMapper;
+
+  constructor(context: DBContext<KnexTransaction, KnexTransactionOptions>) {
+    super(context);
+
+    this.mapper = new CustomerDataMapper(context.transaction.knex);
+  }
 
   async findById(...args: Parameters<CustomerDataMapper['findById']>) {
     const result = await this.mapper.findById(...args);
@@ -16,5 +24,17 @@ export class CustomerRepository extends Repository<
 
   protected extractIdentity(customer: Customer) {
     return customer.id;
+  }
+
+  protected insert(entity: Customer): Promise<boolean> {
+    return this.mapper.insert(entity);
+  }
+
+  protected update(entity: Customer): Promise<boolean> {
+    return this.mapper.update(entity);
+  }
+
+  protected remove(entity: Customer): Promise<boolean> {
+    return this.mapper.delete(entity);
   }
 }
