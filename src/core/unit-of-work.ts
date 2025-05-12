@@ -13,20 +13,19 @@ export type RunOptions<O> = Partial<RunConfig<O>>;
 
 export type Unit<
   R,
-  T extends Transaction<O, E>,
-  O = undefined,
+  T extends Transaction<E>,
   E extends TransactionEvents = TransactionEvents,
-> = (uow: Context<T, O, E>) => R | Promise<R>;
+> = (uow: Context<T, E>) => R | Promise<R>;
 
 export class Uow<
   E extends Engine<T, O, N>,
-  T extends Transaction<O, N>,
+  T extends Transaction<N>,
   O = undefined,
   N extends TransactionEvents = TransactionEvents,
 > {
   constructor(public readonly engine: E) {}
 
-  async run<R>(unit: Unit<R, T, O, N>, options?: RunOptions<O>): Promise<R> {
+  async run<R>(unit: Unit<R, T, N>, options?: RunOptions<O>): Promise<R> {
     const config: RunConfig<O> = {
       retries: 3,
       ...options,
@@ -39,7 +38,7 @@ export class Uow<
       const transaction = await this.engine.createTransaction(
         config.transaction,
       );
-      const context = new Context<T, O, N>(transaction);
+      const context = new Context<T, N>(transaction);
 
       try {
         const result = await unit(context);

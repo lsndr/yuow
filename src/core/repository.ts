@@ -35,11 +35,10 @@ class EntityWrapper<E extends object> {
 
 export interface RepositoryConstructor<
   R,
-  T extends Transaction<O, TE>,
-  O = undefined,
+  T extends Transaction<TE>,
   TE extends TransactionEvents = TransactionEvents,
 > {
-  new (context: DBContext<T, O, TE>): R;
+  new (context: DBContext<T, TE>): R;
 }
 
 export type RepositoryEvents<E> = {
@@ -59,15 +58,14 @@ export type RepositoryEvents<E> = {
 
 export abstract class Repository<
   E extends object,
-  T extends Transaction<O, TE>,
-  O = undefined,
+  T extends Transaction<TE>,
   TE extends TransactionEvents = TransactionEvents,
 > {
   private eventEmitter: EventEmitter<RepositoryEvents<E>> = new EventEmitter();
   private identityMap: WeakIdentityMap<unknown, EntityWrapper<E>> =
     new WeakIdentityMap();
 
-  protected readonly context: DBContext<T, O, TE>;
+  protected readonly context: DBContext<T, TE>;
 
   protected abstract extractIdentity(entity: E): unknown;
 
@@ -77,7 +75,7 @@ export abstract class Repository<
 
   protected abstract insert(entity: E): Promise<boolean>;
 
-  constructor(context: DBContext<T, O, TE>) {
+  constructor(context: DBContext<T, TE>) {
     this.context = context;
 
     this.register();

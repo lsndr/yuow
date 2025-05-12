@@ -1,8 +1,7 @@
 import { Transaction, TransactionEvents } from './transaction/transaction';
 
 export class DBContext<
-  T extends Transaction<O, E>,
-  O = undefined,
+  T extends Transaction<E>,
   E extends TransactionEvents = TransactionEvents,
 > {
   constructor(public readonly transaction: T) {}

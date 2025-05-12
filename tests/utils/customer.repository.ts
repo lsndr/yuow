@@ -1,16 +1,11 @@
-import { DBContext, Repository } from '../../src';
+import { DBContext, Repository, KnexTransaction } from '../../src';
 import { CustomerDataMapper } from './customer.data-mapper';
 import { Customer } from './customer';
-import { KnexTransaction, KnexTransactionOptions } from './knex.transaction';
 
-export class CustomerRepository extends Repository<
-  Customer,
-  KnexTransaction,
-  KnexTransactionOptions
-> {
+export class CustomerRepository extends Repository<Customer, KnexTransaction> {
   private readonly mapper: CustomerDataMapper;
 
-  constructor(context: DBContext<KnexTransaction, KnexTransactionOptions>) {
+  constructor(context: DBContext<KnexTransaction>) {
     super(context);
 
     this.mapper = new CustomerDataMapper(context.transaction.knex);

@@ -5,7 +5,7 @@ import {
 } from './entity-data-mapper';
 import { EntityPropertiesMap } from '../core/orm/entity-properties-map';
 import { ObjectOperator } from '../core/orm/object-operator';
-import { KnexTransaction, KnexTransactionOptions } from './knex.transaction';
+import { KnexTransaction } from './knex.transaction';
 import { DBContext } from '../core/db-context';
 
 export interface EntityRepositoryOptions<E extends object> {
@@ -15,26 +15,22 @@ export interface EntityRepositoryOptions<E extends object> {
 }
 
 export interface EntityRepository<E extends object>
-  extends Repository<E, KnexTransaction, KnexTransactionOptions> {
+  extends Repository<E, KnexTransaction> {
   find(
     ...args: Parameters<EntityDataMapper<E>['find']>
   ): Promise<E | undefined>;
 }
 
 export type EntityRepositoryConstructor<E extends object> =
-  RepositoryConstructor<
-    EntityRepository<E>,
-    KnexTransaction,
-    KnexTransactionOptions
-  >;
+  RepositoryConstructor<EntityRepository<E>, KnexTransaction>;
 
 export function createRepository<E extends object>(
   options: EntityRepositoryOptions<E>,
 ): EntityRepositoryConstructor<E> {
-  return class extends Repository<E, KnexTransaction, KnexTransactionOptions> {
+  return class extends Repository<E, KnexTransaction> {
     private readonly mapper: EntityDataMapper<E>;
 
-    constructor(context: DBContext<KnexTransaction, KnexTransactionOptions>) {
+    constructor(context: DBContext<KnexTransaction>) {
       super(context);
 
       this.mapper = new options.dataMapperConstructor(

@@ -9,19 +9,16 @@ export type TranscationEventListener<E extends keyof TransactionEvents> = (
 ) => void | Promise<void>;
 
 export abstract class Transaction<
-  O = undefined,
   T extends TransactionEvents = TransactionEvents,
 > {
   protected readonly eventEmitter: EventEmitter<T>;
-  protected readonly options: O;
 
   abstract commit(): Promise<void>;
 
   abstract rollback(): Promise<void>;
 
-  protected constructor(options: O) {
+  protected constructor() {
     this.eventEmitter = new EventEmitter();
-    this.options = options;
   }
 
   public async flush(): Promise<void> {

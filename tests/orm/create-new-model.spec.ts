@@ -1,10 +1,14 @@
 import { Knex, knex } from 'knex';
-import { Uow, KnexTransaction, KnexTransactionOptions } from '../../src';
+import {
+  Uow,
+  KnexTransaction,
+  KnexTransactionOptions,
+  KnexEngine,
+} from '../../src';
 import { Customer } from '../utils/customer';
 import { resolve } from 'path';
 import { CustomerRepository } from '../utils/customer.schema';
 import { faker } from '@faker-js/faker';
-import { KnexEngine } from '../utils/knex.engine';
 
 describe('ORM - Create New Model', () => {
   let db: Knex;

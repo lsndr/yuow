@@ -1,13 +1,14 @@
 import { Knex, knex } from 'knex';
-import { PersistenceError, Uow } from '../src';
+import {
+  PersistenceError,
+  Uow,
+  KnexEngine,
+  KnexTransaction,
+  KnexTransactionOptions,
+} from '../src';
 import { Customer } from './utils/customer';
 import { CustomerRepository } from './utils/customer.repository';
 import { resolve } from 'path';
-import { KnexEngine } from './utils/knex.engine';
-import {
-  KnexTransaction,
-  KnexTransactionOptions,
-} from './utils/knex.transaction';
 
 describe('Unit of Work', () => {
   let db: Knex;
@@ -32,7 +33,7 @@ describe('Unit of Work', () => {
     await db.destroy();
   });
 
-  describe.each<KnexTransactionOptions>([{ global: true }, { global: false }])(
+  describe.each([{ global: true }, { global: false }])(
     'Transaction Config: %j',
     (transaction) => {
       it('should persist a new customer', async () => {
@@ -237,176 +238,169 @@ describe('Unit of Work', () => {
 
         expect(result).toBe('test result');
       });
-
-      // FIXME: Impossible on global transaction because sqlite locks a table
-      it.skip('should update an exisiting customer on third attempt', async () => {
-        let attempts = 0;
-        const id = '95dd88db-e52e-4213-86aa-a757563c034d';
-
-        await db
-          .insert({
-            id,
-            name: 'Archie Reese',
-            cards: '[]',
-            version: 1,
-          })
-          .into('customers');
-
-        const modify = () =>
-          db.raw(
-            `UPDATE customers SET version = version + 1 WHERE id = '${id}'`,
-          );
-
-        await uow.run(
-          async (ctx) => {
-            attempts++;
-
-            const customerRepository = ctx.getRepository(CustomerRepository);
-            const customer = await customerRepository.findById(id);
-
-            if (!customer) {
-              throw new Error('Customer not found');
-            }
-
-            customer.changeName('Hector Chambers');
-
-            if (attempts < 3) {
-              await modify();
-            }
-          },
-          { transaction },
-        );
-
-        const record = await db
-          .select('*')
-          .from('customers')
-          .where('id', id)
-          .first();
-
-        expect(record).toEqual({
-          id: '95dd88db-e52e-4213-86aa-a757563c034d',
-          name: 'Hector Chambers',
-          cards: '[]',
-          version: 4,
-        });
-        expect(attempts).toBe(3);
-      });
-
-      // FIXME: Impossible on global transaction because sqlite locks a table
-      it.skip('should fail to update an exisiting customer because of a persistence error', async () => {
-        let attempts = 0;
-        const id = '71bf5067-891f-4d75-b727-5751a84446bc';
-
-        await db
-          .insert({
-            id,
-            name: 'Vivian Bridges',
-            cards: '[]',
-            version: 1,
-          })
-          .into('customers');
-
-        const modify = () =>
-          db.raw(
-            `UPDATE customers SET version = version + 1 WHERE id = '${id}'`,
-          );
-
-        const action = () =>
-          uow.run(
-            async (ctx) => {
-              attempts++;
-
-              const customerRepository = ctx.getRepository(CustomerRepository);
-
-              const customer = await customerRepository.findById(id);
-
-              if (!customer) {
-                throw new Error('Customer not found');
-              }
-
-              customer.changeName('Toni Potter');
-
-              if (attempts < 4) {
-                await modify();
-              }
-            },
-            { transaction },
-          );
-
-        await expect(action()).rejects.toThrowError(PersistenceError);
-
-        const record = await db
-          .select('*')
-          .from('customers')
-          .where('id', id)
-          .first();
-
-        expect(record).toEqual({
-          id: '71bf5067-891f-4d75-b727-5751a84446bc',
-          name: 'Vivian Bridges',
-          cards: '[]',
-          version: 4,
-        });
-        expect(attempts).toBe(3);
-      });
-
-      // FIXME: Impossible on global transaction because sqlite locks a table
-      it.skip('should update an exisiting customer on seventh attempt', async () => {
-        let attempts = 0;
-        const id = '39852832-f07b-49f9-9fe3-bec3a64c8d3f';
-
-        await db
-          .insert({
-            id,
-            name: 'Percy Mcbride',
-            cards: '[]',
-            version: 1,
-          })
-          .into('customers');
-
-        const modify = () =>
-          db.raw(
-            `UPDATE customers SET version = version + 1 WHERE id = '${id}'`,
-          );
-
-        await uow.run(
-          async (ctx) => {
-            attempts++;
-
-            const customerRepository = ctx.getRepository(CustomerRepository);
-
-            const customer = await customerRepository.findById(id);
-
-            if (!customer) {
-              throw new Error('Customer not found');
-            }
-
-            customer.changeName('Wilbur Nash');
-
-            if (attempts < 7) {
-              await modify();
-            }
-          },
-          {
-            retries: 7,
-            transaction,
-          },
-        );
-
-        const record = await db
-          .select('*')
-          .from('customers')
-          .where('id', id)
-          .first();
-
-        expect(record).toEqual({
-          id: '39852832-f07b-49f9-9fe3-bec3a64c8d3f',
-          name: 'Wilbur Nash',
-          cards: '[]',
-          version: 8,
-        });
-        expect(attempts).toBe(7);
-      });
     },
   );
+
+  describe.skip('Concurrency in local transaction', () => {
+    it('should update an exisiting customer on third attempt', async () => {
+      let attempts = 0;
+      const id = '95dd88db-e52e-4213-86aa-a757563c034d';
+
+      await db
+        .insert({
+          id,
+          name: 'Archie Reese',
+          cards: '[]',
+          version: 1,
+        })
+        .into('customers');
+
+      const modify = () =>
+        db.raw(`UPDATE customers SET version = version + 1 WHERE id = '${id}'`);
+
+      await uow.run(
+        async (ctx) => {
+          attempts++;
+
+          const customerRepository = ctx.getRepository(CustomerRepository);
+          const customer = await customerRepository.findById(id);
+
+          if (!customer) {
+            throw new Error('Customer not found');
+          }
+
+          customer.changeName('Hector Chambers');
+
+          if (attempts < 3) {
+            await modify();
+          }
+        },
+        { transaction: { global: false } },
+      );
+
+      const record = await db
+        .select('*')
+        .from('customers')
+        .where('id', id)
+        .first();
+
+      expect(record).toEqual({
+        id: '95dd88db-e52e-4213-86aa-a757563c034d',
+        name: 'Hector Chambers',
+        cards: '[]',
+        version: 4,
+      });
+      expect(attempts).toBe(3);
+    });
+
+    it('should fail to update an exisiting customer because of a persistence error', async () => {
+      let attempts = 0;
+      const id = '71bf5067-891f-4d75-b727-5751a84446bc';
+
+      await db
+        .insert({
+          id,
+          name: 'Vivian Bridges',
+          cards: '[]',
+          version: 1,
+        })
+        .into('customers');
+
+      const modify = () =>
+        db.raw(`UPDATE customers SET version = version + 1 WHERE id = '${id}'`);
+
+      const action = () =>
+        uow.run(
+          async (ctx) => {
+            attempts++;
+
+            const customerRepository = ctx.getRepository(CustomerRepository);
+
+            const customer = await customerRepository.findById(id);
+
+            if (!customer) {
+              throw new Error('Customer not found');
+            }
+
+            customer.changeName('Toni Potter');
+
+            if (attempts < 4) {
+              await modify();
+            }
+          },
+          { transaction: { global: false } },
+        );
+
+      await expect(action()).rejects.toThrowError(PersistenceError);
+
+      const record = await db
+        .select('*')
+        .from('customers')
+        .where('id', id)
+        .first();
+
+      expect(record).toEqual({
+        id: '71bf5067-891f-4d75-b727-5751a84446bc',
+        name: 'Vivian Bridges',
+        cards: '[]',
+        version: 4,
+      });
+      expect(attempts).toBe(3);
+    });
+
+    it('should update an exisiting customer on seventh attempt', async () => {
+      let attempts = 0;
+      const id = '39852832-f07b-49f9-9fe3-bec3a64c8d3f';
+
+      await db
+        .insert({
+          id,
+          name: 'Percy Mcbride',
+          cards: '[]',
+          version: 1,
+        })
+        .into('customers');
+
+      const modify = () =>
+        db.raw(`UPDATE customers SET version = version + 1 WHERE id = '${id}'`);
+
+      await uow.run(
+        async (ctx) => {
+          attempts++;
+
+          const customerRepository = ctx.getRepository(CustomerRepository);
+
+          const customer = await customerRepository.findById(id);
+
+          if (!customer) {
+            throw new Error('Customer not found');
+          }
+
+          customer.changeName('Wilbur Nash');
+
+          if (attempts < 7) {
+            await modify();
+          }
+        },
+        {
+          retries: 7,
+          transaction: { global: false },
+        },
+      );
+
+      const record = await db
+        .select('*')
+        .from('customers')
+        .where('id', id)
+        .first();
+
+      expect(record).toEqual({
+        id: '39852832-f07b-49f9-9fe3-bec3a64c8d3f',
+        name: 'Wilbur Nash',
+        cards: '[]',
+        version: 8,
+      });
+      expect(attempts).toBe(7);
+    });
+  });
 });

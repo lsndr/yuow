@@ -2,16 +2,16 @@ import { Transaction } from '../core/transaction/transaction';
 import { Knex } from 'knex';
 
 export interface KnexTransactionOptions {
-  global?: boolean;
-  isolationLevel?: Knex.IsolationLevels;
+  readonly global?: boolean;
+  readonly isolationLevel?: Knex.IsolationLevels;
 }
 
-export class KnexTransaction extends Transaction<KnexTransactionOptions> {
+export class KnexTransaction extends Transaction {
   constructor(
     public readonly knex: Knex.Transaction,
-    options?: KnexTransactionOptions,
+    public readonly options?: KnexTransactionOptions,
   ) {
-    super(options ?? {});
+    super();
   }
 
   async commit() {
