@@ -9,7 +9,7 @@ export class CustomerRepository extends Repository<Customer, KnexTransaction> {
   constructor(context: DBContext<KnexTransaction>) {
     super(context);
 
-    this.mapper = new CustomerDataMapper();
+    this.mapper = new CustomerDataMapper(context);
   }
 
   async findById(id: string) {
@@ -26,14 +26,14 @@ export class CustomerRepository extends Repository<Customer, KnexTransaction> {
   }
 
   protected insert(entity: Customer): Promise<boolean> {
-    return this.mapper.insert(this.context.transaction.knex, entity);
+    return this.mapper.insert(entity);
   }
 
   protected update(entity: Customer): Promise<boolean> {
-    return this.mapper.update(this.context.transaction.knex, entity);
+    return this.mapper.update(entity);
   }
 
   protected remove(entity: Customer): Promise<boolean> {
-    return this.mapper.delete(this.context.transaction.knex, entity);
+    return this.mapper.delete(entity);
   }
 }
