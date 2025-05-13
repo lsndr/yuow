@@ -20,6 +20,7 @@
   "description": "Generic implementation of Unit of Work and Repository patterns to build isolated domain model",
   "scripts": {
     "build": "rimraf ./dist && tsc",
+    "build:tests": "tsc -p ./tsconfig.test.json",
     "watch": "tsc --watch",
     "test": "jest",
     "test:coverage": "jest --coverage",
