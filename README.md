@@ -1,3 +1,8 @@
+# ⚠️ WARNING: Documentation Outdated! ⚠️
+
+> 🚨 **The documentation and examples below are outdated.**  
+> Please check the `tests` folder for up-to-date usage examples!
+
 # Yuow
 
 [![npm version](https://badge.fury.io/js/yuow.svg?1)](https://badge.fury.io/js/yuow?`)

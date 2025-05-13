@@ -1,5 +1,10 @@
 import { Knex, knex } from 'knex';
-import { Uow, uowFactory } from '../../src';
+import {
+  KnexTransaction,
+  KnexTransactionOptions,
+  KnexEngine,
+} from '../../src/knex';
+import { Uow } from '../../src/core';
 import { Customer } from '../utils/customer';
 import { resolve } from 'path';
 import { CustomerRepository } from '../utils/customer.schema';
@@ -7,7 +12,7 @@ import { faker } from '@faker-js/faker';
 
 describe('ORM - Create New Model', () => {
   let db: Knex;
-  let uow: Uow;
+  let uow: Uow<KnexEngine, KnexTransaction, KnexTransactionOptions>;
 
   beforeEach(async () => {
     db = knex({
@@ -19,7 +24,7 @@ describe('ORM - Create New Model', () => {
       },
     });
 
-    uow = uowFactory(db);
+    uow = new Uow(new KnexEngine(db));
 
     await db.migrate.up();
   });
@@ -38,14 +43,14 @@ describe('ORM - Create New Model', () => {
     ];
 
     // act
-    await uow((ctx) => {
+    await uow.run((ctx) => {
       ctx
         .getRepository(CustomerRepository)
         .add(Customer.create({ id, name, cards }));
     });
 
     // assert
-    const model = await uow((ctx) =>
+    const model = await uow.run((ctx) =>
       ctx.getRepository(CustomerRepository).find((qb) => qb.where('id', id)),
     );
 

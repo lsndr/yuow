@@ -7,9 +7,17 @@
     "ddd",
     "domain model"
   ],
+  "exports": {
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "default": "./dist/core/index.js"
+    },
+    "./knex": {
+      "types": "./dist/knex/index.d.ts",
+      "default": "./dist/knex/index.js"
+    }
+  },
   "description": "Generic implementation of Unit of Work and Repository patterns to build isolated domain model",
-  "types": "dist/index.d.ts",
-  "main": "dist/index.js",
   "scripts": {
     "build": "rimraf ./dist && tsc",
     "watch": "tsc --watch",

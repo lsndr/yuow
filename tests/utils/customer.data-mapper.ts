@@ -1,22 +1,15 @@
-import { DataMapper } from '../../src';
+import { DataMapper } from '../../src/core';
 import { CustomerHydrator } from './customer.hydrator';
 import { Customer } from './customer';
+import { Knex } from 'knex';
 
 export type FindOneCustomerQuery = {
   id: string;
 };
 
 export class CustomerDataMapper extends DataMapper<Customer> {
-  private map(record: any) {
-    return new CustomerHydrator({
-      id: record.id,
-      name: record.name,
-      cards: JSON.parse(record.cards),
-    });
-  }
-
-  async findById(id: string): Promise<Customer | undefined> {
-    const record = await this.knex
+  async findById(knex: Knex, id: string): Promise<Customer | undefined> {
+    const record = await knex
       .select('*')
       .from('customers')
       .where('id', id)
@@ -33,10 +26,10 @@ export class CustomerDataMapper extends DataMapper<Customer> {
     return customer;
   }
 
-  async insert(customer: Customer) {
+  async insert(knex: Knex, customer: Customer) {
     const version = this.getVersion(customer);
 
-    const result = await this.knex
+    const result = await knex
       .insert({
         id: customer.id,
         name: customer.name,
@@ -48,10 +41,9 @@ export class CustomerDataMapper extends DataMapper<Customer> {
     return (result[0] || 0) > 0;
   }
 
-  async update(customer: Customer) {
+  async update(knex: Knex, customer: Customer) {
     const version = this.increaseVersion(customer);
-
-    const result = await this.knex('customers')
+    const result = await knex('customers')
       .update({
         id: customer.id,
         name: customer.name,
@@ -64,15 +56,23 @@ export class CustomerDataMapper extends DataMapper<Customer> {
     return result > 0;
   }
 
-  async delete(customer: Customer) {
+  async delete(knex: Knex, customer: Customer) {
     const version = this.getVersion(customer);
 
-    const result = await this.knex
+    const result = await knex
       .delete()
       .from('customers')
       .where('customers.id', customer.id)
       .andWhere('customers.version', version);
 
     return result > 0;
+  }
+
+  private map(record: any) {
+    return new CustomerHydrator({
+      id: record.id,
+      name: record.name,
+      cards: JSON.parse(record.cards),
+    });
   }
 }

@@ -8,7 +8,6 @@ export class PersistenceError extends Error {
   ) {
     super();
 
-    this.name = 'PersistenceError';
     this.message = `${repositoryName} cannot perform an ${operation} operation on entity with identity "${identity}"`;
   }
 }

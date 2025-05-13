@@ -8,14 +8,6 @@ export type DataMapperConstructor<
 const versionMap = new WeakMap<object, number>();
 
 export abstract class DataMapper<E extends object> {
-  constructor(protected readonly knex: Knex) {}
-
-  abstract insert(entity: E): Promise<boolean>;
-
-  abstract update(entity: E): Promise<boolean>;
-
-  abstract delete(entity: E): Promise<boolean>;
-
   protected setVersion(entity: E, version: number) {
     const currentVersion = this.getVersion(entity);
 

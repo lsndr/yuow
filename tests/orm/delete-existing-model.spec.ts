@@ -1,5 +1,10 @@
 import { Knex, knex } from 'knex';
-import { Uow, uowFactory } from '../../src';
+import {
+  KnexTransaction,
+  KnexTransactionOptions,
+  KnexEngine,
+} from '../../src/knex';
+import { Uow } from '../../src/core';
 import { resolve } from 'path';
 import { CustomerRepository } from '../utils/customer.schema';
 import { faker } from '@faker-js/faker/locale/yo_NG';
@@ -7,7 +12,7 @@ import { Customer } from '../utils/customer';
 
 describe('ORM – Delete Existing Model', () => {
   let db: Knex;
-  let uow: Uow;
+  let uow: Uow<KnexEngine, KnexTransaction, KnexTransactionOptions>;
 
   beforeEach(async () => {
     db = knex({
@@ -19,7 +24,7 @@ describe('ORM – Delete Existing Model', () => {
       },
     });
 
-    uow = uowFactory(db);
+    uow = new Uow(new KnexEngine(db));
 
     await db.migrate.up();
   });
@@ -31,14 +36,14 @@ describe('ORM – Delete Existing Model', () => {
   it('should delete an existing model', async () => {
     // arrange
     const id = faker.string.uuid();
-    await uow((ctx) =>
+    await uow.run((ctx) =>
       ctx
         .getRepository(CustomerRepository)
         .add(Customer.create({ id, name: faker.person.fullName(), cards: [] })),
     );
 
     // act
-    await uow(async (ctx) => {
+    await uow.run(async (ctx) => {
       const customerRepository = ctx.getRepository(CustomerRepository);
 
       const customer = await customerRepository.find((queryBuilder) =>
@@ -53,7 +58,7 @@ describe('ORM – Delete Existing Model', () => {
     });
 
     // assert
-    const model = await uow((ctx) =>
+    const model = await uow.run((ctx) =>
       ctx.getRepository(CustomerRepository).find((qb) => qb.where('id', id)),
     );
 
