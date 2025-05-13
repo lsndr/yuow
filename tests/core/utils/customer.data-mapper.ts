@@ -1,7 +1,7 @@
 import { CustomerHydrator } from './customer.hydrator';
 import { Customer } from './customer';
-import { WeakVersionTracker } from '../../src/core';
-import { KnexTransaction } from '../../src/knex';
+import { WeakVersionTracker } from '../../../src/core';
+import { KnexTransaction } from './knex.transaction';
 
 export type FindOneCustomerQuery = {
   id: string;

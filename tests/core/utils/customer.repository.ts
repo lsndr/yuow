@@ -1,7 +1,7 @@
-import { KnexTransaction } from '../../src/knex';
-import { EntityState, Repository } from '../../src/core';
+import { EntityState, Repository } from '../../../src/core';
 import { CustomerDataMapper } from './customer.data-mapper';
 import { Customer } from './customer';
+import { KnexTransaction } from './knex.transaction';
 
 export class CustomerRepository extends Repository<Customer, KnexTransaction> {
   private readonly mapper: CustomerDataMapper;

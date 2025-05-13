@@ -5,9 +5,9 @@ import {
   KnexEngine,
 } from '../../src/knex';
 import { Uow } from '../../src/core';
-import { Customer } from '../utils/customer';
+import { Customer } from './utils/customer';
 import { resolve } from 'path';
-import { CustomerRepository } from '../utils/customer.schema';
+import { CustomerRepository } from './utils/customer.schema';
 import { faker } from '@faker-js/faker';
 
 describe('ORM - Create New Model', () => {
@@ -20,7 +20,7 @@ describe('ORM - Create New Model', () => {
       connection: ':memory:',
       useNullAsDefault: true,
       migrations: {
-        directory: resolve(__dirname, '../migrations'),
+        directory: resolve(__dirname, 'migrations'),
       },
     });
 
