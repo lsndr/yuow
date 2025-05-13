@@ -1,14 +1,14 @@
+# ⚠️ WARNING: Documentation Outdated! ⚠️
+
+> 🚨 **The documentation and examples below are outdated.**  
+> Please check the `tests` folder for up-to-date usage examples!
+
 # Yuow
 
 [![npm version](https://badge.fury.io/js/yuow.svg?1)](https://badge.fury.io/js/yuow?`)
 [![npm downloads/month](https://img.shields.io/npm/dm/yuow.svg)](https://www.npmjs.com/package/yuow)
 [![npm downloads](https://img.shields.io/npm/dt/yuow.svg)](https://www.npmjs.com/package/yuow)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/lsndr/yuow/blob/master/LICENSE.md)
-
-# ⚠️ WARNING: Documentation Outdated! ⚠️
-
-> 🚨 **The documentation and examples below are outdated.**  
-> Please check the `tests` folder for up-to-date usage examples!
 
 `Yuow` is a generic implementation of Unit of Work, Repository and IdentityMap patterns built on top of [Knex](http://knexjs.org/) library.
 
