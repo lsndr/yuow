@@ -1,7 +1,7 @@
 import { Knex } from 'knex';
-import { DataMapper, DataMapperConstructor } from '../core/data-mapper';
-import { EntityPropertiesMap } from '../core/orm/entity-properties-map';
-import { ObjectOperator } from '../core/orm/object-operator';
+import { DataMapper, DataMapperConstructor } from '../core';
+import { EntityPropertiesMap } from './entity-properties-map';
+import { ObjectOperator } from './object-operator';
 
 export interface EntityDataMapperOptions<E extends object> {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type -- Required for entity constructor

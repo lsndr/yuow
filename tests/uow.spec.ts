@@ -1,11 +1,10 @@
 import { Knex, knex } from 'knex';
 import {
-  Uow,
   KnexEngine,
   KnexTransaction,
   KnexTransactionOptions,
-  RunError,
-} from '../src';
+} from '../src/knex';
+import { Uow, RunError } from '../src/core';
 import { Customer } from './utils/customer';
 import { CustomerRepository } from './utils/customer.repository';
 import { resolve } from 'path';

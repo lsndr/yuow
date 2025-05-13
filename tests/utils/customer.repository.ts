@@ -1,4 +1,5 @@
-import { DBContext, Repository, KnexTransaction } from '../../src';
+import { KnexTransaction } from '../../src/knex';
+import { DBContext, EntityState, Repository } from '../../src/core';
 import { CustomerDataMapper } from './customer.data-mapper';
 import { Customer } from './customer';
 
@@ -17,7 +18,7 @@ export class CustomerRepository extends Repository<Customer, KnexTransaction> {
       id,
     );
 
-    return this.trackAll(result, 'loaded');
+    return this.trackAll(result, EntityState.LOADED);
   }
 
   protected extractIdentity(customer: Customer) {

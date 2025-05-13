@@ -1,10 +1,10 @@
 import { Knex, knex } from 'knex';
 import {
-  Uow,
   KnexTransaction,
   KnexTransactionOptions,
   KnexEngine,
-} from '../../src';
+} from '../../src/knex';
+import { Uow } from '../../src/core';
 import { Customer } from '../utils/customer';
 import { resolve } from 'path';
 import { CustomerRepository } from '../utils/customer.schema';

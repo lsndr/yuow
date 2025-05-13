@@ -1,6 +1,6 @@
-import { Engine } from '../core/transaction/engine';
+import { Engine } from '../core';
 import { Knex } from 'knex';
-import { KnexTransaction, KnexTransactionOptions } from './knex.transaction';
+import { KnexTransaction, KnexTransactionOptions } from './knex-transaction';
 
 export class KnexEngine
   implements Engine<KnexTransaction, KnexTransactionOptions>

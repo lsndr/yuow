@@ -1,12 +1,16 @@
-import { Repository, RepositoryConstructor } from '../core/repository';
+import {
+  Repository,
+  RepositoryConstructor,
+  DBContext,
+  EntityState,
+} from '../core';
 import {
   EntityDataMapper,
   EntityDataMapperConstructor,
 } from './entity-data-mapper';
-import { EntityPropertiesMap } from '../core/orm/entity-properties-map';
-import { ObjectOperator } from '../core/orm/object-operator';
-import { KnexTransaction } from './knex.transaction';
-import { DBContext } from '../core/db-context';
+import { EntityPropertiesMap } from './entity-properties-map';
+import { ObjectOperator } from './object-operator';
+import { KnexTransaction } from './knex-transaction';
 import { Knex } from 'knex';
 
 export interface EntityRepositoryOptions<E extends object> {
@@ -43,7 +47,7 @@ export function createRepository<E extends object>(
         where,
       );
 
-      return this.trackAll(result, 'loaded');
+      return this.trackAll(result, EntityState.LOADED);
     }
 
     protected override extractIdentity(entity: E): unknown {

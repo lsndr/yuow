@@ -1,4 +1,4 @@
-import { DataMapper } from '../../src';
+import { DataMapper } from '../../src/core';
 import { CustomerHydrator } from './customer.hydrator';
 import { Customer } from './customer';
 import { Knex } from 'knex';

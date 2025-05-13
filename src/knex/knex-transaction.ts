@@ -1,4 +1,4 @@
-import { Transaction } from '../core/transaction/transaction';
+import { Transaction } from '../core';
 import { Knex } from 'knex';
 
 export interface KnexTransactionOptions {

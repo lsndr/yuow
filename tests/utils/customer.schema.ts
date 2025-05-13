@@ -1,4 +1,4 @@
-import { JsonProperty, Property, Schema } from '../../src';
+import { JsonProperty, Property, Schema } from '../../src/knex';
 import { Customer } from './customer';
 
 const schema = new Schema(
