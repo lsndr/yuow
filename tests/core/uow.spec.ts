@@ -1,14 +1,14 @@
 import { Knex, knex } from 'knex';
-import {
-  KnexEngine,
-  KnexTransaction,
-  KnexTransactionOptions,
-} from '../src/knex';
-import { Uow, RunError } from '../src/core';
+import { Uow, RunError } from '../../src/core';
 import { Customer } from './utils/customer';
 import { CustomerRepository } from './utils/customer.repository';
 import { resolve } from 'path';
 import { faker } from '@faker-js/faker';
+import { KnexEngine } from './utils/knex.engine';
+import {
+  KnexTransaction,
+  KnexTransactionOptions,
+} from './utils/knex.transaction';
 
 describe('Unit of Work', () => {
   let db: Knex;

@@ -6,9 +6,9 @@ import {
 } from '../../src/knex';
 import { Uow } from '../../src/core';
 import { resolve } from 'path';
-import { CustomerRepository } from '../utils/customer.schema';
+import { CustomerRepository } from './utils/customer.schema';
 import { faker } from '@faker-js/faker/locale/yo_NG';
-import { Customer } from '../utils/customer';
+import { Customer } from './utils/customer';
 
 describe('ORM – Update Existing Model', () => {
   let db: Knex;
@@ -20,7 +20,7 @@ describe('ORM – Update Existing Model', () => {
       connection: ':memory:',
       useNullAsDefault: true,
       migrations: {
-        directory: resolve(__dirname, '../migrations'),
+        directory: resolve(__dirname, 'migrations'),
       },
     });
 
