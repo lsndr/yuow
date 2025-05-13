@@ -1,22 +1,19 @@
 import { KnexTransaction } from '../../src/knex';
-import { DBContext, EntityState, Repository } from '../../src/core';
+import { EntityState, Repository } from '../../src/core';
 import { CustomerDataMapper } from './customer.data-mapper';
 import { Customer } from './customer';
 
 export class CustomerRepository extends Repository<Customer, KnexTransaction> {
   private readonly mapper: CustomerDataMapper;
 
-  constructor(context: DBContext<KnexTransaction>) {
-    super(context);
+  constructor(transaction: KnexTransaction) {
+    super(transaction);
 
-    this.mapper = new CustomerDataMapper(context);
+    this.mapper = new CustomerDataMapper(transaction);
   }
 
   async findById(id: string) {
-    const result = await this.mapper.findById(
-      this.context.transaction.knex,
-      id,
-    );
+    const result = await this.mapper.findById(id);
 
     return this.trackAll(result, EntityState.LOADED);
   }

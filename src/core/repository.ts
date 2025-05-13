@@ -1,5 +1,4 @@
 import { WeakIdentityMap } from 'weak-identity-map';
-import { DBContext } from './db-context';
 import { PersistenceError, PersistenceOperation } from './persistence.error';
 import * as EventEmitter from 'emittery';
 import { Transaction, TransactionEvents } from './transaction/transaction';
@@ -11,7 +10,7 @@ export interface RepositoryConstructor<
   T extends Transaction<TE>,
   TE extends TransactionEvents = TransactionEvents,
 > {
-  new (context: DBContext<T, TE>): R;
+  new (transaction: T): R;
 }
 
 export type RepositoryEvents<E> = {
@@ -38,7 +37,7 @@ export abstract class Repository<
   private identityMap: WeakIdentityMap<unknown, EntityWrapper<E>> =
     new WeakIdentityMap();
 
-  protected readonly context: DBContext<T, TE>;
+  protected readonly transaction: T;
 
   protected abstract extractIdentity(entity: E): unknown;
 
@@ -48,8 +47,8 @@ export abstract class Repository<
 
   protected abstract insert(entity: E): Promise<boolean>;
 
-  constructor(context: DBContext<T, TE>) {
-    this.context = context;
+  constructor(transaction: T) {
+    this.transaction = transaction;
 
     this.register();
   }
@@ -119,7 +118,7 @@ export abstract class Repository<
   }
 
   private register() {
-    this.context.transaction.on('flush', async () => {
+    this.transaction.on('flush', async () => {
       for (const [id, wrapper] of this.identityMap.entries()) {
         const identity = this.extractIdentity(wrapper.entity);
 

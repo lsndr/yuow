@@ -2,7 +2,6 @@ import { Knex } from 'knex';
 import { EntityPropertiesMap } from './entity-properties-map';
 import { ObjectOperator } from './object-operator';
 import { WeakVersionTracker } from '../core/weak-version-tracker';
-import { DBContext } from '../core';
 import { KnexTransaction } from './knex-transaction';
 
 export interface EntityDataMapperOptions<E extends object> {
@@ -22,7 +21,7 @@ export interface EntityDataMapper<E extends object> {
 }
 
 export type EntityDataMapperConstructor<E extends object> = new (
-  context: DBContext<KnexTransaction>,
+  transaction: KnexTransaction,
 ) => EntityDataMapper<E>;
 
 export function createDataMapper<E extends object>(
@@ -40,12 +39,12 @@ export function createDataMapper<E extends object>(
     private readonly useVersion = !!options.version;
     private readonly versionTracker = new WeakVersionTracker<E>();
 
-    constructor(private readonly context: DBContext<KnexTransaction>) {}
+    constructor(private readonly transaction: KnexTransaction) {}
 
     async find(
       where: (queryBuilder: Knex.QueryBuilder) => void,
     ): Promise<E | undefined> {
-      const qb = this.context.transaction.knex.queryBuilder();
+      const qb = this.transaction.knex.queryBuilder();
 
       const record = await qb.select('*').from(this.table).where(where).first();
 
@@ -83,9 +82,7 @@ export function createDataMapper<E extends object>(
           this.versionTracker.getVersion(entity);
       }
 
-      const result = await this.context.transaction.knex
-        .insert(data)
-        .into(this.table);
+      const result = await this.transaction.knex.insert(data).into(this.table);
 
       return (result[0] || 0) > 0;
     }
@@ -102,7 +99,7 @@ export function createDataMapper<E extends object>(
         data[property.name] = value;
       }
 
-      const query = this.context.transaction.knex(this.table).update(data);
+      const query = this.transaction.knex(this.table).update(data);
 
       for (const [name, value] of this.extractIdentities(entity)) {
         query.where(name, value as any);
@@ -121,7 +118,7 @@ export function createDataMapper<E extends object>(
     }
 
     async delete(entity: E): Promise<boolean> {
-      const query = this.context.transaction.knex.delete().from(options.table);
+      const query = this.transaction.knex.delete().from(options.table);
 
       for (const [name, value] of this.extractIdentities(entity)) {
         query.where(name, value as any);
