@@ -1,9 +1,4 @@
-import {
-  Repository,
-  RepositoryConstructor,
-  DBContext,
-  EntityState,
-} from '../core';
+import { Repository, RepositoryConstructor, EntityState } from '../core';
 import {
   EntityDataMapper,
   EntityDataMapperConstructor,
@@ -33,10 +28,10 @@ export function createRepository<E extends object>(
   return class extends Repository<E, KnexTransaction> {
     private readonly mapper: EntityDataMapper<E>;
 
-    constructor(context: DBContext<KnexTransaction>) {
-      super(context);
+    constructor(transaction: KnexTransaction) {
+      super(transaction);
 
-      this.mapper = new options.dataMapperConstructor(this.context);
+      this.mapper = new options.dataMapperConstructor(this.transaction);
     }
 
     async find(where: (qb: Knex.QueryBuilder) => any) {

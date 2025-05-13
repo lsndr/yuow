@@ -22,7 +22,6 @@ describe('ORM – Find Existing Model', () => {
       migrations: {
         directory: resolve(__dirname, '../migrations'),
       },
-      debug: true,
     });
 
     uow = new Uow(new KnexEngine(db));

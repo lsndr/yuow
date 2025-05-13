@@ -1,7 +1,6 @@
 import { CustomerHydrator } from './customer.hydrator';
 import { Customer } from './customer';
-import { Knex } from 'knex';
-import { DBContext, WeakVersionTracker } from '../../src/core';
+import { WeakVersionTracker } from '../../src/core';
 import { KnexTransaction } from '../../src/knex';
 
 export type FindOneCustomerQuery = {
@@ -11,10 +10,10 @@ export type FindOneCustomerQuery = {
 export class CustomerDataMapper {
   private readonly versionTracker = new WeakVersionTracker<Customer>();
 
-  public constructor(private readonly context: DBContext<KnexTransaction>) {}
+  public constructor(private readonly transaction: KnexTransaction) {}
 
-  async findById(knex: Knex, id: string): Promise<Customer | undefined> {
-    const record = await knex
+  async findById(id: string): Promise<Customer | undefined> {
+    const record = await this.transaction.knex
       .select('*')
       .from('customers')
       .where('id', id)
@@ -34,7 +33,7 @@ export class CustomerDataMapper {
   async insert(customer: Customer) {
     const version = this.versionTracker.getVersion(customer);
 
-    const result = await this.context.transaction.knex
+    const result = await this.transaction.knex
       .insert({
         id: customer.id,
         name: customer.name,
@@ -48,7 +47,7 @@ export class CustomerDataMapper {
 
   async update(customer: Customer) {
     const version = this.versionTracker.increaseVersion(customer);
-    const result = await this.context.transaction
+    const result = await this.transaction
       .knex('customers')
       .update({
         id: customer.id,
@@ -65,7 +64,7 @@ export class CustomerDataMapper {
   async delete(customer: Customer) {
     const version = this.versionTracker.getVersion(customer);
 
-    const result = await this.context.transaction.knex
+    const result = await this.transaction.knex
       .delete()
       .from('customers')
       .where('customers.id', customer.id)

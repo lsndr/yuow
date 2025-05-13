@@ -2,7 +2,6 @@ export * from './transaction/engine';
 export * from './transaction/transaction';
 export * from './context';
 export * from './weak-version-tracker';
-export * from './db-context';
 export * from './persistence.error';
 export * from './repository';
 export * from './run-error';
