@@ -9,9 +9,9 @@ import { KnexTransaction } from './knex-transaction';
 import { Knex } from 'knex';
 
 export interface EntityRepositoryOptions<E extends object> {
-  identity: string | string[];
-  properties: EntityPropertiesMap;
-  dataMapperConstructor: EntityDataMapperConstructor<E>;
+  readonly identity: string | readonly string[];
+  readonly properties: EntityPropertiesMap;
+  readonly dataMapperConstructor: EntityDataMapperConstructor<E>;
 }
 
 export interface EntityRepository<E extends object>

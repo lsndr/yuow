@@ -1,8 +1,8 @@
 import { JsonProperty, Property, Schema } from '../../../src/knex';
-import { Customer } from './customer';
+import { Entity } from './entity';
 
 const schema = new Schema(
-  Customer,
+  Entity,
   {
     'state.id': new Property({
       name: 'id',
@@ -17,10 +17,10 @@ const schema = new Schema(
   {
     version: true,
     identity: 'state.id',
-    table: 'customers',
+    table: 'entity',
   },
 );
 
-const CustomerRepository = schema.createRepository();
+const EntityRepository = schema.createRepository();
 
-export { CustomerRepository };
+export { EntityRepository };

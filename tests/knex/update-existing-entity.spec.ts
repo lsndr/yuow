@@ -6,11 +6,11 @@ import {
 } from '../../src/knex';
 import { Uow } from '../../src/core';
 import { resolve } from 'path';
-import { CustomerRepository } from './utils/customer.schema';
+import { EntityRepository } from './utils/entity.schema';
 import { faker } from '@faker-js/faker/locale/yo_NG';
-import { Customer } from './utils/customer';
+import { Entity } from './utils/entity';
 
-describe('ORM – Update Existing Model', () => {
+describe('Knex – Update Existing Entity', () => {
   let db: Knex;
   let uow: Uow<KnexEngine, KnexTransaction, KnexTransactionOptions>;
 
@@ -20,7 +20,7 @@ describe('ORM – Update Existing Model', () => {
       connection: ':memory:',
       useNullAsDefault: true,
       migrations: {
-        directory: resolve(__dirname, 'migrations'),
+        directory: resolve(__dirname, 'utils/migrations'),
       },
     });
 
@@ -33,32 +33,33 @@ describe('ORM – Update Existing Model', () => {
     await db.destroy();
   });
 
-  it('should update an existing model', async () => {
+  it('should update an existing entity', async () => {
     // arrange
     const id = faker.string.uuid();
     const name = faker.person.fullName();
     const newName = faker.person.fullName();
     await uow.run((ctx) =>
       ctx
-        .getRepository(CustomerRepository)
-        .add(Customer.create({ id, name, cards: [] })),
+        .getRepository(EntityRepository)
+        .add(Entity.create({ id, name, cards: [] })),
     );
 
     // act
     await uow.run(async (ctx) => {
       const customer = await ctx
-        .getRepository(CustomerRepository)
+        .getRepository(EntityRepository)
         .find((qb) => qb.where('id', id));
 
       customer?.changeName(newName);
     });
 
     // assert
-    const model = await uow.run((ctx) =>
-      ctx.getRepository(CustomerRepository).find((qb) => qb.where('id', id)),
+    const entity = await uow.run((ctx) =>
+      ctx.getRepository(EntityRepository).find((qb) => qb.where('id', id)),
     );
 
-    expect(model?.id).toBe(id);
-    expect(model?.name).toBe(newName);
+    expect(entity).toBeInstanceOf(Entity);
+    expect(entity?.id).toBe(id);
+    expect(entity?.name).toBe(newName);
   });
 });

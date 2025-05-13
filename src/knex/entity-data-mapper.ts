@@ -6,11 +6,11 @@ import { KnexTransaction } from './knex-transaction';
 
 export interface EntityDataMapperOptions<E extends object> {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type -- Required for entity constructor
-  entityConstructor: Function & { prototype: E };
-  identity: string | string[];
-  properties: EntityPropertiesMap;
-  table: string;
-  version?: boolean | string;
+  readonly entityConstructor: Function & { prototype: E };
+  readonly identity: string | readonly string[];
+  readonly properties: EntityPropertiesMap;
+  readonly table: string;
+  readonly version?: boolean | string;
 }
 
 export interface EntityDataMapper<E extends object> {
@@ -21,7 +21,7 @@ export interface EntityDataMapper<E extends object> {
 }
 
 export type EntityDataMapperConstructor<E extends object> = new (
-  transaction: KnexTransaction,
+  knexOrTransaction: Knex | KnexTransaction,
 ) => EntityDataMapper<E>;
 
 export function createDataMapper<E extends object>(
@@ -39,12 +39,12 @@ export function createDataMapper<E extends object>(
     private readonly useVersion = !!options.version;
     private readonly versionTracker = new WeakVersionTracker<E>();
 
-    constructor(private readonly transaction: KnexTransaction) {}
+    constructor(private readonly knexOrTransaction: Knex | KnexTransaction) {}
 
     async find(
       where: (queryBuilder: Knex.QueryBuilder) => void,
     ): Promise<E | undefined> {
-      const qb = this.transaction.knex.queryBuilder();
+      const qb = this.knex.queryBuilder();
 
       const record = await qb.select('*').from(this.table).where(where).first();
 
@@ -82,7 +82,7 @@ export function createDataMapper<E extends object>(
           this.versionTracker.getVersion(entity);
       }
 
-      const result = await this.transaction.knex.insert(data).into(this.table);
+      const result = await this.knex.insert(data).into(this.table);
 
       return (result[0] || 0) > 0;
     }
@@ -99,7 +99,7 @@ export function createDataMapper<E extends object>(
         data[property.name] = value;
       }
 
-      const query = this.transaction.knex(this.table).update(data);
+      const query = this.knex(this.table).update(data);
 
       for (const [name, value] of this.extractIdentities(entity)) {
         query.where(name, value as any);
@@ -118,7 +118,7 @@ export function createDataMapper<E extends object>(
     }
 
     async delete(entity: E): Promise<boolean> {
-      const query = this.transaction.knex.delete().from(options.table);
+      const query = this.knex.delete().from(options.table);
 
       for (const [name, value] of this.extractIdentities(entity)) {
         query.where(name, value as any);
@@ -143,6 +143,12 @@ export function createDataMapper<E extends object>(
 
         objectOperator.put(path, value);
       }
+    }
+
+    private get knex() {
+      return this.knexOrTransaction instanceof KnexTransaction
+        ? this.knexOrTransaction.knex
+        : this.knexOrTransaction;
     }
 
     private *extractIdentities(entity: E) {

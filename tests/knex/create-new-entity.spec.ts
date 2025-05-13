@@ -5,12 +5,12 @@ import {
   KnexEngine,
 } from '../../src/knex';
 import { Uow } from '../../src/core';
-import { Customer } from './utils/customer';
+import { Entity } from './utils/entity';
 import { resolve } from 'path';
-import { CustomerRepository } from './utils/customer.schema';
+import { EntityRepository } from './utils/entity.schema';
 import { faker } from '@faker-js/faker';
 
-describe('ORM - Create New Model', () => {
+describe('Knex – Create New Entity', () => {
   let db: Knex;
   let uow: Uow<KnexEngine, KnexTransaction, KnexTransactionOptions>;
 
@@ -20,7 +20,7 @@ describe('ORM - Create New Model', () => {
       connection: ':memory:',
       useNullAsDefault: true,
       migrations: {
-        directory: resolve(__dirname, 'migrations'),
+        directory: resolve(__dirname, 'utils/migrations'),
       },
     });
 
@@ -33,7 +33,7 @@ describe('ORM - Create New Model', () => {
     await db.destroy();
   });
 
-  it('should persist a new model', async () => {
+  it('should persist a new entity', async () => {
     // arrange
     const id = faker.string.uuid();
     const name = faker.person.fullName();
@@ -45,17 +45,18 @@ describe('ORM - Create New Model', () => {
     // act
     await uow.run((ctx) => {
       ctx
-        .getRepository(CustomerRepository)
-        .add(Customer.create({ id, name, cards }));
+        .getRepository(EntityRepository)
+        .add(Entity.create({ id, name, cards }));
     });
 
     // assert
-    const model = await uow.run((ctx) =>
-      ctx.getRepository(CustomerRepository).find((qb) => qb.where('id', id)),
+    const entity = await uow.run((ctx) =>
+      ctx.getRepository(EntityRepository).find((qb) => qb.where('id', id)),
     );
 
-    expect(model?.id).toBe(id);
-    expect(model?.name).toBe(name);
-    expect(model?.cards).toEqual(cards);
+    expect(entity).toBeInstanceOf(Entity);
+    expect(entity?.id).toBe(id);
+    expect(entity?.name).toBe(name);
+    expect(entity?.cards).toEqual(cards);
   });
 });

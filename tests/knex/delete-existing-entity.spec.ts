@@ -6,11 +6,11 @@ import {
 } from '../../src/knex';
 import { Uow } from '../../src/core';
 import { resolve } from 'path';
-import { CustomerRepository } from './utils/customer.schema';
+import { EntityRepository } from './utils/entity.schema';
 import { faker } from '@faker-js/faker/locale/yo_NG';
-import { Customer } from './utils/customer';
+import { Entity } from './utils/entity';
 
-describe('ORM – Delete Existing Model', () => {
+describe('Knex – Delete Existing Entity', () => {
   let db: Knex;
   let uow: Uow<KnexEngine, KnexTransaction, KnexTransactionOptions>;
 
@@ -20,7 +20,7 @@ describe('ORM – Delete Existing Model', () => {
       connection: ':memory:',
       useNullAsDefault: true,
       migrations: {
-        directory: resolve(__dirname, 'migrations'),
+        directory: resolve(__dirname, 'utils/migrations'),
       },
     });
 
@@ -33,18 +33,18 @@ describe('ORM – Delete Existing Model', () => {
     await db.destroy();
   });
 
-  it('should delete an existing model', async () => {
+  it('should delete an existing entity', async () => {
     // arrange
     const id = faker.string.uuid();
     await uow.run((ctx) =>
       ctx
-        .getRepository(CustomerRepository)
-        .add(Customer.create({ id, name: faker.person.fullName(), cards: [] })),
+        .getRepository(EntityRepository)
+        .add(Entity.create({ id, name: faker.person.fullName(), cards: [] })),
     );
 
     // act
     await uow.run(async (ctx) => {
-      const customerRepository = ctx.getRepository(CustomerRepository);
+      const customerRepository = ctx.getRepository(EntityRepository);
 
       const customer = await customerRepository.find((queryBuilder) =>
         queryBuilder.where('id', id),
@@ -58,10 +58,10 @@ describe('ORM – Delete Existing Model', () => {
     });
 
     // assert
-    const model = await uow.run((ctx) =>
-      ctx.getRepository(CustomerRepository).find((qb) => qb.where('id', id)),
+    const entity = await uow.run((ctx) =>
+      ctx.getRepository(EntityRepository).find((qb) => qb.where('id', id)),
     );
 
-    expect(model).toBeUndefined();
+    expect(entity).toBeUndefined();
   });
 });

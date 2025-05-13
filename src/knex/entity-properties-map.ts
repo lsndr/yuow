@@ -1,6 +1,6 @@
 import { BaseProperty } from './base-property';
 
-export type EntityProperties = Record<string, BaseProperty>;
+export type EntityProperties = Readonly<Record<string, BaseProperty>>;
 
 export class EntityPropertiesMap {
   constructor(private readonly properties: EntityProperties) {}
@@ -9,17 +9,17 @@ export class EntityPropertiesMap {
     return this.properties[path];
   }
 
-  getPropertyPath(databaseName: string) {
+  getPropertyPath(fieldName: string) {
     let path: string | undefined;
 
     for (const propertyPath in this.properties) {
-      if (this.properties[propertyPath]?.name === databaseName) {
+      if (this.properties[propertyPath]?.name === fieldName) {
         path = propertyPath;
       }
     }
 
     if (typeof path === 'undefined') {
-      throw new Error(`Unknown database name: ${databaseName}`);
+      throw new Error(`Unknown database name: ${fieldName}`);
     }
 
     return path;

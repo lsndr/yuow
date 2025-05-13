@@ -1,11 +1,11 @@
-export type CustomerState = {
+export type EntityState = {
   id: string;
   name: string;
   cards: string[];
 };
 
-export class Customer {
-  private state: CustomerState;
+export class Entity {
+  private state: EntityState;
 
   get id() {
     return this.state.id;
@@ -19,7 +19,7 @@ export class Customer {
     return this.state.cards;
   }
 
-  protected constructor(state: CustomerState) {
+  protected constructor(state: EntityState) {
     this.state = state;
   }
 
@@ -27,7 +27,7 @@ export class Customer {
     this.state.name = name;
   }
 
-  static create(state: CustomerState) {
+  static create(state: EntityState) {
     return new this(state);
   }
 }

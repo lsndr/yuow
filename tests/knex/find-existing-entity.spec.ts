@@ -6,11 +6,11 @@ import {
 } from '../../src/knex';
 import { Uow } from '../../src/core';
 import { resolve } from 'path';
-import { CustomerRepository } from './utils/customer.schema';
+import { EntityRepository } from './utils/entity.schema';
 import { faker } from '@faker-js/faker/locale/yo_NG';
-import { Customer } from './utils/customer';
+import { Entity } from './utils/entity';
 
-describe('ORM – Find Existing Model', () => {
+describe('Knex – Find Existing Entity', () => {
   let db: Knex;
   let uow: Uow<KnexEngine, KnexTransaction, KnexTransactionOptions>;
 
@@ -20,7 +20,7 @@ describe('ORM – Find Existing Model', () => {
       connection: ':memory:',
       useNullAsDefault: true,
       migrations: {
-        directory: resolve(__dirname, 'migrations'),
+        directory: resolve(__dirname, 'utils/migrations'),
       },
     });
 
@@ -33,34 +33,34 @@ describe('ORM – Find Existing Model', () => {
     await db.destroy();
   });
 
-  it('should find existing model', async () => {
+  it('should find existing entity', async () => {
     // arrange
     const id = faker.string.uuid();
     const name = faker.person.fullName();
     await uow.run((ctx) =>
       ctx
-        .getRepository(CustomerRepository)
-        .add(Customer.create({ id, name, cards: [] })),
+        .getRepository(EntityRepository)
+        .add(Entity.create({ id, name, cards: [] })),
     );
 
     // act
     const result = await uow.run((ctx) =>
       ctx
-        .getRepository(CustomerRepository)
+        .getRepository(EntityRepository)
         .find((queryBuilder) => queryBuilder.where('id', id)),
     );
 
     // assert
-    expect(result).toBeInstanceOf(Customer);
+    expect(result).toBeInstanceOf(Entity);
     expect(result?.id).toBe(id);
     expect(result?.name).toBe(name);
   });
 
-  it("should fail to find model if it doesn't exist", async () => {
+  it("should fail to find entity if it doesn't exist", async () => {
     // arrange
     await uow.run((ctx) =>
-      ctx.getRepository(CustomerRepository).add(
-        Customer.create({
+      ctx.getRepository(EntityRepository).add(
+        Entity.create({
           id: faker.string.uuid(),
           name: faker.person.fullName(),
           cards: [],
@@ -71,7 +71,7 @@ describe('ORM – Find Existing Model', () => {
     // act
     const result = await uow.run((ctx) =>
       ctx
-        .getRepository(CustomerRepository)
+        .getRepository(EntityRepository)
         .find((queryBuilder) => queryBuilder.where('id', crypto.randomUUID())),
     );
 
