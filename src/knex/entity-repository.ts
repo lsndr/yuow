@@ -36,16 +36,11 @@ export function createRepository<E extends object>(
     constructor(context: DBContext<KnexTransaction>) {
       super(context);
 
-      this.mapper = new options.dataMapperConstructor(
-        this.context.transaction.knex,
-      );
+      this.mapper = new options.dataMapperConstructor(this.context);
     }
 
     async find(where: (qb: Knex.QueryBuilder) => any) {
-      const result = await this.mapper.find(
-        this.context.transaction.knex,
-        where,
-      );
+      const result = await this.mapper.find(where);
 
       return this.trackAll(result, EntityState.LOADED);
     }
@@ -66,15 +61,15 @@ export function createRepository<E extends object>(
     }
 
     protected insert(entity: E): Promise<boolean> {
-      return this.mapper.insert(this.context.transaction.knex, entity);
+      return this.mapper.insert(entity);
     }
 
     protected update(entity: E): Promise<boolean> {
-      return this.mapper.update(this.context.transaction.knex, entity);
+      return this.mapper.update(entity);
     }
 
     protected remove(entity: E): Promise<boolean> {
-      return this.mapper.delete(this.context.transaction.knex, entity);
+      return this.mapper.delete(entity);
     }
   };
 }

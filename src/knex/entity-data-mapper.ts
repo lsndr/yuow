@@ -1,7 +1,9 @@
 import { Knex } from 'knex';
-import { DataMapper, DataMapperConstructor } from '../core';
 import { EntityPropertiesMap } from './entity-properties-map';
 import { ObjectOperator } from './object-operator';
+import { WeakVersionTracker } from '../core/weak-version-tracker';
+import { DBContext } from '../core';
+import { KnexTransaction } from './knex-transaction';
 
 export interface EntityDataMapperOptions<E extends object> {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type -- Required for entity constructor
@@ -12,23 +14,21 @@ export interface EntityDataMapperOptions<E extends object> {
   version?: boolean | string;
 }
 
-export interface EntityDataMapper<E extends object> extends DataMapper<E> {
-  find(
-    knex: Knex,
-    where: (queryBuilder: Knex.QueryBuilder) => any,
-  ): Promise<E | undefined>;
-  insert(knex: Knex, entity: E): Promise<boolean>;
-  update(knex: Knex, entity: E): Promise<boolean>;
-  delete(knex: Knex, entity: E): Promise<boolean>;
+export interface EntityDataMapper<E extends object> {
+  find(where: (queryBuilder: Knex.QueryBuilder) => any): Promise<E | undefined>;
+  insert(entity: E): Promise<boolean>;
+  update(entity: E): Promise<boolean>;
+  delete(entity: E): Promise<boolean>;
 }
 
-export type EntityDataMapperConstructor<E extends object> =
-  DataMapperConstructor<E, EntityDataMapper<E>>;
+export type EntityDataMapperConstructor<E extends object> = new (
+  context: DBContext<KnexTransaction>,
+) => EntityDataMapper<E>;
 
 export function createDataMapper<E extends object>(
   options: EntityDataMapperOptions<E>,
 ): EntityDataMapperConstructor<E> {
-  return class extends DataMapper<E> {
+  return class {
     private readonly table = options.table;
     private readonly properties = options.properties;
     private readonly entityConstructor = options.entityConstructor;
@@ -38,27 +38,14 @@ export function createDataMapper<E extends object>(
       ? options.identity
       : [options.identity];
     private readonly useVersion = !!options.version;
+    private readonly versionTracker = new WeakVersionTracker<E>();
 
-    private *extractIdentities(entity: E) {
-      const entityOperator = new ObjectOperator(entity);
-
-      for (const identityPath of this.identities) {
-        const property = this.properties.get(identityPath);
-        const value = entityOperator.extract(identityPath);
-
-        if (typeof property === 'undefined') {
-          throw new Error(`Couldn't find identity property: ${identityPath}`);
-        }
-
-        yield [property.name, value] as const;
-      }
-    }
+    constructor(private readonly context: DBContext<KnexTransaction>) {}
 
     async find(
-      knex: Knex,
       where: (queryBuilder: Knex.QueryBuilder) => void,
     ): Promise<E | undefined> {
-      const qb = knex.queryBuilder();
+      const qb = this.context.transaction.knex.queryBuilder();
 
       const record = await qb.select('*').from(this.table).where(where).first();
 
@@ -70,13 +57,16 @@ export function createDataMapper<E extends object>(
       await this.hydrate(entity, record);
 
       if (this.useVersion) {
-        this.setVersion(entity, record[this.versionDatabaseFieldName]);
+        this.versionTracker.setVersion(
+          entity,
+          record[this.versionDatabaseFieldName],
+        );
       }
 
       return entity;
     }
 
-    async insert(knex: Knex, entity: E): Promise<boolean> {
+    async insert(entity: E): Promise<boolean> {
       const objectOperator = new ObjectOperator(entity);
       const data: Record<string, unknown> = {};
 
@@ -89,15 +79,18 @@ export function createDataMapper<E extends object>(
       }
 
       if (this.useVersion) {
-        data[this.versionDatabaseFieldName] = this.getVersion(entity);
+        data[this.versionDatabaseFieldName] =
+          this.versionTracker.getVersion(entity);
       }
 
-      const result = await knex.insert(data).into(this.table);
+      const result = await this.context.transaction.knex
+        .insert(data)
+        .into(this.table);
 
       return (result[0] || 0) > 0;
     }
 
-    async update(knex: Knex, entity: E): Promise<boolean> {
+    async update(entity: E): Promise<boolean> {
       const objectOperator = new ObjectOperator(entity);
       const data: Record<string, unknown> = {};
 
@@ -109,14 +102,14 @@ export function createDataMapper<E extends object>(
         data[property.name] = value;
       }
 
-      const query = knex(this.table).update(data);
+      const query = this.context.transaction.knex(this.table).update(data);
 
       for (const [name, value] of this.extractIdentities(entity)) {
         query.where(name, value as any);
       }
 
       if (options.version) {
-        const version = this.increaseVersion(entity);
+        const version = this.versionTracker.increaseVersion(entity);
 
         query.where('version', version - 1);
         query.update(this.versionDatabaseFieldName, version);
@@ -127,15 +120,15 @@ export function createDataMapper<E extends object>(
       return result > 0;
     }
 
-    async delete(knex: Knex, entity: E): Promise<boolean> {
-      const query = knex.delete().from(options.table);
+    async delete(entity: E): Promise<boolean> {
+      const query = this.context.transaction.knex.delete().from(options.table);
 
       for (const [name, value] of this.extractIdentities(entity)) {
         query.where(name, value as any);
       }
 
       if (options.version) {
-        const version = this.getVersion(entity);
+        const version = this.versionTracker.getVersion(entity);
 
         query.where('version', version);
       }
@@ -152,6 +145,21 @@ export function createDataMapper<E extends object>(
         const value = await property.fromDatabaseValue(data[property.name]);
 
         objectOperator.put(path, value);
+      }
+    }
+
+    private *extractIdentities(entity: E) {
+      const entityOperator = new ObjectOperator(entity);
+
+      for (const identityPath of this.identities) {
+        const property = this.properties.get(identityPath);
+        const value = entityOperator.extract(identityPath);
+
+        if (typeof property === 'undefined') {
+          throw new Error(`Couldn't find identity property: ${identityPath}`);
+        }
+
+        yield [property.name, value] as const;
       }
     }
   };

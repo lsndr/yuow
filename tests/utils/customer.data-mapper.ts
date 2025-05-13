@@ -1,13 +1,18 @@
-import { DataMapper } from '../../src/core';
 import { CustomerHydrator } from './customer.hydrator';
 import { Customer } from './customer';
 import { Knex } from 'knex';
+import { DBContext, WeakVersionTracker } from '../../src/core';
+import { KnexTransaction } from '../../src/knex';
 
 export type FindOneCustomerQuery = {
   id: string;
 };
 
-export class CustomerDataMapper extends DataMapper<Customer> {
+export class CustomerDataMapper {
+  private readonly versionTracker = new WeakVersionTracker<Customer>();
+
+  public constructor(private readonly context: DBContext<KnexTransaction>) {}
+
   async findById(knex: Knex, id: string): Promise<Customer | undefined> {
     const record = await knex
       .select('*')
@@ -21,15 +26,15 @@ export class CustomerDataMapper extends DataMapper<Customer> {
 
     const customer = this.map(record);
 
-    this.setVersion(customer, record.version);
+    this.versionTracker.setVersion(customer, record.version);
 
     return customer;
   }
 
-  async insert(knex: Knex, customer: Customer) {
-    const version = this.getVersion(customer);
+  async insert(customer: Customer) {
+    const version = this.versionTracker.getVersion(customer);
 
-    const result = await knex
+    const result = await this.context.transaction.knex
       .insert({
         id: customer.id,
         name: customer.name,
@@ -41,9 +46,10 @@ export class CustomerDataMapper extends DataMapper<Customer> {
     return (result[0] || 0) > 0;
   }
 
-  async update(knex: Knex, customer: Customer) {
-    const version = this.increaseVersion(customer);
-    const result = await knex('customers')
+  async update(customer: Customer) {
+    const version = this.versionTracker.increaseVersion(customer);
+    const result = await this.context.transaction
+      .knex('customers')
       .update({
         id: customer.id,
         name: customer.name,
@@ -56,10 +62,10 @@ export class CustomerDataMapper extends DataMapper<Customer> {
     return result > 0;
   }
 
-  async delete(knex: Knex, customer: Customer) {
-    const version = this.getVersion(customer);
+  async delete(customer: Customer) {
+    const version = this.versionTracker.getVersion(customer);
 
-    const result = await knex
+    const result = await this.context.transaction.knex
       .delete()
       .from('customers')
       .where('customers.id', customer.id)
