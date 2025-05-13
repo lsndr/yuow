@@ -21,12 +21,20 @@ jobs:
             script: lint
           - node: 20.x
             script: format
+          - node: 20.x
+            script: build
+          - node: 20.x
+            script: build:tests
           - node: 22.x
             script: test
           - node: 22.x
             script: lint
           - node: 22.x
             script: format
+          - node: 22.x
+            script: build
+          - node: 22.x
+            script: build:tests
     steps:
       - uses: actions/checkout@v4
 
