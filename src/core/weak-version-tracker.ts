@@ -21,6 +21,13 @@ export class WeakVersionTracker<E extends object> {
   }
 
   public getVersion(entity: E) {
-    return this.map.get(entity) ?? 1;
+    let version = this.map.get(entity);
+
+    if (typeof version === 'undefined') {
+      version = 1;
+      this.map.set(entity, version);
+    }
+
+    return version;
   }
 }

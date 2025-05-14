@@ -3,35 +3,35 @@ import { EntityProperties, EntityPropertiesMap } from './entity-properties-map';
 import { createRepository } from './entity-repository';
 
 export interface SchemaOptions {
-  version?: boolean | 'string';
-  identity: string | string[];
-  table: string;
+  readonly version?: boolean | 'string';
+  readonly identity: string | readonly string[];
+  readonly table: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type -- Required for entity constructor
+export type EntityConstructor<E> = Function & { prototype: E };
+
 export class Schema<E extends object> {
-  public readonly properties: EntityPropertiesMap;
-
   constructor(
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type -- Required for entity constructor
-    public readonly entityConstructor: Function & { prototype: E },
-    properties: EntityProperties,
+    public readonly entityConstructor: EntityConstructor<E>,
+    public readonly properties: EntityProperties,
     public readonly options: SchemaOptions,
-  ) {
-    this.properties = new EntityPropertiesMap(properties);
-  }
+  ) {}
 
-  public createRepository() {
-    const dataMapper = createDataMapper<E>({
+  public createDataMapper() {
+    return createDataMapper<E>({
       entityConstructor: this.entityConstructor,
       identity: this.options.identity,
-      properties: this.properties,
+      properties: new EntityPropertiesMap(this.properties),
       table: this.options.table,
       version: this.options.version,
     });
+  }
 
+  public createRepository() {
     return createRepository<E>({
-      dataMapperConstructor: dataMapper,
-      properties: this.properties,
+      dataMapperConstructor: this.createDataMapper(),
+      properties: new EntityPropertiesMap(this.properties),
       identity: this.options.identity,
     });
   }
