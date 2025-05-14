@@ -13,13 +13,13 @@ export abstract class Transaction<
 > {
   protected readonly eventEmitter: EventEmitter<T>;
 
-  abstract commit(): Promise<void>;
-
-  abstract rollback(): Promise<void>;
-
   protected constructor() {
     this.eventEmitter = new EventEmitter();
   }
+
+  public abstract commit(): Promise<void>;
+
+  public abstract rollback(): Promise<void>;
 
   public async flush(): Promise<void> {
     await this.eventEmitter.emit('flush', undefined);
@@ -28,14 +28,14 @@ export abstract class Transaction<
   public on<E extends keyof T>(
     event: E,
     listener: (payload: T[E]) => void | Promise<void>,
-  ) {
+  ): void {
     this.eventEmitter.on(event, listener);
   }
 
   public off<E extends keyof T>(
     event: E,
     listener: (payload: T[E]) => void | Promise<void>,
-  ) {
+  ): void {
     this.eventEmitter.off(event, listener);
   }
 }

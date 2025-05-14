@@ -1,7 +1,7 @@
-import { Knex } from 'knex';
-import { EntityPropertiesMap } from './entity-properties-map';
-import { ObjectOperator } from './object-operator';
+import type { Knex } from 'knex';
 import { WeakVersionTracker } from '../core/weak-version-tracker';
+import type { EntityPropertiesMap } from './entity-properties-map';
+import { ObjectOperator } from './object-operator';
 import { KnexTransaction } from './knex-transaction';
 
 export interface EntityDataMapperOptions<E extends object> {
@@ -39,9 +39,11 @@ export function createDataMapper<E extends object>(
     private readonly useVersion = !!options.version;
     private readonly versionTracker = new WeakVersionTracker<E>();
 
-    constructor(private readonly knexOrTransaction: Knex | KnexTransaction) {}
+    public constructor(
+      private readonly knexOrTransaction: Knex | KnexTransaction,
+    ) {}
 
-    async find(
+    public async find(
       where: (queryBuilder: Knex.QueryBuilder) => void,
     ): Promise<E | undefined> {
       const qb = this.knex.queryBuilder();
@@ -65,7 +67,7 @@ export function createDataMapper<E extends object>(
       return entity;
     }
 
-    async insert(entity: E): Promise<boolean> {
+    public async insert(entity: E): Promise<boolean> {
       const objectOperator = new ObjectOperator(entity);
       const data: Record<string, unknown> = {};
 
@@ -87,7 +89,7 @@ export function createDataMapper<E extends object>(
       return (result[0] || 0) > 0;
     }
 
-    async update(entity: E): Promise<boolean> {
+    public async update(entity: E): Promise<boolean> {
       const objectOperator = new ObjectOperator(entity);
       const data: Record<string, unknown> = {};
 
@@ -117,7 +119,7 @@ export function createDataMapper<E extends object>(
       return result > 0;
     }
 
-    async delete(entity: E): Promise<boolean> {
+    public async delete(entity: E): Promise<boolean> {
       const query = this.knex.delete().from(options.table);
 
       for (const [name, value] of this.extractIdentities(entity)) {

@@ -1,7 +1,7 @@
 export type PersistenceOperation = 'delete' | 'insert' | 'update';
 
 export class PersistenceError extends Error {
-  constructor(
+  public constructor(
     public readonly repositoryName: string,
     public readonly identity: unknown,
     public readonly operation: PersistenceOperation,

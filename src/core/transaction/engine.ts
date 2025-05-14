@@ -1,4 +1,4 @@
-import { Transaction, TransactionEvents } from './transaction';
+import type { Transaction, TransactionEvents } from './transaction';
 
 export interface Engine<
   T extends Transaction<E>,

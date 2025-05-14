@@ -5,15 +5,15 @@ export interface PropertyOptions {
 }
 
 export class Property extends BaseProperty {
-  constructor(options: PropertyOptions) {
+  public constructor(options: PropertyOptions) {
     super(options.name);
   }
 
-  override toDatabaseValue(value: unknown) {
+  public override toDatabaseValue(value: unknown): unknown {
     return value;
   }
 
-  override fromDatabaseValue(value: unknown) {
+  public override fromDatabaseValue(value: unknown): unknown {
     return value;
   }
 }

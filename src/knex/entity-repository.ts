@@ -1,12 +1,13 @@
-import { Repository, RepositoryConstructor, EntityState } from '../core';
-import {
+import type { Knex } from 'knex';
+import type { RepositoryConstructor } from '../core';
+import { EntityState, Repository } from '../core';
+import type {
   EntityDataMapper,
   EntityDataMapperConstructor,
 } from './entity-data-mapper';
-import { EntityPropertiesMap } from './entity-properties-map';
+import type { EntityPropertiesMap } from './entity-properties-map';
 import { ObjectOperator } from './object-operator';
-import { KnexTransaction } from './knex-transaction';
-import { Knex } from 'knex';
+import type { KnexTransaction } from './knex-transaction';
 
 export interface EntityRepositoryOptions<E extends object> {
   readonly identity: string | readonly string[];
@@ -28,13 +29,13 @@ export function createRepository<E extends object>(
   return class extends Repository<E, KnexTransaction> {
     private readonly mapper: EntityDataMapper<E>;
 
-    constructor(transaction: KnexTransaction) {
+    public constructor(transaction: KnexTransaction) {
       super(transaction);
 
       this.mapper = new options.dataMapperConstructor(this.transaction);
     }
 
-    async find(where: (qb: Knex.QueryBuilder) => any) {
+    public async find(where: (qb: Knex.QueryBuilder) => any) {
       const result = await this.mapper.find(where);
 
       return this.trackAll(result, EntityState.LOADED);

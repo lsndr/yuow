@@ -1,7 +1,8 @@
-import { WeakIdentityMap } from 'weak-identity-map';
-import { PersistenceError, PersistenceOperation } from './persistence.error';
 import * as EventEmitter from 'emittery';
-import { Transaction, TransactionEvents } from './transaction/transaction';
+import { WeakIdentityMap } from 'weak-identity-map';
+import type { PersistenceOperation } from './persistence.error';
+import { PersistenceError } from './persistence.error';
+import type { Transaction, TransactionEvents } from './transaction/transaction';
 import { EntityWrapper } from './entity-wrapper';
 import { EntityState } from './entity-state';
 
@@ -33,11 +34,17 @@ export abstract class Repository<
   T extends Transaction<TE>,
   TE extends TransactionEvents = TransactionEvents,
 > {
+  protected readonly transaction: T;
+
   private eventEmitter: EventEmitter<RepositoryEvents<E>> = new EventEmitter();
   private identityMap: WeakIdentityMap<unknown, EntityWrapper<E>> =
     new WeakIdentityMap();
 
-  protected readonly transaction: T;
+  public constructor(transaction: T) {
+    this.transaction = transaction;
+
+    this.register();
+  }
 
   protected abstract extractIdentity(entity: E): unknown;
 
@@ -47,17 +54,11 @@ export abstract class Repository<
 
   protected abstract insert(entity: E): Promise<boolean>;
 
-  constructor(transaction: T) {
-    this.transaction = transaction;
-
-    this.register();
-  }
-
-  add(entity: E): boolean {
+  public add(entity: E): boolean {
     return this.track(entity, EntityState.ADDED) === entity;
   }
 
-  delete(entity: E) {
+  public delete(entity: E): boolean {
     return this.track(entity, EntityState.DELETED) === entity;
   }
 
@@ -66,7 +67,10 @@ export abstract class Repository<
     state: EntityState,
   ): E | undefined;
   protected trackAll<P extends E[]>(entities: P, state: EntityState): E[];
-  protected trackAll(entities: E | E[] | undefined, state: EntityState) {
+  protected trackAll(
+    entities: E | E[] | undefined,
+    state: EntityState,
+  ): E | E[] | undefined {
     if (typeof entities === 'undefined') {
       return entities;
     } else if (Array.isArray(entities)) {
@@ -84,14 +88,14 @@ export abstract class Repository<
   protected on<Event extends keyof RepositoryEvents<E>>(
     event: Event,
     listener: (payload: RepositoryEvents<E>[Event]) => void | Promise<void>,
-  ) {
+  ): void {
     this.eventEmitter.on(event, listener);
   }
 
   protected off<Event extends keyof RepositoryEvents<E>>(
     event: Event,
     listener: (payload: RepositoryEvents<E>[Event]) => void | Promise<void>,
-  ) {
+  ): void {
     this.eventEmitter.on(event, listener);
   }
 

@@ -1,11 +1,12 @@
-import { Knex, knex } from 'knex';
-import { Uow, RunError } from '../../src/core';
-import { Customer } from './utils/customer';
-import { CustomerRepository } from './utils/customer.repository';
 import { resolve } from 'path';
 import { faker } from '@faker-js/faker';
+import { knex } from 'knex';
+import type { Knex } from 'knex';
+import { RunError, Uow } from '../../src/core';
+import { Customer } from './utils/customer';
+import { CustomerRepository } from './utils/customer.repository';
 import { KnexEngine } from './utils/knex.engine';
-import {
+import type {
   KnexTransaction,
   KnexTransactionOptions,
 } from './utils/knex.transaction';
