@@ -1,7 +1,7 @@
 export class WeakVersionTracker<E extends object> {
   private readonly map = new WeakMap<E, number>();
 
-  public setVersion(entity: E, version: number) {
+  public setVersion(entity: E, version: number): void {
     const currentVersion = this.getVersion(entity);
 
     if (version < currentVersion) {
@@ -20,7 +20,7 @@ export class WeakVersionTracker<E extends object> {
     return version;
   }
 
-  public getVersion(entity: E) {
+  public getVersion(entity: E): number {
     let version = this.map.get(entity);
 
     if (typeof version === 'undefined') {

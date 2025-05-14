@@ -1,15 +1,15 @@
-import { BaseProperty } from './base-property';
+import type { BaseProperty } from './base-property';
 
 export type EntityProperties = Readonly<Record<string, BaseProperty>>;
 
 export class EntityPropertiesMap {
-  constructor(private readonly properties: EntityProperties) {}
+  public constructor(private readonly properties: EntityProperties) {}
 
-  get(path: string) {
+  public get(path: string): BaseProperty | undefined {
     return this.properties[path];
   }
 
-  getPropertyPath(fieldName: string) {
+  public getPropertyPath(fieldName: string): string {
     let path: string | undefined;
 
     for (const propertyPath in this.properties) {
@@ -25,7 +25,7 @@ export class EntityPropertiesMap {
     return path;
   }
 
-  *entries(): Generator<[string, BaseProperty]> {
+  public *entries(): Generator<[string, BaseProperty]> {
     for (const propertyName in this.properties) {
       const property = this.properties[propertyName];
 

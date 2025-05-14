@@ -1,14 +1,12 @@
-import { Knex, knex } from 'knex';
-import {
-  KnexTransaction,
-  KnexTransactionOptions,
-  KnexEngine,
-} from '../../src/knex';
+import { resolve } from 'path';
+import { faker } from '@faker-js/faker';
+import { knex } from 'knex';
+import type { Knex } from 'knex';
+import type { KnexTransaction, KnexTransactionOptions } from '../../src/knex';
+import { KnexEngine } from '../../src/knex';
 import { Uow } from '../../src/core';
 import { Entity } from './utils/entity';
-import { resolve } from 'path';
 import { EntityRepository } from './utils/entity.schema';
-import { faker } from '@faker-js/faker';
 
 describe('Knex – Create New Entity', () => {
   let db: Knex;

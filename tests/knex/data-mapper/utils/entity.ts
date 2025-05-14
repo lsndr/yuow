@@ -6,11 +6,11 @@ export type EntityState = {
 export class Entity {
   private readonly state: EntityState;
 
-  get id() {
+  public get id(): string {
     return this.state.id;
   }
 
-  get name() {
+  public get name(): string {
     return this.state.name;
   }
 
@@ -18,7 +18,7 @@ export class Entity {
     this.state = state;
   }
 
-  public changeName(name: string) {
+  public changeName(name: string): void {
     this.state.name = name;
   }
 }

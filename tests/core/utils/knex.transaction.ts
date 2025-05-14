@@ -1,4 +1,4 @@
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 import { Transaction } from '../../../src/core';
 
 export interface KnexTransactionOptions {
@@ -33,7 +33,20 @@ export class KnexTransaction extends Transaction {
     }
   }
 
-  override async flush() {
+  public static async create(
+    knex: Knex,
+    options?: KnexTransactionOptions,
+  ): Promise<KnexTransaction> {
+    const trx = options?.global
+      ? await knex.transaction({
+          isolationLevel: options.isolationLevel,
+        })
+      : knex;
+
+    return new KnexTransaction(trx, options);
+  }
+
+  public override async flush(): Promise<void> {
     if (!this.trx && !this.options?.global) {
       this.trx = await this.knex.transaction({
         isolationLevel: this.options?.isolationLevel,
@@ -43,7 +56,7 @@ export class KnexTransaction extends Transaction {
     await super.flush();
   }
 
-  async commit() {
+  public async commit(): Promise<void> {
     if (!this.trx) {
       throw new Error('Transaction not initi');
     }
@@ -55,7 +68,7 @@ export class KnexTransaction extends Transaction {
     }
   }
 
-  async rollback() {
+  public async rollback(): Promise<void> {
     if (this.trx) {
       await this.trx.rollback();
     }
@@ -63,15 +76,5 @@ export class KnexTransaction extends Transaction {
     if (!this.options?.global) {
       this.trx = undefined;
     }
-  }
-
-  static async create(knex: Knex, options?: KnexTransactionOptions) {
-    const trx = options?.global
-      ? await knex.transaction({
-          isolationLevel: options.isolationLevel,
-        })
-      : knex;
-
-    return new KnexTransaction(trx, options);
   }
 }

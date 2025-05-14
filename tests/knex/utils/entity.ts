@@ -7,27 +7,27 @@ export type EntityState = {
 export class Entity {
   private state: EntityState;
 
-  get id() {
-    return this.state.id;
-  }
-
-  get name() {
-    return this.state.name;
-  }
-
-  get cards() {
-    return this.state.cards;
-  }
-
   protected constructor(state: EntityState) {
     this.state = state;
   }
 
-  changeName(name: string) {
-    this.state.name = name;
+  public get id(): string {
+    return this.state.id;
   }
 
-  static create(state: EntityState) {
+  public get name(): string {
+    return this.state.name;
+  }
+
+  public get cards(): string[] {
+    return this.state.cards;
+  }
+
+  public static create(state: EntityState): Entity {
     return new this(state);
+  }
+
+  public changeName(name: string): void {
+    this.state.name = name;
   }
 }

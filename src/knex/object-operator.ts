@@ -1,7 +1,7 @@
 export class ObjectOperator {
-  constructor(public readonly object: object) {}
+  public constructor(public readonly object: object) {}
 
-  extract(path: string) {
+  public extract(path: string): unknown {
     const keys = path.split('.');
 
     return keys.reduce<unknown>((value, key) => {
@@ -9,7 +9,7 @@ export class ObjectOperator {
     }, this.object);
   }
 
-  put(path: string, value: unknown) {
+  public put(path: string, value: unknown): void {
     const keys = path.split('.');
     let dataObject = this.object;
 

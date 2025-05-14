@@ -7,15 +7,15 @@ export type CustomerState = {
 export class Customer {
   private state: CustomerState;
 
-  get id() {
+  public get id(): string {
     return this.state.id;
   }
 
-  get name() {
+  public get name(): string {
     return this.state.name;
   }
 
-  get cards() {
+  public get cards(): string[] {
     return this.state.cards;
   }
 
@@ -23,11 +23,11 @@ export class Customer {
     this.state = state;
   }
 
-  changeName(name: string) {
-    this.state.name = name;
+  public static create(state: CustomerState): Customer {
+    return new this(state);
   }
 
-  static create(state: CustomerState) {
-    return new this(state);
+  public changeName(name: string): void {
+    this.state.name = name;
   }
 }

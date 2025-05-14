@@ -1,5 +1,8 @@
+import type { EntityDataMapperConstructor } from './entity-data-mapper';
 import { createDataMapper } from './entity-data-mapper';
-import { EntityProperties, EntityPropertiesMap } from './entity-properties-map';
+import type { EntityProperties } from './entity-properties-map';
+import { EntityPropertiesMap } from './entity-properties-map';
+import type { EntityRepositoryConstructor } from './entity-repository';
 import { createRepository } from './entity-repository';
 
 export interface SchemaOptions {
@@ -12,13 +15,13 @@ export interface SchemaOptions {
 export type EntityConstructor<E> = Function & { prototype: E };
 
 export class Schema<E extends object> {
-  constructor(
+  public constructor(
     public readonly entityConstructor: EntityConstructor<E>,
     public readonly properties: EntityProperties,
     public readonly options: SchemaOptions,
   ) {}
 
-  public createDataMapper() {
+  public createDataMapper(): EntityDataMapperConstructor<E> {
     return createDataMapper<E>({
       entityConstructor: this.entityConstructor,
       identity: this.options.identity,
@@ -28,7 +31,7 @@ export class Schema<E extends object> {
     });
   }
 
-  public createRepository() {
+  public createRepository(): EntityRepositoryConstructor<E> {
     return createRepository<E>({
       dataMapperConstructor: this.createDataMapper(),
       properties: new EntityPropertiesMap(this.properties),

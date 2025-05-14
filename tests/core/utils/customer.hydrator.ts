@@ -1,7 +1,8 @@
-import { Customer, CustomerState } from './customer';
+import type { CustomerState } from './customer';
+import { Customer } from './customer';
 
 export class CustomerHydrator extends Customer {
-  constructor(state: CustomerState) {
+  public constructor(state: CustomerState) {
     super(state);
   }
 }

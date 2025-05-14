@@ -1,24 +1,24 @@
 import { EntityState, Repository } from '../../../src/core';
 import { CustomerDataMapper } from './customer.data-mapper';
-import { Customer } from './customer';
-import { KnexTransaction } from './knex.transaction';
+import type { Customer } from './customer';
+import type { KnexTransaction } from './knex.transaction';
 
 export class CustomerRepository extends Repository<Customer, KnexTransaction> {
   private readonly mapper: CustomerDataMapper;
 
-  constructor(transaction: KnexTransaction) {
+  public constructor(transaction: KnexTransaction) {
     super(transaction);
 
     this.mapper = new CustomerDataMapper(transaction);
   }
 
-  async findById(id: string) {
+  public async findById(id: string): Promise<Customer | undefined> {
     const result = await this.mapper.findById(id);
 
     return this.trackAll(result, EntityState.LOADED);
   }
 
-  protected extractIdentity(customer: Customer) {
+  protected extractIdentity(customer: Customer): string {
     return customer.id;
   }
 

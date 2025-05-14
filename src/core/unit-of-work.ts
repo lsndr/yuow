@@ -1,7 +1,7 @@
 import { Context } from './context';
 import { RunError } from './run-error';
-import { Transaction, TransactionEvents } from './transaction/transaction';
-import { Engine } from './transaction/engine';
+import type { Transaction, TransactionEvents } from './transaction/transaction';
+import type { Engine } from './transaction/engine';
 import { PersistenceError } from './persistence.error';
 
 interface RunConfig<O> {
@@ -23,9 +23,12 @@ export class Uow<
   O = undefined,
   N extends TransactionEvents = TransactionEvents,
 > {
-  constructor(public readonly engine: E) {}
+  public constructor(public readonly engine: E) {}
 
-  async run<R>(unit: Unit<R, T, N>, options?: RunOptions<O>): Promise<R> {
+  public async run<R>(
+    unit: Unit<R, T, N>,
+    options?: RunOptions<O>,
+  ): Promise<R> {
     const config: RunConfig<O> = {
       retries: 3,
       ...options,

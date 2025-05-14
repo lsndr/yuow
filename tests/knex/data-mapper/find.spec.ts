@@ -1,5 +1,6 @@
-import { Knex, knex } from 'knex';
 import { resolve } from 'path';
+import type { Knex } from 'knex';
+import { knex } from 'knex';
 import { faker } from '@faker-js/faker';
 import { Entity } from './utils/entity';
 import { EntityDataMapper } from './utils/entity.schema';

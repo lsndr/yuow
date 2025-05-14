@@ -1,13 +1,11 @@
-import { Knex, knex } from 'knex';
-import {
-  KnexTransaction,
-  KnexTransactionOptions,
-  KnexEngine,
-} from '../../src/knex';
-import { Uow } from '../../src/core';
 import { resolve } from 'path';
-import { CustomerRepository } from './utils/customer.schema';
 import { faker } from '@faker-js/faker/locale/yo_NG';
+import { knex } from 'knex';
+import type { Knex } from 'knex';
+import type { KnexTransaction, KnexTransactionOptions } from '../../src/knex';
+import { KnexEngine } from '../../src/knex';
+import { Uow } from '../../src/core';
+import { CustomerRepository } from './utils/customer.schema';
 import { Customer } from './utils/customer';
 
 describe('ORM – Delete Existing Model', () => {

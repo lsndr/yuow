@@ -5,15 +5,15 @@ export interface JsonPropertyOptions {
 }
 
 export class JsonProperty extends BaseProperty {
-  constructor(options: JsonPropertyOptions) {
+  public constructor(options: JsonPropertyOptions) {
     super(options.name);
   }
 
-  override toDatabaseValue(value: unknown) {
+  public override toDatabaseValue(value: unknown): unknown {
     return JSON.stringify(value);
   }
 
-  override fromDatabaseValue(value: unknown) {
+  public override fromDatabaseValue(value: unknown): unknown {
     return typeof value === 'string' ? JSON.parse(value) : value;
   }
 }

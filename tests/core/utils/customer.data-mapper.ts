@@ -1,7 +1,7 @@
-import { CustomerHydrator } from './customer.hydrator';
-import { Customer } from './customer';
 import { WeakVersionTracker } from '../../../src/core';
-import { KnexTransaction } from './knex.transaction';
+import { CustomerHydrator } from './customer.hydrator';
+import type { Customer } from './customer';
+import type { KnexTransaction } from './knex.transaction';
 
 export type FindOneCustomerQuery = {
   id: string;
@@ -12,7 +12,7 @@ export class CustomerDataMapper {
 
   public constructor(private readonly transaction: KnexTransaction) {}
 
-  async findById(id: string): Promise<Customer | undefined> {
+  public async findById(id: string): Promise<Customer | undefined> {
     const record = await this.transaction.knex
       .select('*')
       .from('customers')
@@ -30,7 +30,7 @@ export class CustomerDataMapper {
     return customer;
   }
 
-  async insert(customer: Customer) {
+  public async insert(customer: Customer): Promise<boolean> {
     const version = this.versionTracker.getVersion(customer);
 
     const result = await this.transaction.knex
@@ -45,7 +45,7 @@ export class CustomerDataMapper {
     return (result[0] || 0) > 0;
   }
 
-  async update(customer: Customer) {
+  public async update(customer: Customer): Promise<boolean> {
     const version = this.versionTracker.increaseVersion(customer);
     const result = await this.transaction
       .knex('customers')
@@ -61,7 +61,7 @@ export class CustomerDataMapper {
     return result > 0;
   }
 
-  async delete(customer: Customer) {
+  public async delete(customer: Customer): Promise<boolean> {
     const version = this.versionTracker.getVersion(customer);
 
     const result = await this.transaction.knex

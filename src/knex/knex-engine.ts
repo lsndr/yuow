@@ -1,13 +1,16 @@
-import { Engine } from '../core';
-import { Knex } from 'knex';
-import { KnexTransaction, KnexTransactionOptions } from './knex-transaction';
+import type { Knex } from 'knex';
+import type { Engine } from '../core';
+import type { KnexTransactionOptions } from './knex-transaction';
+import { KnexTransaction } from './knex-transaction';
 
 export class KnexEngine
   implements Engine<KnexTransaction, KnexTransactionOptions>
 {
-  constructor(private readonly knex: Knex) {}
+  public constructor(private readonly knex: Knex) {}
 
-  async createTransaction(options: KnexTransactionOptions) {
+  public async createTransaction(
+    options: KnexTransactionOptions,
+  ): Promise<KnexTransaction> {
     return await KnexTransaction.create(this.knex, options);
   }
 }
