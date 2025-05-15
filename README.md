@@ -5,6 +5,7 @@
 
 # Yuow
 
+[![codecov](https://codecov.io/gh/lsndr/yuow/branch/alpha/graph/badge.svg?token=U33MY3DYHK)](https://codecov.io/gh/lsndr/yuow)
 [![npm version](https://badge.fury.io/js/yuow.svg?1)](https://badge.fury.io/js/yuow?`)
 [![npm downloads/month](https://img.shields.io/npm/dm/yuow.svg)](https://www.npmjs.com/package/yuow)
 [![npm downloads](https://img.shields.io/npm/dt/yuow.svg)](https://www.npmjs.com/package/yuow)
