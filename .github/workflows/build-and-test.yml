@@ -1,6 +1,8 @@
 name: Build & Test
 
 on:
+  push:
+    branches: [master, next, '*.x', beta, alpha]
   pull_request:
     branches: [master, next, '*.x', beta, alpha]
 
