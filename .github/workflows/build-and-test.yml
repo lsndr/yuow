@@ -18,15 +18,12 @@ jobs:
           - node: 20.x
             script: test
           - node: 20.x
-            script: lint
-          - node: 20.x
-            script: format
-          - node: 20.x
             script: build
           - node: 20.x
             script: build:tests
           - node: 22.x
-            script: test
+            script: test -- --coverage
+            coverage: true
           - node: 22.x
             script: lint
           - node: 22.x
@@ -49,3 +46,9 @@ jobs:
 
       - name: ${{ format('Run {0}', matrix.script) }}
         run: npm run ${{ matrix.script }}
+
+      - name: Upload coverage reports to Codecov
+        if: ${{ matrix.coverage == true }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
