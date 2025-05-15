@@ -1,7 +1,17 @@
 import * as EventEmitter from 'emittery';
 
 export interface TransactionEvents {
-  flush: unknown;
+  beforeFlush: undefined;
+  flush: undefined;
+  afterFlush: undefined;
+
+  beforeCommit: undefined;
+  commit: undefined;
+  afterCommit: undefined;
+
+  beforeRollback: undefined;
+  rollback: undefined;
+  afterRollback: undefined;
 }
 
 export type TranscationEventListener<E extends keyof TransactionEvents> = (
@@ -17,12 +27,22 @@ export abstract class Transaction<
     this.eventEmitter = new EventEmitter();
   }
 
-  public abstract commit(): Promise<void>;
+  public async commit(): Promise<void> {
+    await this.eventEmitter.emit('beforeCommit', undefined);
+    await this.eventEmitter.emit('commit', undefined);
+    await this.eventEmitter.emit('afterCommit', undefined);
+  }
 
-  public abstract rollback(): Promise<void>;
+  public async rollback(): Promise<void> {
+    await this.eventEmitter.emit('beforeRollback', undefined);
+    await this.eventEmitter.emit('rollback', undefined);
+    await this.eventEmitter.emit('afterRollback', undefined);
+  }
 
   public async flush(): Promise<void> {
+    await this.eventEmitter.emit('beforeFlush', undefined);
     await this.eventEmitter.emit('flush', undefined);
+    await this.eventEmitter.emit('afterFlush', undefined);
   }
 
   public on<E extends keyof T>(

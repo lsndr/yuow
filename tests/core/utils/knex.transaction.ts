@@ -31,6 +31,12 @@ export class KnexTransaction extends Transaction {
     } else {
       this._knex = knexOrTrx;
     }
+
+    this.eventEmitter.on('beforeFlush', this.onBeforeFlush);
+    this.eventEmitter.on('commit', this.onCommit);
+    this.eventEmitter.on('afterCommit', this.resetTranscationIfNotGlobal);
+    this.eventEmitter.on('rollback', this.onRollback);
+    this.eventEmitter.on('afterRollback', this.resetTranscationIfNotGlobal);
   }
 
   public static async create(
@@ -46,35 +52,31 @@ export class KnexTransaction extends Transaction {
     return new KnexTransaction(trx, options);
   }
 
-  public override async flush(): Promise<void> {
+  private onBeforeFlush = async (): Promise<void> => {
     if (!this.trx && !this.options?.global) {
       this.trx = await this.knex.transaction({
         isolationLevel: this.options?.isolationLevel,
       });
     }
+  };
 
-    await super.flush();
-  }
-
-  public async commit(): Promise<void> {
+  private onCommit = async (): Promise<void> => {
     if (!this.trx) {
-      throw new Error('Transaction not initi');
+      throw new Error('Transaction not intialized');
     }
 
     await this.trx.commit();
+  };
 
-    if (!this.options?.global) {
-      this.trx = undefined;
-    }
-  }
-
-  public async rollback(): Promise<void> {
+  private onRollback = async (): Promise<void> => {
     if (this.trx) {
       await this.trx.rollback();
     }
+  };
 
+  private resetTranscationIfNotGlobal = (): void => {
     if (!this.options?.global) {
       this.trx = undefined;
     }
-  }
+  };
 }
