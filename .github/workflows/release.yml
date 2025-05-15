@@ -43,3 +43,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: HUSKY=0 npx semantic-release
+
+      - name: Sync alpha and latest dist-tags
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          .scripts/sync-alpha-and-latest.sh
