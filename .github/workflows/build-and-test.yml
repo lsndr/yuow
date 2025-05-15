@@ -24,7 +24,7 @@ jobs:
           - node: 20.x
             script: build:tests
           - node: 22.x
-            script: test -- --coverage
+            script: test
             coverage: true
           - node: 22.x
             script: lint
