@@ -18,7 +18,9 @@ export type TransactionEventListener<E extends keyof TransactionEvents> = (
   payload: TransactionEvents[E],
 ) => void | Promise<void>;
 
-export abstract class Transaction<T extends TransactionEvents> {
+export abstract class Transaction<
+  T extends TransactionEvents = TransactionEvents,
+> {
   private readonly eventEmitter = new EventEmitter<T>();
 
   public async commit(): Promise<void> {

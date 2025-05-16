@@ -3,12 +3,10 @@ import type { Engine } from '../core';
 import {
   KnexTransaction,
   type KnexTransactionOptions,
-  type KnexTransactionEvents,
 } from './knex-transaction';
 
 export class KnexEngine
-  implements
-    Engine<KnexTransaction, KnexTransactionOptions, KnexTransactionEvents>
+  implements Engine<KnexTransaction, KnexTransactionOptions>
 {
   public constructor(private readonly knex: Knex) {}
 

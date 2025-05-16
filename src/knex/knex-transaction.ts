@@ -1,16 +1,12 @@
 import type { Knex } from 'knex';
-import { Transaction, type TransactionEvents } from '../core';
+import { Transaction } from '../core';
 
 export interface KnexTransactionOptions {
   readonly global?: boolean;
   readonly isolationLevel?: Knex.IsolationLevels;
 }
 
-export interface KnexTransactionEvents extends TransactionEvents {
-  initialized: undefined;
-}
-
-export class KnexTransaction extends Transaction<KnexTransactionEvents> {
+export class KnexTransaction extends Transaction {
   private _knex?: Knex;
   private trx?: Knex.Transaction;
 
@@ -18,7 +14,7 @@ export class KnexTransaction extends Transaction<KnexTransactionEvents> {
     const knex = this.trx ?? this._knex;
 
     if (!knex) {
-      throw new Error('Knex instance not initiated');
+      throw new Error('Knex not intialized');
     }
 
     return knex;

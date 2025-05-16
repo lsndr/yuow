@@ -7,10 +7,7 @@ import type {
 } from './entity-data-mapper';
 import type { EntityPropertiesMap } from './entity-properties-map';
 import { ObjectOperator } from './object-operator';
-import type {
-  KnexTransaction,
-  KnexTransactionEvents,
-} from './knex-transaction';
+import type { KnexTransaction } from './knex-transaction';
 
 export interface EntityRepositoryOptions<E extends object> {
   readonly identity: string | readonly string[];
@@ -19,21 +16,17 @@ export interface EntityRepositoryOptions<E extends object> {
 }
 
 export interface EntityRepository<E extends object>
-  extends Repository<E, KnexTransaction, KnexTransactionEvents> {
+  extends Repository<E, KnexTransaction> {
   find(where: (queryBuilder: Knex.QueryBuilder) => any): Promise<E | undefined>;
 }
 
 export type EntityRepositoryConstructor<E extends object> =
-  RepositoryConstructor<
-    EntityRepository<E>,
-    KnexTransaction,
-    KnexTransactionEvents
-  >;
+  RepositoryConstructor<EntityRepository<E>, KnexTransaction>;
 
 export function createRepository<E extends object>(
   options: EntityRepositoryOptions<E>,
 ): EntityRepositoryConstructor<E> {
-  return class extends Repository<E, KnexTransaction, KnexTransactionEvents> {
+  return class extends Repository<E, KnexTransaction> {
     private readonly mapper: EntityDataMapper<E>;
 
     public constructor(transaction: KnexTransaction) {
