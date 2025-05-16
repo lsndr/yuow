@@ -1,24 +1,14 @@
 import { resolve } from 'path';
 import { faker } from '@faker-js/faker/locale/yo_NG';
 import { type Knex, knex } from 'knex';
-import {
-  KnexEngine,
-  type KnexTransactionEvents,
-  type KnexTransaction,
-  type KnexTransactionOptions,
-} from '../../src/knex';
+import { KnexEngine } from '../../src/knex';
 import { Uow } from '../../src/core';
 import { EntityRepository } from './utils/entity.schema';
 import { Entity } from './utils/entity';
 
 describe('Knex – Update Existing Entity', () => {
   let db: Knex;
-  let uow: Uow<
-    KnexEngine,
-    KnexTransaction,
-    KnexTransactionOptions,
-    KnexTransactionEvents
-  >;
+  let uow: Uow<KnexEngine>;
 
   beforeEach(async () => {
     db = knex({

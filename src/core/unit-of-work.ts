@@ -3,6 +3,11 @@ import { RunError } from './run-error';
 import type { Transaction, TransactionEvents } from './transaction/transaction';
 import type { Engine } from './transaction/engine';
 import { PersistenceError } from './persistence.error';
+import type {
+  InferEngineTransaction,
+  InferTransactionEvents,
+  InferTransactionOptions,
+} from './transaction/utilts';
 
 interface RunConfig<O> {
   retries: number;
@@ -11,23 +16,25 @@ interface RunConfig<O> {
 
 export type RunOptions<O> = Partial<RunConfig<O>>;
 
-export type Unit<R, T extends Transaction<E>, E extends TransactionEvents> = (
-  uow: Context<T, E>,
-) => R | Promise<R>;
+export type Unit<
+  R,
+  T extends Transaction<TE>,
+  TE extends TransactionEvents = InferTransactionEvents<T>,
+> = (uow: Context<T, TE>) => R | Promise<R>;
 
 export class Uow<
-  E extends Engine<T, O, N>,
-  T extends Transaction<N>,
-  O,
-  N extends TransactionEvents,
+  E extends Engine<T, TO, TE>,
+  T extends Transaction<TE> = InferEngineTransaction<E>,
+  TO = InferTransactionOptions<E>,
+  TE extends TransactionEvents = InferTransactionEvents<T>,
 > {
   public constructor(public readonly engine: E) {}
 
   public async run<R>(
-    unit: Unit<R, T, N>,
-    options?: RunOptions<O>,
+    unit: Unit<R, T, TE>,
+    options?: RunOptions<TO>,
   ): Promise<R> {
-    const config: RunConfig<O> = {
+    const config: RunConfig<TO> = {
       retries: 3,
       ...options,
     };
@@ -40,7 +47,7 @@ export class Uow<
     const run = async (): Promise<R> => {
       attempt += 1;
 
-      const context = new Context<T, N>(transaction);
+      const context = new Context<T, TE>(transaction);
 
       try {
         const result = await unit(context);

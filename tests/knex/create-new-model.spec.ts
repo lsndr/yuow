@@ -2,24 +2,14 @@ import { resolve } from 'path';
 import { faker } from '@faker-js/faker';
 import { knex } from 'knex';
 import type { Knex } from 'knex';
-import {
-  KnexEngine,
-  type KnexTransaction,
-  type KnexTransactionEvents,
-  type KnexTransactionOptions,
-} from '../../src/knex';
+import { KnexEngine } from '../../src/knex';
 import { Uow } from '../../src/core';
 import { Customer } from './utils/customer';
 import { CustomerRepository } from './utils/customer.schema';
 
 describe('ORM - Create New Model', () => {
   let db: Knex;
-  let uow: Uow<
-    KnexEngine,
-    KnexTransaction,
-    KnexTransactionOptions,
-    KnexTransactionEvents
-  >;
+  let uow: Uow<KnexEngine>;
 
   beforeEach(async () => {
     db = knex({
