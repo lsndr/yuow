@@ -2,7 +2,6 @@ import { resolve } from 'path';
 import { faker } from '@faker-js/faker';
 import { knex } from 'knex';
 import type { Knex } from 'knex';
-import type { KnexTransaction, KnexTransactionOptions } from '../../src/knex';
 import { KnexEngine } from '../../src/knex';
 import { Uow } from '../../src/core';
 import { Entity } from './utils/entity';
@@ -10,7 +9,7 @@ import { EntityRepository } from './utils/entity.schema';
 
 describe('Knex – Create New Entity', () => {
   let db: Knex;
-  let uow: Uow<KnexEngine, KnexTransaction, KnexTransactionOptions>;
+  let uow: Uow<KnexEngine>;
 
   beforeEach(async () => {
     db = knex({

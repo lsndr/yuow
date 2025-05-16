@@ -1,7 +1,9 @@
 import type { Knex } from 'knex';
 import type { Engine } from '../core';
-import type { KnexTransactionOptions } from './knex-transaction';
-import { KnexTransaction } from './knex-transaction';
+import {
+  KnexTransaction,
+  type KnexTransactionOptions,
+} from './knex-transaction';
 
 export class KnexEngine
   implements Engine<KnexTransaction, KnexTransactionOptions>

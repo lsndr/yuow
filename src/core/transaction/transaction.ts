@@ -14,7 +14,7 @@ export interface TransactionEvents {
   afterRollback: undefined;
 }
 
-export type TranscationEventListener<E extends keyof TransactionEvents> = (
+export type TransactionEventListener<E extends keyof TransactionEvents> = (
   payload: TransactionEvents[E],
 ) => void | Promise<void>;
 

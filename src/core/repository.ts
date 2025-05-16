@@ -5,11 +5,12 @@ import { PersistenceError } from './persistence.error';
 import type { Transaction, TransactionEvents } from './transaction/transaction';
 import { EntityWrapper } from './entity-wrapper';
 import { EntityState } from './entity-state';
+import type { InferTransactionEvents } from './transaction/utilts';
 
 export interface RepositoryConstructor<
   R,
   T extends Transaction<TE>,
-  TE extends TransactionEvents = TransactionEvents,
+  TE extends TransactionEvents = InferTransactionEvents<T>,
 > {
   new (transaction: T): R;
 }
@@ -32,7 +33,7 @@ export type RepositoryEvents<E> = {
 export abstract class Repository<
   E extends object,
   T extends Transaction<TE>,
-  TE extends TransactionEvents = TransactionEvents,
+  TE extends TransactionEvents = InferTransactionEvents<T>,
 > {
   protected readonly transaction: T;
 

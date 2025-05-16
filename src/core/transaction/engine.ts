@@ -1,9 +1,9 @@
 import type { Transaction, TransactionEvents } from './transaction';
 
 export interface Engine<
-  T extends Transaction<E>,
-  O = undefined,
-  E extends TransactionEvents = TransactionEvents,
+  T extends Transaction<TE>,
+  TO,
+  TE extends TransactionEvents = T extends Transaction<infer TE> ? TE : never,
 > {
-  createTransaction(options?: O): Promise<T>;
+  createTransaction(options?: TO): Promise<T>;
 }
