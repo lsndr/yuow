@@ -45,8 +45,12 @@ jobs:
         run: HUSKY=0 npx semantic-release
 
       - name: Sync alpha and latest dist-tags
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          sleep 60 # wait for the dist-tags to be updated
+          # Authenticate
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
+          # Wait for the dist-tags to be updated
+          sleep 60
+
+          # Sync the alpha and latest dist-tags 
           .scripts/sync-alpha-and-latest.sh
