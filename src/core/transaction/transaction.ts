@@ -1,7 +1,17 @@
 import * as EventEmitter from 'emittery';
 
 export interface TransactionEvents {
-  flush: unknown;
+  beforeFlush: undefined;
+  flush: undefined;
+  afterFlush: undefined;
+
+  beforeCommit: undefined;
+  commit: undefined;
+  afterCommit: undefined;
+
+  beforeRollback: undefined;
+  rollback: undefined;
+  afterRollback: undefined;
 }
 
 export type TranscationEventListener<E extends keyof TransactionEvents> = (
@@ -11,18 +21,24 @@ export type TranscationEventListener<E extends keyof TransactionEvents> = (
 export abstract class Transaction<
   T extends TransactionEvents = TransactionEvents,
 > {
-  protected readonly eventEmitter: EventEmitter<T>;
+  private readonly eventEmitter = new EventEmitter<T>();
 
-  protected constructor() {
-    this.eventEmitter = new EventEmitter();
+  public async commit(): Promise<void> {
+    await this.eventEmitter.emit('beforeCommit', undefined);
+    await this.eventEmitter.emit('commit', undefined);
+    await this.eventEmitter.emit('afterCommit', undefined);
   }
 
-  public abstract commit(): Promise<void>;
-
-  public abstract rollback(): Promise<void>;
+  public async rollback(): Promise<void> {
+    await this.eventEmitter.emit('beforeRollback', undefined);
+    await this.eventEmitter.emit('rollback', undefined);
+    await this.eventEmitter.emit('afterRollback', undefined);
+  }
 
   public async flush(): Promise<void> {
+    await this.eventEmitter.emit('beforeFlush', undefined);
     await this.eventEmitter.emit('flush', undefined);
+    await this.eventEmitter.emit('afterFlush', undefined);
   }
 
   public on<E extends keyof T>(
@@ -37,5 +53,12 @@ export abstract class Transaction<
     listener: (payload: T[E]) => void | Promise<void>,
   ): void {
     this.eventEmitter.off(event, listener);
+  }
+
+  protected emit<E extends keyof Omit<T, keyof TransactionEvents>>(
+    event: E,
+    payload: T[E],
+  ): Promise<void> {
+    return this.eventEmitter.emit(event, payload);
   }
 }
