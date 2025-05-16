@@ -32,11 +32,11 @@ export class KnexTransaction extends Transaction {
       this._knex = knexOrTrx;
     }
 
-    this.eventEmitter.on('beforeFlush', this.onBeforeFlush);
-    this.eventEmitter.on('commit', this.onCommit);
-    this.eventEmitter.on('afterCommit', this.resetTranscationIfNotGlobal);
-    this.eventEmitter.on('rollback', this.onRollback);
-    this.eventEmitter.on('afterRollback', this.resetTranscationIfNotGlobal);
+    this.on('beforeFlush', this.onBeforeFlush);
+    this.on('commit', this.onCommit);
+    this.on('afterCommit', this.resetTranscationIfNotGlobal);
+    this.on('rollback', this.onRollback);
+    this.on('afterRollback', this.resetTranscationIfNotGlobal);
   }
 
   public static async create(

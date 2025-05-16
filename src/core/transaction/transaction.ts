@@ -21,11 +21,7 @@ export type TranscationEventListener<E extends keyof TransactionEvents> = (
 export abstract class Transaction<
   T extends TransactionEvents = TransactionEvents,
 > {
-  protected readonly eventEmitter: EventEmitter<T>;
-
-  protected constructor() {
-    this.eventEmitter = new EventEmitter();
-  }
+  private readonly eventEmitter = new EventEmitter<T>();
 
   public async commit(): Promise<void> {
     await this.eventEmitter.emit('beforeCommit', undefined);
@@ -57,5 +53,12 @@ export abstract class Transaction<
     listener: (payload: T[E]) => void | Promise<void>,
   ): void {
     this.eventEmitter.off(event, listener);
+  }
+
+  protected emit<E extends keyof Omit<T, keyof TransactionEvents>>(
+    event: E,
+    payload: T[E],
+  ): Promise<void> {
+    return this.eventEmitter.emit(event, payload);
   }
 }
