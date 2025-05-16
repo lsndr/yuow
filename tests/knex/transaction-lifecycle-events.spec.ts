@@ -30,6 +30,31 @@ describe('Knex – Transaction Lifecycle Events', () => {
 
   afterEach(() => db.destroy());
 
+  it('should not emit transaction lifecycle event if unsubscribed', async () => {
+    // arrange
+    const onBeforeFlush = jest.fn();
+
+    // act
+    await uow.run((ctx) => {
+      ctx.transaction.on('beforeFlush', onBeforeFlush);
+      ctx.transaction.off('beforeFlush', onBeforeFlush);
+
+      ctx.getRepository(EntityRepository).add(
+        Entity.create({
+          id: faker.string.uuid(),
+          name: faker.person.fullName(),
+          cards: [
+            faker.finance.creditCardNumber(),
+            faker.finance.creditCardNumber(),
+          ],
+        }),
+      );
+    });
+
+    // assert
+    expect(onBeforeFlush).not.toHaveBeenCalled();
+  });
+
   it('should emit transaction lifecycle events when persisting entity', async () => {
     // arrange
     const onBeforeFlush = jest.fn();
