@@ -14,7 +14,7 @@ export class KnexTransaction extends Transaction {
     const knex = this.trx ?? this._knex;
 
     if (!knex) {
-      throw new Error('Knex instance not initiated');
+      throw new Error('Knex not intialized');
     }
 
     return knex;
