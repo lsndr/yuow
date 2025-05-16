@@ -48,4 +48,5 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          sleep 60 # wait for the dist-tags to be updated
           .scripts/sync-alpha-and-latest.sh
