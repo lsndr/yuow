@@ -4,4 +4,4 @@ updates:
     target-branch: 'alpha'
     directory: '/'
     schedule:
-      interval: 'daily'
+      interval: 'weekly'
