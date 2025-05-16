@@ -1,9 +1,17 @@
-import { EntityState, Repository } from '../../../src/core';
+import {
+  EntityState,
+  Repository,
+  type TransactionEvents,
+} from '../../../src/core';
 import { CustomerDataMapper } from './customer.data-mapper';
 import type { Customer } from './customer';
 import type { KnexTransaction } from './knex.transaction';
 
-export class CustomerRepository extends Repository<Customer, KnexTransaction> {
+export class CustomerRepository extends Repository<
+  Customer,
+  KnexTransaction,
+  TransactionEvents
+> {
   private readonly mapper: CustomerDataMapper;
 
   public constructor(transaction: KnexTransaction) {

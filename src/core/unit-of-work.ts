@@ -11,17 +11,15 @@ interface RunConfig<O> {
 
 export type RunOptions<O> = Partial<RunConfig<O>>;
 
-export type Unit<
-  R,
-  T extends Transaction<E>,
-  E extends TransactionEvents = TransactionEvents,
-> = (uow: Context<T, E>) => R | Promise<R>;
+export type Unit<R, T extends Transaction<E>, E extends TransactionEvents> = (
+  uow: Context<T, E>,
+) => R | Promise<R>;
 
 export class Uow<
   E extends Engine<T, O, N>,
   T extends Transaction<N>,
-  O = undefined,
-  N extends TransactionEvents = TransactionEvents,
+  O,
+  N extends TransactionEvents,
 > {
   public constructor(public readonly engine: E) {}
 

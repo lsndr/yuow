@@ -2,7 +2,7 @@ import { resolve } from 'path';
 import { faker } from '@faker-js/faker';
 import { knex } from 'knex';
 import type { Knex } from 'knex';
-import { RunError, Uow } from '../../src/core';
+import { RunError, type TransactionEvents, Uow } from '../../src/core';
 import { Customer } from './utils/customer';
 import { CustomerRepository } from './utils/customer.repository';
 import { KnexEngine } from './utils/knex.engine';
@@ -13,7 +13,12 @@ import type {
 
 describe('Unit of Work', () => {
   let db: Knex;
-  let uow: Uow<KnexEngine, KnexTransaction, KnexTransactionOptions>;
+  let uow: Uow<
+    KnexEngine,
+    KnexTransaction,
+    KnexTransactionOptions,
+    TransactionEvents
+  >;
 
   beforeEach(async () => {
     db = knex({

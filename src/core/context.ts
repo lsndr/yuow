@@ -1,10 +1,7 @@
 import type { Repository, RepositoryConstructor } from './repository';
 import type { Transaction, TransactionEvents } from './transaction/transaction';
 
-export class Context<
-  T extends Transaction<E>,
-  E extends TransactionEvents = TransactionEvents,
-> {
+export class Context<T extends Transaction<E>, E extends TransactionEvents> {
   public constructor(public readonly transaction: T) {}
 
   public getRepository<R extends Repository<any, T, E>>(

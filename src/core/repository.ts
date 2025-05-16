@@ -9,7 +9,7 @@ import { EntityState } from './entity-state';
 export interface RepositoryConstructor<
   R,
   T extends Transaction<TE>,
-  TE extends TransactionEvents = TransactionEvents,
+  TE extends TransactionEvents,
 > {
   new (transaction: T): R;
 }
@@ -32,7 +32,7 @@ export type RepositoryEvents<E> = {
 export abstract class Repository<
   E extends object,
   T extends Transaction<TE>,
-  TE extends TransactionEvents = TransactionEvents,
+  TE extends TransactionEvents,
 > {
   protected readonly transaction: T;
 

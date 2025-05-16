@@ -3,6 +3,7 @@ import { faker } from '@faker-js/faker/locale/yo_NG';
 import { type Knex, knex } from 'knex';
 import {
   KnexEngine,
+  type KnexTransactionEvents,
   type KnexTransaction,
   type KnexTransactionOptions,
 } from '../../src/knex';
@@ -12,7 +13,12 @@ import { Customer } from './utils/customer';
 
 describe('ORM – Find Existing Model', () => {
   let db: Knex;
-  let uow: Uow<KnexEngine, KnexTransaction, KnexTransactionOptions>;
+  let uow: Uow<
+    KnexEngine,
+    KnexTransaction,
+    KnexTransactionOptions,
+    KnexTransactionEvents
+  >;
 
   beforeEach(async () => {
     db = knex({

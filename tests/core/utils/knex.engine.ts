@@ -1,10 +1,10 @@
 import type { Knex } from 'knex';
-import type { Engine } from '../../../src/core';
+import type { Engine, TransactionEvents } from '../../../src/core';
 import type { KnexTransactionOptions } from './knex.transaction';
 import { KnexTransaction } from './knex.transaction';
 
 export class KnexEngine
-  implements Engine<KnexTransaction, KnexTransactionOptions>
+  implements Engine<KnexTransaction, KnexTransactionOptions, TransactionEvents>
 {
   public constructor(private readonly knex: Knex) {}
 
