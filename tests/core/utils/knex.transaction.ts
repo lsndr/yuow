@@ -1,12 +1,12 @@
 import type { Knex } from 'knex';
-import { Transaction, type TransactionEvents } from '../../../src/core';
+import { Transaction } from '../../../src/core';
 
 export interface KnexTransactionOptions {
   readonly global?: boolean;
   readonly isolationLevel?: Knex.IsolationLevels;
 }
 
-export class KnexTransaction extends Transaction<TransactionEvents> {
+export class KnexTransaction extends Transaction {
   private _knex?: Knex;
   private trx?: Knex.Transaction;
 
