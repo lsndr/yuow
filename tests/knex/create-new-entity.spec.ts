@@ -17,13 +17,13 @@ describe('Knex – Create New Entity', () => {
       connection: ':memory:',
       useNullAsDefault: true,
       migrations: {
-        directory: resolve(__dirname, 'utils/migrations'),
+        directory: resolve(__dirname, './utils/migrations'),
       },
     });
 
     uow = new Uow(new KnexEngine(db));
 
-    await db.migrate.up();
+    await db.migrate.latest();
   });
 
   afterEach(async () => {
