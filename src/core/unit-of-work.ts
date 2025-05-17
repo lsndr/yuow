@@ -10,7 +10,7 @@ import type {
 } from './transaction/utilts';
 
 interface RunConfig<O> {
-  retries: number;
+  attempts: number;
   transaction?: O;
 }
 
@@ -35,7 +35,7 @@ export class Uow<
     options?: RunOptions<TO>,
   ): Promise<R> {
     const config: RunConfig<TO> = {
-      retries: 3,
+      attempts: 3,
       ...options,
     };
 
@@ -65,7 +65,7 @@ export class Uow<
 
         errors.push(error);
 
-        if (attempt >= config.retries) {
+        if (attempt >= config.attempts) {
           throw new RunError(errors);
         }
 

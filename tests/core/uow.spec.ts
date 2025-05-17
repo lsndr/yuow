@@ -283,7 +283,7 @@ describe('Unit of Work', () => {
               await modify();
             }
           },
-          { retries: attempts, transaction: { global: false } },
+          { attempts, transaction: { global: false } },
         );
 
         const record = await db
