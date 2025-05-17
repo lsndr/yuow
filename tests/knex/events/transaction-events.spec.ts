@@ -2,13 +2,13 @@ import { resolve } from 'path';
 import { faker } from '@faker-js/faker';
 import { knex } from 'knex';
 import type { Knex } from 'knex';
-import { KnexEngine } from '../../src/knex';
-import { Uow } from '../../src/core';
+import { KnexEngine } from '../../../src/knex';
+import { Uow } from '../../../src/core';
 import { Entity } from './utils/entity';
 import { EntityRepository } from './utils/entity.schema';
 import 'jest-extended';
 
-describe('Knex – Transaction Lifecycle Events', () => {
+describe('Knex – Transaction Events', () => {
   let db: Knex;
   let uow: Uow<KnexEngine>;
 
@@ -18,7 +18,7 @@ describe('Knex – Transaction Lifecycle Events', () => {
       connection: ':memory:',
       useNullAsDefault: true,
       migrations: {
-        directory: resolve(__dirname, 'utils/migrations'),
+        directory: resolve(__dirname, './utils/migrations'),
       },
     });
 
@@ -29,7 +29,7 @@ describe('Knex – Transaction Lifecycle Events', () => {
 
   afterEach(() => db.destroy());
 
-  it('should not emit transaction lifecycle event if unsubscribed', async () => {
+  it('should not emit events if unsubscribed', async () => {
     // arrange
     const onBeforeFlush = jest.fn();
 
@@ -39,7 +39,7 @@ describe('Knex – Transaction Lifecycle Events', () => {
       ctx.transaction.off('beforeFlush', onBeforeFlush);
 
       ctx.getRepository(EntityRepository).add(
-        Entity.create({
+        new Entity({
           id: faker.string.uuid(),
           name: faker.person.fullName(),
           cards: [
@@ -54,7 +54,7 @@ describe('Knex – Transaction Lifecycle Events', () => {
     expect(onBeforeFlush).not.toHaveBeenCalled();
   });
 
-  it('should emit transaction lifecycle events when persisting entity', async () => {
+  it('should emit events when persisting entity', async () => {
     // arrange
     const onBeforeFlush = jest.fn();
     const onFlush = jest.fn();
@@ -81,7 +81,7 @@ describe('Knex – Transaction Lifecycle Events', () => {
       ctx.transaction.on('afterRollback', onAfterRollback);
 
       ctx.getRepository(EntityRepository).add(
-        Entity.create({
+        new Entity({
           id: faker.string.uuid(),
           name: faker.person.fullName(),
           cards: [
@@ -110,12 +110,12 @@ describe('Knex – Transaction Lifecycle Events', () => {
     expect(onCommit).toHaveBeenCalledBefore(onAfterCommit);
   });
 
-  it('should emit transaction lifecycle events when persistence failed', async () => {
+  it('should emit events when persistence failed', async () => {
     // arrange
     const id = faker.string.uuid();
     await uow.run((ctx) =>
       ctx.getRepository(EntityRepository).add(
-        Entity.create({
+        new Entity({
           id,
           name: faker.person.fullName(),
           cards: [
@@ -186,7 +186,7 @@ describe('Knex – Transaction Lifecycle Events', () => {
     expect(onRollback).toHaveBeenCalledBefore(onAfterRollback);
   });
 
-  it('should emit transaction lifecycle events when unit failed', async () => {
+  it('should emit events when unit failed', async () => {
     // arrange
     const onBeforeFlush = jest.fn();
     const onFlush = jest.fn();

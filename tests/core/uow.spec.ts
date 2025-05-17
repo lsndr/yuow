@@ -26,7 +26,7 @@ describe('Unit of Work', () => {
       connection: ':memory:',
       useNullAsDefault: true,
       migrations: {
-        directory: resolve(__dirname, 'migrations'),
+        directory: resolve(__dirname, './utils/migrations'),
       },
     });
 

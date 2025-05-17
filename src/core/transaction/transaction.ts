@@ -53,7 +53,7 @@ export abstract class Transaction<
 
   public off<E extends keyof T>(
     event: E,
-    listener: (payload: T[E]) => void | Promise<void>,
+    listener: AsyncEventEmitterHandler<T[E]>,
   ): void {
     this.eventEmitter.off(event, listener);
   }
