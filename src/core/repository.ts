@@ -5,7 +5,6 @@ import type { Transaction, TransactionEvents } from './transaction/transaction';
 import { EntityWrapper } from './entity-wrapper';
 import { EntityState } from './entity-state';
 import type { InferTransactionEvents } from './transaction/utilts';
-import { AsyncEventEmitter } from './async-event-emitter/async-event-emitter';
 
 export interface RepositoryConstructor<
   R,
@@ -36,10 +35,7 @@ export abstract class Repository<
   TE extends TransactionEvents = InferTransactionEvents<T>,
 > {
   protected readonly transaction: T;
-
-  private eventEmitter = new AsyncEventEmitter<RepositoryEvents<E>>();
-  private identityMap: WeakIdentityMap<unknown, EntityWrapper<E>> =
-    new WeakIdentityMap();
+  private identityMap = new WeakIdentityMap<unknown, EntityWrapper<E>>();
 
   public constructor(transaction: T) {
     this.transaction = transaction;
@@ -86,20 +82,6 @@ export abstract class Repository<
     return this.identityMap.delete(identity);
   }
 
-  protected on<Event extends keyof RepositoryEvents<E>>(
-    event: Event,
-    listener: (payload: RepositoryEvents<E>[Event]) => void | Promise<void>,
-  ): void {
-    this.eventEmitter.on(event, listener);
-  }
-
-  protected off<Event extends keyof RepositoryEvents<E>>(
-    event: Event,
-    listener: (payload: RepositoryEvents<E>[Event]) => void | Promise<void>,
-  ): void {
-    this.eventEmitter.on(event, listener);
-  }
-
   protected track(entity: E, state: EntityState): E {
     const identity = this.extractIdentity(entity);
     const trackedEntity = this.identityMap.get(identity);
@@ -113,13 +95,6 @@ export abstract class Repository<
     }
 
     return trackedEntity.entity;
-  }
-
-  private async emit<Event extends keyof RepositoryEvents<E>>(
-    event: Event,
-    payload: RepositoryEvents<E>[Event],
-  ): Promise<void> {
-    await this.eventEmitter.emit(event, payload);
   }
 
   private register() {
@@ -145,24 +120,12 @@ export abstract class Repository<
         if (wrapper.state === EntityState.ADDED) {
           await assertChange(() => this.insert(wrapper.entity), 'insert');
           wrapper.state = EntityState.LOADED;
-
-          this.emit('inserted', {
-            entity: wrapper.entity,
-          }).catch(console.error);
         } else if (wrapper.state === EntityState.LOADED && !wrapper.verify()) {
           await assertChange(async () => this.update(wrapper.entity), 'update');
-
-          this.emit('updated', {
-            entity: wrapper.entity,
-          }).catch(console.error);
         } else if (wrapper.state === EntityState.DELETED) {
           await assertChange(() => this.remove(wrapper.entity), 'delete');
 
           this.identityMap.delete(id);
-
-          this.emit('deleted', {
-            entity: wrapper.entity,
-          }).catch(console.error);
         }
       }
     });
