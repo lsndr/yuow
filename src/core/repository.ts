@@ -1,4 +1,3 @@
-import * as EventEmitter from 'emittery';
 import { WeakIdentityMap } from 'weak-identity-map';
 import type { PersistenceOperation } from './persistence.error';
 import { PersistenceError } from './persistence.error';
@@ -6,6 +5,7 @@ import type { Transaction, TransactionEvents } from './transaction/transaction';
 import { EntityWrapper } from './entity-wrapper';
 import { EntityState } from './entity-state';
 import type { InferTransactionEvents } from './transaction/utilts';
+import { AsyncEventEmitter } from './async-event-emitter/async-event-emitter';
 
 export interface RepositoryConstructor<
   R,
@@ -37,7 +37,7 @@ export abstract class Repository<
 > {
   protected readonly transaction: T;
 
-  private eventEmitter: EventEmitter<RepositoryEvents<E>> = new EventEmitter();
+  private eventEmitter = new AsyncEventEmitter<RepositoryEvents<E>>();
   private identityMap: WeakIdentityMap<unknown, EntityWrapper<E>> =
     new WeakIdentityMap();
 

@@ -1,4 +1,7 @@
-import * as EventEmitter from 'emittery';
+import {
+  AsyncEventEmitter,
+  type AsyncEventEmitterHandler,
+} from '../async-event-emitter/async-event-emitter';
 
 export interface TransactionEvents {
   beforeFlush: undefined;
@@ -21,7 +24,7 @@ export type TransactionEventListener<E extends keyof TransactionEvents> = (
 export abstract class Transaction<
   T extends TransactionEvents = TransactionEvents,
 > {
-  private readonly eventEmitter = new EventEmitter<T>();
+  private readonly eventEmitter = new AsyncEventEmitter<T>();
 
   public async commit(): Promise<void> {
     await this.eventEmitter.emit('beforeCommit', undefined);
@@ -43,7 +46,7 @@ export abstract class Transaction<
 
   public on<E extends keyof T>(
     event: E,
-    listener: (payload: T[E]) => void | Promise<void>,
+    listener: AsyncEventEmitterHandler<T[E]>,
   ): void {
     this.eventEmitter.on(event, listener);
   }
