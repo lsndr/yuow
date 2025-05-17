@@ -163,7 +163,7 @@ describe('Knex – Transaction Lifecycle Events', () => {
             .where('id', id);
         },
         {
-          retries: 1,
+          attempts: 1,
         },
       );
 
