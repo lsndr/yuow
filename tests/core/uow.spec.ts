@@ -230,7 +230,7 @@ describe('Unit of Work', () => {
             { transaction },
           );
 
-        await expect(action).rejects.toThrowError('Test error');
+        await expect(action).rejects.toThrow(new Error('Test error'));
         expect(attempts).toBe(1);
       });
 

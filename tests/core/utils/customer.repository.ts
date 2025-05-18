@@ -22,15 +22,15 @@ export class CustomerRepository extends Repository<Customer, KnexTransaction> {
     return customer.id;
   }
 
-  protected insert(entity: Customer): Promise<boolean> {
+  protected doInsert(entity: Customer): Promise<boolean> {
     return this.mapper.insert(entity);
   }
 
-  protected update(entity: Customer): Promise<boolean> {
+  protected doUpdate(entity: Customer): Promise<boolean> {
     return this.mapper.update(entity);
   }
 
-  protected remove(entity: Customer): Promise<boolean> {
+  protected doDelete(entity: Customer): Promise<boolean> {
     return this.mapper.delete(entity);
   }
 }

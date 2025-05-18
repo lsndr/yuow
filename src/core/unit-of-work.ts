@@ -1,6 +1,10 @@
 import { Context } from './context';
 import { RunError } from './run-error';
-import type { Transaction, TransactionEvents } from './transaction/transaction';
+import {
+  TransactionState,
+  type Transaction,
+  type TransactionEvents,
+} from './transaction/transaction';
 import {
   AsyncEventEmitter,
   type AsyncEventEmitterHandler,
@@ -70,26 +74,31 @@ export class Uow<
     let attempt = 0;
     const errors: any[] = [];
 
-    const transaction = await this.engine.createTransaction(config.transaction);
-
     const run = async (): Promise<R> => {
       attempt += 1;
 
+      const transaction = await this.engine.createTransaction(
+        config.transaction,
+      );
       const context = new Context<T, TE>(transaction);
-
       await this.eventEmitter.emit('beforeRun', { attempt, context });
 
       try {
         const result = await unit(context);
 
-        await transaction.flush();
-        await transaction.commit();
+        await context.flush();
+
+        if (transaction.state === TransactionState.BEGUN) {
+          await transaction.commit();
+        }
 
         await this.eventEmitter.emit('afterRun', { attempt, context });
 
         return result;
       } catch (error) {
-        await transaction.rollback();
+        if (transaction.state === TransactionState.BEGUN) {
+          await transaction.rollback();
+        }
 
         await this.eventEmitter.emit('afterRun', { attempt, context, error });
 
