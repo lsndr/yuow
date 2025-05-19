@@ -1,8 +1,9 @@
 import { Uow } from '../../src/core';
 import { EngineMock } from './utils/engine.mock';
 import { TransactionMock } from './utils/transaction.mock';
+import 'jest-extended';
 
-describe('Unit of Work', () => {
+describe('Core – Unit of Work', () => {
   let engineMock: EngineMock;
   let transactionMock: TransactionMock;
   let uow: Uow<EngineMock>;
@@ -33,5 +34,27 @@ describe('Unit of Work', () => {
     });
 
     expect(result).toBe('test result');
+  });
+
+  it('should emit run events', async () => {
+    // arrange
+    const onBeforeRun = jest.fn();
+    const onAfterRun = jest.fn();
+    uow.on('beforeRun', onBeforeRun);
+    uow.on('afterRun', onAfterRun);
+
+    // act
+    const context = await uow.run((ctx) => {
+      return ctx;
+    });
+
+    // assert
+    expect(onBeforeRun).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        context,
+        attempt: 1,
+      }),
+    );
+    expect(onBeforeRun).toHaveBeenCalledBefore(onAfterRun);
   });
 });

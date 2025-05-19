@@ -1,14 +1,15 @@
-import { WeakIdentityMap } from 'weak-identity-map';
-import type { PersistenceOperation } from './persistence.error';
 import { PersistenceError } from './persistence.error';
 import {
   TransactionState,
   type Transaction,
   type TransactionEvents,
 } from './transaction/transaction';
-import { EntityWrapper } from './entity-wrapper';
-import { EntityState } from './entity-state';
 import type { InferTransactionEvents } from './transaction/utilts';
+import { ChangeTracker } from './change-tracker/change-tracker';
+import {
+  AsyncEventEmitter,
+  type AsyncEventEmitterHandler,
+} from './async-event-emitter';
 
 export interface RepositoryConstructor<
   R,
@@ -18,19 +19,9 @@ export interface RepositoryConstructor<
   new (transaction: T): R;
 }
 
-export type RepositoryEvents<E> = {
-  flush: {
-    entity: E;
-  };
-  inserted: {
-    entity: E;
-  };
-  updated: {
-    entity: E;
-  };
-  deleted: {
-    entity: E;
-  };
+export type RepositoryEvents<E extends object> = {
+  beforeFlsuh: { changeTracker: ChangeTracker<E> };
+  afterFlush: { changeTracker: ChangeTracker<E> };
 };
 
 export abstract class Repository<
@@ -39,10 +30,15 @@ export abstract class Repository<
   TE extends TransactionEvents = InferTransactionEvents<T>,
 > {
   protected readonly transaction: T;
-  private identityMap = new WeakIdentityMap<unknown, EntityWrapper<E>>();
+  protected readonly changeTracker: ChangeTracker<E>;
+  private readonly eventEmitter: AsyncEventEmitter<RepositoryEvents<E>>;
 
   public constructor(transaction: T) {
     this.transaction = transaction;
+    this.changeTracker = new ChangeTracker<E>((entity: E) =>
+      this.extractIdentity(entity),
+    );
+    this.eventEmitter = new AsyncEventEmitter();
   }
 
   protected abstract extractIdentity(entity: E): unknown;
@@ -53,12 +49,26 @@ export abstract class Repository<
 
   protected abstract doInsert(entity: E): Promise<boolean>;
 
+  public on<M extends keyof RepositoryEvents<E>>(
+    event: M,
+    listener: AsyncEventEmitterHandler<RepositoryEvents<E>[M]>,
+  ): void {
+    this.eventEmitter.on(event, listener);
+  }
+
+  public off<M extends keyof RepositoryEvents<E>>(
+    event: M,
+    listener: AsyncEventEmitterHandler<RepositoryEvents<E>[M]>,
+  ): void {
+    this.eventEmitter.off(event, listener);
+  }
+
   public add(entity: E): void {
-    this.track(entity, EntityState.ADDED);
+    this.changeTracker.trackNew(entity);
   }
 
   public delete(entity: E): void {
-    this.track(entity, EntityState.DELETED);
+    this.changeTracker.trackDeleted(entity);
   }
 
   public async flush(): Promise<void> {
@@ -66,72 +76,63 @@ export abstract class Repository<
       await this.transaction.begin();
     }
 
-    for (const [id, wrapper] of this.identityMap.entries()) {
-      const identity = this.extractIdentity(wrapper.entity);
+    await this.eventEmitter.emit('beforeFlsuh', {
+      changeTracker: this.changeTracker,
+    });
 
-      const assertChange = async (
-        action: () => Promise<boolean>,
-        operation: PersistenceOperation,
-      ) => {
-        const isChanged = await action();
+    const changes = this.changeTracker.compute();
 
-        if (!isChanged) {
-          throw new PersistenceError(
-            this.constructor.name,
-            identity,
-            operation,
-          );
-        }
-      };
+    await this.flushInserts(changes.created);
+    await this.flushUpdates(changes.updated);
+    await this.flushDeletes(changes.deleted);
 
-      if (wrapper.state === EntityState.ADDED) {
-        await assertChange(() => this.doInsert(wrapper.entity), 'insert');
-        wrapper.state = EntityState.LOADED;
-      } else if (wrapper.state === EntityState.LOADED && !wrapper.verify()) {
-        await assertChange(async () => this.doUpdate(wrapper.entity), 'update');
-      } else if (wrapper.state === EntityState.DELETED) {
-        await assertChange(() => this.doDelete(wrapper.entity), 'delete');
+    this.changeTracker.trackLoaded(changes.created);
+    this.changeTracker.untrack(changes.deleted);
 
-        this.identityMap.delete(id);
+    await this.eventEmitter.emit('afterFlush', {
+      changeTracker: this.changeTracker,
+    });
+  }
+
+  private async flushInserts(entities: E[]): Promise<void> {
+    for (const entity of entities) {
+      const result = await this.doInsert(entity);
+
+      if (!result) {
+        throw new PersistenceError(
+          this.constructor.name,
+          this.extractIdentity(entity),
+          'insert',
+        );
       }
     }
   }
 
-  protected trackAll<P extends E | undefined>(
-    entity: P,
-    state: EntityState,
-  ): E | undefined;
-  protected trackAll<P extends E[]>(entities: P, state: EntityState): E[];
-  protected trackAll(
-    entities: E | E[] | undefined,
-    state: EntityState,
-  ): E | E[] | undefined {
-    if (typeof entities === 'undefined') {
-      return entities;
-    } else if (Array.isArray(entities)) {
-      return entities.map((entity) => this.track(entity, state));
-    } else {
-      return this.track(entities, state);
+  private async flushUpdates(entities: E[]): Promise<void> {
+    for (const entity of entities) {
+      const result = await this.doUpdate(entity);
+
+      if (!result) {
+        throw new PersistenceError(
+          this.constructor.name,
+          this.extractIdentity(entity),
+          'update',
+        );
+      }
     }
   }
 
-  protected untrack(entity: E): boolean {
-    const identity = this.extractIdentity(entity);
-    return this.identityMap.delete(identity);
-  }
+  private async flushDeletes(entities: E[]): Promise<void> {
+    for (const entity of entities) {
+      const result = await this.doDelete(entity);
 
-  protected track(entity: E, state: EntityState): E {
-    const identity = this.extractIdentity(entity);
-    const trackedEntity = this.identityMap.get(identity);
-
-    if (!trackedEntity) {
-      this.identityMap.set(identity, new EntityWrapper(entity, state));
-
-      return entity;
-    } else {
-      trackedEntity.state = state;
+      if (!result) {
+        throw new PersistenceError(
+          this.constructor.name,
+          this.extractIdentity(entity),
+          'delete',
+        );
+      }
     }
-
-    return trackedEntity.entity;
   }
 }
