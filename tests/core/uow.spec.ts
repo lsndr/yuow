@@ -1,30 +1,17 @@
-import { resolve } from 'path';
-import { knex } from 'knex';
-import type { Knex } from 'knex';
 import { Uow } from '../../src/core';
-import { KnexEngine } from './utils/knex.engine';
+import { EngineMock } from './utils/engine.mock';
+import { TransactionMock } from './utils/transaction.mock';
 
 describe('Unit of Work', () => {
-  let db: Knex;
-  let uow: Uow<KnexEngine>;
+  let engineMock: EngineMock;
+  let transactionMock: TransactionMock;
+  let uow: Uow<EngineMock>;
 
   beforeEach(async () => {
-    db = knex({
-      client: 'sqlite3',
-      connection: ':memory:',
-      useNullAsDefault: true,
-      migrations: {
-        directory: resolve(__dirname, './utils/migrations'),
-      },
-    });
+    transactionMock = new TransactionMock();
+    engineMock = new EngineMock(transactionMock);
 
-    uow = new Uow(new KnexEngine(db));
-
-    await db.migrate.latest();
-  });
-
-  afterEach(async () => {
-    await db.destroy();
+    uow = new Uow(engineMock);
   });
 
   it('should propagate an error', async () => {
