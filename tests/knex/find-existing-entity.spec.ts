@@ -30,49 +30,90 @@ describe('Knex – Find Existing Entity', () => {
     await db.destroy();
   });
 
-  it('should find existing entity', async () => {
-    // arrange
-    const id = faker.string.uuid();
-    const name = faker.person.fullName();
-    await uow.run((ctx) =>
-      ctx
-        .getRepository(EntityRepository)
-        .add(Entity.create({ id, name, cards: [] })),
-    );
+  describe.each([{ global: true }, { global: false }])(
+    'Transaction Config: %j',
+    (transaction) => {
+      it('should find existing entity', async () => {
+        // arrange
+        const id = faker.string.uuid();
+        const name = faker.person.fullName();
+        await uow.run((ctx) =>
+          ctx
+            .getRepository(EntityRepository)
+            .add(new Entity({ id, name, cards: [] })),
+        );
 
-    // act
-    const result = await uow.run((ctx) =>
-      ctx
-        .getRepository(EntityRepository)
-        .find((queryBuilder) => queryBuilder.where('id', id)),
-    );
+        // act
+        const result = await uow.run(
+          (ctx) =>
+            ctx
+              .getRepository(EntityRepository)
+              .find((queryBuilder) => queryBuilder.where('id', id)),
+          { transaction },
+        );
 
-    // assert
-    expect(result).toBeInstanceOf(Entity);
-    expect(result?.id).toBe(id);
-    expect(result?.name).toBe(name);
-  });
+        // assert
+        expect(result).toBeInstanceOf(Entity);
+        expect(result?.id).toBe(id);
+        expect(result?.name).toBe(name);
+      });
 
-  it("should fail to find entity if it doesn't exist", async () => {
-    // arrange
-    await uow.run((ctx) =>
-      ctx.getRepository(EntityRepository).add(
-        Entity.create({
-          id: faker.string.uuid(),
-          name: faker.person.fullName(),
-          cards: [],
-        }),
-      ),
-    );
+      it("should fail to find entity if it doesn't exist", async () => {
+        // arrange
+        await uow.run((ctx) =>
+          ctx.getRepository(EntityRepository).add(
+            new Entity({
+              id: faker.string.uuid(),
+              name: faker.person.fullName(),
+              cards: [],
+            }),
+          ),
+        );
 
-    // act
-    const result = await uow.run((ctx) =>
-      ctx
-        .getRepository(EntityRepository)
-        .find((queryBuilder) => queryBuilder.where('id', crypto.randomUUID())),
-    );
+        // act
+        const result = await uow.run(
+          (ctx) =>
+            ctx
+              .getRepository(EntityRepository)
+              .find((queryBuilder) =>
+                queryBuilder.where('id', crypto.randomUUID()),
+              ),
+          { transaction },
+        );
 
-    // assert
-    expect(result).toBeUndefined();
-  });
+        // assert
+        expect(result).toBeUndefined();
+      });
+
+      it('should find same reference', async () => {
+        // arrange
+        const id = faker.string.uuid();
+        await uow.run((ctx) =>
+          ctx.getRepository(EntityRepository).add(
+            new Entity({
+              id: faker.string.uuid(),
+              name: faker.person.fullName(),
+              cards: [],
+            }),
+          ),
+        );
+
+        await uow.run(
+          async (ctx) => {
+            const entityRepository = ctx.getRepository(EntityRepository);
+
+            const entity1 = await entityRepository.find((qb) =>
+              qb.where('id', id),
+            );
+            const entity2 = await entityRepository.find((qb) =>
+              qb.where('id', id),
+            );
+
+            expect(entity1).toBe(entity2);
+          },
+          { transaction },
+        );
+      });
+    },
+  );
 });

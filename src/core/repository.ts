@@ -53,12 +53,12 @@ export abstract class Repository<
 
   protected abstract doInsert(entity: E): Promise<boolean>;
 
-  public add(entity: E): boolean {
-    return this.track(entity, EntityState.ADDED) === entity;
+  public add(entity: E): void {
+    this.track(entity, EntityState.ADDED);
   }
 
-  public delete(entity: E): boolean {
-    return this.track(entity, EntityState.DELETED) === entity;
+  public delete(entity: E): void {
+    this.track(entity, EntityState.DELETED);
   }
 
   public async flush(): Promise<void> {
