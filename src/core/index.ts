@@ -7,4 +7,4 @@ export * from './repository';
 export * from './run-error';
 export * from './unit-of-work';
 export * from './entity-state';
-export { type AsyncEventEmitterHandler } from './async-event-emitter/async-event-emitter';
+export { type AsyncEventEmitterHandler } from './async-event-emitter';

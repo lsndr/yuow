@@ -8,7 +8,7 @@ import {
 import {
   AsyncEventEmitter,
   type AsyncEventEmitterHandler,
-} from './async-event-emitter/async-event-emitter';
+} from './async-event-emitter';
 import type { Engine } from './transaction/engine';
 import { PersistenceError } from './persistence.error';
 import type {

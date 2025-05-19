@@ -1,7 +1,7 @@
 import {
   AsyncEventEmitter,
   type AsyncEventEmitterHandler,
-} from '../async-event-emitter/async-event-emitter';
+} from '../async-event-emitter';
 
 export interface TransactionEvents {
   beforeBegin: undefined;
