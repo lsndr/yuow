@@ -55,6 +55,31 @@ describe('Core – Unit of Work', () => {
         attempt: 1,
       }),
     );
+    expect(onAfterRun).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        context,
+        attempt: 1,
+      }),
+    );
     expect(onBeforeRun).toHaveBeenCalledBefore(onAfterRun);
+  });
+
+  it('should not emit run events if unsubscribed', async () => {
+    // arrange
+    const onBeforeRun = jest.fn();
+    const onAfterRun = jest.fn();
+    uow.on('beforeRun', onBeforeRun);
+    uow.on('afterRun', onAfterRun);
+    uow.off('beforeRun', onBeforeRun);
+    uow.off('afterRun', onAfterRun);
+
+    // act
+    await uow.run((ctx) => {
+      return ctx;
+    });
+
+    // assert
+    expect(onBeforeRun).not.toHaveBeenCalled();
+    expect(onAfterRun).not.toHaveBeenCalled();
   });
 });

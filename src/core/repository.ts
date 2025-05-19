@@ -20,8 +20,8 @@ export interface RepositoryConstructor<
 }
 
 export type RepositoryEvents<E extends object> = {
-  beforeFlsuh: { changeTracker: ChangeTracker<E> };
-  afterFlush: { changeTracker: ChangeTracker<E> };
+  beforeFlsuh: ChangeTracker<E>;
+  afterFlush: ChangeTracker<E>;
 };
 
 export abstract class Repository<
@@ -76,9 +76,7 @@ export abstract class Repository<
       await this.transaction.begin();
     }
 
-    await this.eventEmitter.emit('beforeFlsuh', {
-      changeTracker: this.changeTracker,
-    });
+    await this.eventEmitter.emit('beforeFlsuh', this.changeTracker);
 
     const changes = this.changeTracker.compute();
 
@@ -89,9 +87,7 @@ export abstract class Repository<
     this.changeTracker.trackLoaded(changes.created);
     this.changeTracker.untrack(changes.deleted);
 
-    await this.eventEmitter.emit('afterFlush', {
-      changeTracker: this.changeTracker,
-    });
+    await this.eventEmitter.emit('afterFlush', this.changeTracker);
   }
 
   private async flushInserts(entities: E[]): Promise<void> {
