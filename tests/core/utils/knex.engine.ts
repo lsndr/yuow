@@ -9,8 +9,13 @@ export class KnexEngine
   public constructor(private readonly knex: Knex) {}
 
   public async createTransaction(
-    options: KnexTransactionOptions,
+    options?: KnexTransactionOptions,
   ): Promise<KnexTransaction> {
-    return await KnexTransaction.create(this.knex, options);
+    const knex = new KnexTransaction(this.knex, options);
+    if (options?.global) {
+      await knex.begin();
+    }
+
+    return knex;
   }
 }

@@ -20,63 +20,36 @@ export class KnexTransaction extends Transaction {
     return knex;
   }
 
-  private constructor(
-    knexOrTrx: Knex | Knex.Transaction,
+  public constructor(
+    knex: Knex | Knex.Transaction,
     public readonly options?: KnexTransactionOptions,
   ) {
     super();
 
-    if ('commit' in knexOrTrx) {
-      this.trx = knexOrTrx;
-    } else {
-      this._knex = knexOrTrx;
-    }
-
-    this.on('beforeFlush', this.onBeforeFlush);
-    this.on('commit', this.onCommit);
-    this.on('afterCommit', this.resetTranscationIfNotGlobal);
-    this.on('rollback', this.onRollback);
-    this.on('afterRollback', this.resetTranscationIfNotGlobal);
+    this._knex = knex;
   }
 
-  public static async create(
-    knex: Knex,
-    options?: KnexTransactionOptions,
-  ): Promise<KnexTransaction> {
-    const trx = options?.global
-      ? await knex.transaction({
-          isolationLevel: options.isolationLevel,
-        })
-      : knex;
+  protected async doBegin(): Promise<void> {
+    if (this.trx) {
+      throw new Error('Transaction already intialized');
+    }
 
-    return new KnexTransaction(trx, options);
+    this.trx = await this.knex.transaction({
+      isolationLevel: this.options?.isolationLevel,
+    });
   }
 
-  private onBeforeFlush = async (): Promise<void> => {
-    if (!this.trx && !this.options?.global) {
-      this.trx = await this.knex.transaction({
-        isolationLevel: this.options?.isolationLevel,
-      });
-    }
-  };
-
-  private onCommit = async (): Promise<void> => {
+  protected async doCommit(): Promise<void> {
     if (!this.trx) {
       throw new Error('Transaction not intialized');
     }
 
     await this.trx.commit();
-  };
+  }
 
-  private onRollback = async (): Promise<void> => {
+  protected async doRollback(): Promise<void> {
     if (this.trx) {
       await this.trx.rollback();
     }
-  };
-
-  private resetTranscationIfNotGlobal = (): void => {
-    if (!this.options?.global) {
-      this.trx = undefined;
-    }
-  };
+  }
 }

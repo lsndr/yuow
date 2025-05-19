@@ -1,7 +1,11 @@
 import { WeakIdentityMap } from 'weak-identity-map';
 import type { PersistenceOperation } from './persistence.error';
 import { PersistenceError } from './persistence.error';
-import type { Transaction, TransactionEvents } from './transaction/transaction';
+import {
+  TransactionState,
+  type Transaction,
+  type TransactionEvents,
+} from './transaction/transaction';
 import { EntityWrapper } from './entity-wrapper';
 import { EntityState } from './entity-state';
 import type { InferTransactionEvents } from './transaction/utilts';
@@ -39,17 +43,15 @@ export abstract class Repository<
 
   public constructor(transaction: T) {
     this.transaction = transaction;
-
-    this.register();
   }
 
   protected abstract extractIdentity(entity: E): unknown;
 
-  protected abstract update(entity: E): Promise<boolean>;
+  protected abstract doUpdate(entity: E): Promise<boolean>;
 
-  protected abstract remove(entity: E): Promise<boolean>;
+  protected abstract doDelete(entity: E): Promise<boolean>;
 
-  protected abstract insert(entity: E): Promise<boolean>;
+  protected abstract doInsert(entity: E): Promise<boolean>;
 
   public add(entity: E): boolean {
     return this.track(entity, EntityState.ADDED) === entity;
@@ -57,6 +59,42 @@ export abstract class Repository<
 
   public delete(entity: E): boolean {
     return this.track(entity, EntityState.DELETED) === entity;
+  }
+
+  public async flush(): Promise<void> {
+    if (this.transaction.state !== TransactionState.BEGUN) {
+      await this.transaction.begin();
+    }
+
+    for (const [id, wrapper] of this.identityMap.entries()) {
+      const identity = this.extractIdentity(wrapper.entity);
+
+      const assertChange = async (
+        action: () => Promise<boolean>,
+        operation: PersistenceOperation,
+      ) => {
+        const isChanged = await action();
+
+        if (!isChanged) {
+          throw new PersistenceError(
+            this.constructor.name,
+            identity,
+            operation,
+          );
+        }
+      };
+
+      if (wrapper.state === EntityState.ADDED) {
+        await assertChange(() => this.doInsert(wrapper.entity), 'insert');
+        wrapper.state = EntityState.LOADED;
+      } else if (wrapper.state === EntityState.LOADED && !wrapper.verify()) {
+        await assertChange(async () => this.doUpdate(wrapper.entity), 'update');
+      } else if (wrapper.state === EntityState.DELETED) {
+        await assertChange(() => this.doDelete(wrapper.entity), 'delete');
+
+        this.identityMap.delete(id);
+      }
+    }
   }
 
   protected trackAll<P extends E | undefined>(
@@ -95,39 +133,5 @@ export abstract class Repository<
     }
 
     return trackedEntity.entity;
-  }
-
-  private register() {
-    this.transaction.on('flush', async () => {
-      for (const [id, wrapper] of this.identityMap.entries()) {
-        const identity = this.extractIdentity(wrapper.entity);
-
-        const assertChange = async (
-          action: () => Promise<boolean>,
-          operation: PersistenceOperation,
-        ) => {
-          const isChanged = await action();
-
-          if (!isChanged) {
-            throw new PersistenceError(
-              this.constructor.name,
-              identity,
-              operation,
-            );
-          }
-        };
-
-        if (wrapper.state === EntityState.ADDED) {
-          await assertChange(() => this.insert(wrapper.entity), 'insert');
-          wrapper.state = EntityState.LOADED;
-        } else if (wrapper.state === EntityState.LOADED && !wrapper.verify()) {
-          await assertChange(async () => this.update(wrapper.entity), 'update');
-        } else if (wrapper.state === EntityState.DELETED) {
-          await assertChange(() => this.remove(wrapper.entity), 'delete');
-
-          this.identityMap.delete(id);
-        }
-      }
-    });
   }
 }

@@ -3,7 +3,7 @@ import { faker } from '@faker-js/faker';
 import { knex } from 'knex';
 import type { Knex } from 'knex';
 import { KnexEngine } from '../../../src/knex';
-import { Uow } from '../../../src/core';
+import { RunError, Uow } from '../../../src/core';
 import { Entity } from './utils/entity';
 import { EntityRepository } from './utils/entity.schema';
 import 'jest-extended';
@@ -31,12 +31,13 @@ describe('Knex – Transaction Events', () => {
 
   it('should not emit events if unsubscribed', async () => {
     // arrange
-    const onBeforeFlush = jest.fn();
+    const onBeforeBegin = jest.fn();
 
     // act
+
     await uow.run((ctx) => {
-      ctx.transaction.on('beforeFlush', onBeforeFlush);
-      ctx.transaction.off('beforeFlush', onBeforeFlush);
+      ctx.transaction.on('beforeBegin', onBeforeBegin);
+      ctx.transaction.off('beforeBegin', onBeforeBegin);
 
       ctx.getRepository(EntityRepository).add(
         new Entity({
@@ -51,33 +52,29 @@ describe('Knex – Transaction Events', () => {
     });
 
     // assert
-    expect(onBeforeFlush).not.toHaveBeenCalled();
+    expect(onBeforeBegin).not.toHaveBeenCalled();
   });
 
   it('should emit events when persisting entity', async () => {
     // arrange
-    const onBeforeFlush = jest.fn();
-    const onFlush = jest.fn();
-    const onAfterFlush = jest.fn();
+    const onBeforeBegin = jest.fn();
+    const onAfterBegin = jest.fn();
 
     const onBeforeCommit = jest.fn();
-    const onCommit = jest.fn();
     const onAfterCommit = jest.fn();
 
     const onBeforeRollback = jest.fn();
-    const onRollback = jest.fn();
     const onAfterRollback = jest.fn();
 
     // act
     await uow.run((ctx) => {
-      ctx.transaction.on('beforeFlush', onBeforeFlush);
-      ctx.transaction.on('flush', onFlush);
-      ctx.transaction.on('afterFlush', onAfterFlush);
+      ctx.transaction.on('beforeBegin', onBeforeBegin);
+      ctx.transaction.on('afterBegin', onAfterBegin);
+
       ctx.transaction.on('beforeCommit', onBeforeCommit);
-      ctx.transaction.on('commit', onCommit);
       ctx.transaction.on('afterCommit', onAfterCommit);
+
       ctx.transaction.on('beforeRollback', onBeforeRollback);
-      ctx.transaction.on('rollback', onRollback);
       ctx.transaction.on('afterRollback', onAfterRollback);
 
       ctx.getRepository(EntityRepository).add(
@@ -93,21 +90,16 @@ describe('Knex – Transaction Events', () => {
     });
 
     // assert
-    expect(onBeforeFlush).toHaveBeenCalledOnce();
-    expect(onFlush).toHaveBeenCalledOnce();
-    expect(onAfterFlush).toHaveBeenCalledOnce();
+    expect(onBeforeBegin).toHaveBeenCalledOnce();
+    expect(onAfterBegin).toHaveBeenCalledOnce();
     expect(onBeforeCommit).toHaveBeenCalledOnce();
-    expect(onCommit).toHaveBeenCalledOnce();
     expect(onAfterCommit).toHaveBeenCalledOnce();
     expect(onBeforeRollback).not.toHaveBeenCalled();
-    expect(onRollback).not.toHaveBeenCalled();
     expect(onAfterRollback).not.toHaveBeenCalled();
 
-    expect(onBeforeFlush).toHaveBeenCalledBefore(onFlush);
-    expect(onFlush).toHaveBeenCalledBefore(onAfterFlush);
-    expect(onAfterFlush).toHaveBeenCalledBefore(onBeforeCommit);
-    expect(onBeforeCommit).toHaveBeenCalledBefore(onCommit);
-    expect(onCommit).toHaveBeenCalledBefore(onAfterCommit);
+    expect(onBeforeBegin).toHaveBeenCalledBefore(onAfterBegin);
+    expect(onAfterBegin).toHaveBeenCalledBefore(onBeforeCommit);
+    expect(onBeforeCommit).toHaveBeenCalledBefore(onAfterCommit);
   });
 
   it('should emit events when persistence failed', async () => {
@@ -126,30 +118,26 @@ describe('Knex – Transaction Events', () => {
       ),
     );
 
-    const onBeforeFlush = jest.fn();
-    const onFlush = jest.fn();
-    const onAfterFlush = jest.fn();
+    const onBeforeBegin = jest.fn();
+    const onAfterBegin = jest.fn();
 
     const onBeforeCommit = jest.fn();
-    const onCommit = jest.fn();
     const onAfterCommit = jest.fn();
 
     const onBeforeRollback = jest.fn();
-    const onRollback = jest.fn();
     const onAfterRollback = jest.fn();
 
     // act
     const act = () =>
       uow.run(
         async (ctx) => {
-          ctx.transaction.on('beforeFlush', onBeforeFlush);
-          ctx.transaction.on('flush', onFlush);
-          ctx.transaction.on('afterFlush', onAfterFlush);
+          ctx.transaction.on('beforeBegin', onBeforeBegin);
+          ctx.transaction.on('afterBegin', onAfterBegin);
+
           ctx.transaction.on('beforeCommit', onBeforeCommit);
-          ctx.transaction.on('commit', onCommit);
           ctx.transaction.on('afterCommit', onAfterCommit);
+
           ctx.transaction.on('beforeRollback', onBeforeRollback);
-          ctx.transaction.on('rollback', onRollback);
           ctx.transaction.on('afterRollback', onAfterRollback);
 
           const entity = await ctx
@@ -168,69 +156,52 @@ describe('Knex – Transaction Events', () => {
       );
 
     // assert
-    await expect(act).rejects.toThrow();
+    await expect(act).rejects.toThrow(new RunError([]));
 
-    expect(onBeforeFlush).toHaveBeenCalledOnce();
-    expect(onFlush).toHaveBeenCalledOnce();
-    expect(onAfterFlush).not.toHaveBeenCalled();
-    expect(onBeforeCommit).not.toHaveBeenCalled();
-    expect(onCommit).not.toHaveBeenCalled();
-    expect(onAfterCommit).not.toHaveBeenCalled();
-    expect(onBeforeRollback).toHaveBeenCalledOnce();
-    expect(onRollback).toHaveBeenCalledOnce();
-    expect(onAfterRollback).toHaveBeenCalledOnce();
+    expect(onBeforeBegin).toHaveBeenCalledOnce();
+    expect(onAfterBegin).toHaveBeenCalledOnce();
+    expect(onBeforeCommit).not.toHaveBeenCalledOnce();
+    expect(onAfterCommit).not.toHaveBeenCalledOnce();
+    expect(onBeforeRollback).toHaveBeenCalled();
+    expect(onAfterRollback).toHaveBeenCalled();
 
-    expect(onBeforeFlush).toHaveBeenCalledBefore(onFlush);
-    expect(onFlush).toHaveBeenCalledBefore(onBeforeRollback);
-    expect(onBeforeRollback).toHaveBeenCalledBefore(onRollback);
-    expect(onRollback).toHaveBeenCalledBefore(onAfterRollback);
+    expect(onBeforeBegin).toHaveBeenCalledBefore(onAfterBegin);
+    expect(onAfterBegin).toHaveBeenCalledBefore(onBeforeRollback);
+    expect(onBeforeRollback).toHaveBeenCalledBefore(onAfterRollback);
   });
 
-  it('should emit events when unit failed', async () => {
+  it('should not emit events when unit failed', async () => {
     // arrange
-    const onBeforeFlush = jest.fn();
-    const onFlush = jest.fn();
-    const onAfterFlush = jest.fn();
+    const onBeforeBegin = jest.fn();
+    const onAfterBegin = jest.fn();
 
     const onBeforeCommit = jest.fn();
-    const onCommit = jest.fn();
     const onAfterCommit = jest.fn();
 
     const onBeforeRollback = jest.fn();
-    const onRollback = jest.fn();
     const onAfterRollback = jest.fn();
 
     // act
     const act = () =>
       uow.run(async (ctx) => {
-        ctx.transaction.on('beforeFlush', onBeforeFlush);
-        ctx.transaction.on('flush', onFlush);
-        ctx.transaction.on('afterFlush', onAfterFlush);
+        ctx.transaction.on('beforeBegin', onBeforeBegin);
+        ctx.transaction.on('afterBegin', onAfterBegin);
         ctx.transaction.on('beforeCommit', onBeforeCommit);
-        ctx.transaction.on('commit', onCommit);
         ctx.transaction.on('afterCommit', onAfterCommit);
         ctx.transaction.on('beforeRollback', onBeforeRollback);
-        ctx.transaction.on('rollback', onRollback);
         ctx.transaction.on('afterRollback', onAfterRollback);
 
         throw new Error('Unit failed');
       });
 
     // assert
-    await expect(act).rejects.toThrow();
+    await expect(act).rejects.toThrow(new Error('Unit failed'));
 
-    expect(onBeforeFlush).not.toHaveBeenCalled();
-    expect(onFlush).not.toHaveBeenCalled();
-    expect(onAfterFlush).not.toHaveBeenCalled();
+    expect(onBeforeBegin).not.toHaveBeenCalled();
+    expect(onAfterBegin).not.toHaveBeenCalled();
     expect(onBeforeCommit).not.toHaveBeenCalled();
-    expect(onCommit).not.toHaveBeenCalled();
     expect(onAfterCommit).not.toHaveBeenCalled();
-
-    expect(onBeforeRollback).toHaveBeenCalledOnce();
-    expect(onRollback).toHaveBeenCalledOnce();
-    expect(onAfterRollback).toHaveBeenCalledOnce();
-
-    expect(onBeforeRollback).toHaveBeenCalledBefore(onRollback);
-    expect(onRollback).toHaveBeenCalledBefore(onAfterRollback);
+    expect(onBeforeRollback).not.toHaveBeenCalled();
+    expect(onAfterRollback).not.toHaveBeenCalled();
   });
 });
