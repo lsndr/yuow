@@ -30,35 +30,43 @@ describe('Knex – Delete Existing Entity', () => {
     await db.destroy();
   });
 
-  it('should delete an existing entity', async () => {
-    // arrange
-    const id = faker.string.uuid();
-    await uow.run((ctx) =>
-      ctx
-        .getRepository(EntityRepository)
-        .add(Entity.create({ id, name: faker.person.fullName(), cards: [] })),
-    );
+  describe.each([{ global: true }, { global: false }])(
+    'Transaction Config: %j',
+    (transaction) => {
+      it('should delete an existing entity', async () => {
+        // arrange
+        const id = faker.string.uuid();
+        await uow.run((ctx) =>
+          ctx
+            .getRepository(EntityRepository)
+            .add(new Entity({ id, name: faker.person.fullName(), cards: [] })),
+        );
 
-    // act
-    await uow.run(async (ctx) => {
-      const customerRepository = ctx.getRepository(EntityRepository);
+        // act
+        await uow.run(
+          async (ctx) => {
+            const customerRepository = ctx.getRepository(EntityRepository);
 
-      const customer = await customerRepository.find((queryBuilder) =>
-        queryBuilder.where('id', id),
-      );
+            const customer = await customerRepository.find((queryBuilder) =>
+              queryBuilder.where('id', id),
+            );
 
-      if (!customer) {
-        throw new Error('Customer not found');
-      }
+            if (!customer) {
+              throw new Error('Customer not found');
+            }
 
-      customerRepository.delete(customer);
-    });
+            customerRepository.delete(customer);
+          },
+          { transaction },
+        );
 
-    // assert
-    const entity = await uow.run((ctx) =>
-      ctx.getRepository(EntityRepository).find((qb) => qb.where('id', id)),
-    );
+        // assert
+        const entity = await uow.run((ctx) =>
+          ctx.getRepository(EntityRepository).find((qb) => qb.where('id', id)),
+        );
 
-    expect(entity).toBeUndefined();
-  });
+        expect(entity).toBeUndefined();
+      });
+    },
+  );
 });

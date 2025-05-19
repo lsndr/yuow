@@ -19,10 +19,10 @@ export type TransactionEventListener<E extends keyof TransactionEvents> = (
 ) => void | Promise<void>;
 
 export enum TransactionState {
-  INITIALIZED = 'initialized',
+  INITIALIZED = 'INITIALIZED',
   BEGUN = 'BEGUN',
   COMMITTED = 'COMMITTED',
-  ROLLEDBACK = 'ROLLEDBACK',
+  ROLLED_BACK = 'ROLLE_DBACK',
 }
 
 export abstract class Transaction<
@@ -67,7 +67,7 @@ export abstract class Transaction<
     await this.eventEmitter.emit('beforeRollback', undefined);
 
     await this.doRollback();
-    this._state = TransactionState.ROLLEDBACK;
+    this._state = TransactionState.ROLLED_BACK;
 
     await this.eventEmitter.emit('afterRollback', undefined);
   }

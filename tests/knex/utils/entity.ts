@@ -7,7 +7,7 @@ export type EntityState = {
 export class Entity {
   private state: EntityState;
 
-  protected constructor(state: EntityState) {
+  public constructor(state: EntityState) {
     this.state = state;
   }
 
@@ -21,10 +21,6 @@ export class Entity {
 
   public get cards(): string[] {
     return this.state.cards;
-  }
-
-  public static create(state: EntityState): Entity {
-    return new this(state);
   }
 
   public changeName(name: string): void {
