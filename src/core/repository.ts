@@ -10,6 +10,7 @@ import {
   AsyncEventEmitter,
   type AsyncEventEmitterHandler,
 } from './async-event-emitter';
+import { EntityState } from './change-tracker/entity-state';
 
 export interface RepositoryConstructor<
   R,
@@ -64,11 +65,17 @@ export abstract class Repository<
   }
 
   public add(entity: E): void {
-    this.changeTracker.trackNew(entity);
+    if (
+      [false, EntityState.NEW].includes(this.changeTracker.isTracked(entity))
+    ) {
+      this.changeTracker.track(entity, EntityState.NEW);
+    } else {
+      this.changeTracker.track(entity, EntityState.LOADED);
+    }
   }
 
   public delete(entity: E): void {
-    this.changeTracker.trackDeleted(entity);
+    this.changeTracker.track(entity, EntityState.DELETED);
   }
 
   public async flush(): Promise<void> {
@@ -84,7 +91,7 @@ export abstract class Repository<
     await this.flushUpdates(changes.updated);
     await this.flushDeletes(changes.deleted);
 
-    this.changeTracker.trackLoaded(changes.created);
+    this.changeTracker.track(changes.created, EntityState.LOADED);
     this.changeTracker.untrack(changes.deleted);
 
     await this.eventEmitter.emit('afterFlush', this.changeTracker);

@@ -1,6 +1,6 @@
 import type { Knex } from 'knex';
 import type { RepositoryConstructor } from '../core';
-import { Repository } from '../core';
+import { EntityState, Repository } from '../core';
 import type {
   EntityDataMapper,
   EntityDataMapperConstructor,
@@ -39,7 +39,7 @@ export function createRepository<E extends object>(
       const result = await this.mapper.find(where);
 
       if (result) {
-        this.changeTracker.trackLoaded(result);
+        this.changeTracker.track(result, EntityState.LOADED);
       }
 
       return result;

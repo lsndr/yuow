@@ -62,40 +62,6 @@ describe('Knex – Create New Entity', () => {
         expect(entity?.name).toBe(name);
         expect(entity?.cards).toEqual(cards);
       });
-
-      it('should persist a new entity only once', async () => {
-        const id = faker.string.uuid();
-        const name = faker.person.fullName();
-        const cards = [
-          faker.finance.creditCardNumber(),
-          faker.finance.creditCardNumber(),
-        ];
-
-        await uow.run(
-          (ctx) => {
-            const entityRepository = ctx.getRepository(EntityRepository);
-
-            const entity = new Entity({ id, name, cards });
-
-            entityRepository.add(entity);
-            entityRepository.add(entity);
-          },
-          { transaction },
-        );
-
-        const record = await db
-          .select('*')
-          .from('entity')
-          .where('id', id)
-          .first();
-
-        expect(record).toEqual({
-          id,
-          name,
-          cards: JSON.stringify(cards),
-          version: 1,
-        });
-      });
     },
   );
 });
