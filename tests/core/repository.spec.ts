@@ -126,6 +126,26 @@ describe('Core – Repository', () => {
     expect(repository.doUpdate).not.toHaveBeenCalled();
   });
 
+  it('should fail to delete a new untracked entity', async () => {
+    // arrange
+    const entity = { id: faker.string.uuid(), name: faker.person.fullName() };
+
+    // act
+    const act = () =>
+      uow.run((ctx) => {
+        const repositoryMock = ctx.getRepository(RepositoryMock);
+
+        repositoryMock.delete(entity);
+
+        return repositoryMock;
+      });
+
+    // assert
+    await expect(act).rejects.toThrow(
+      new Error('Can not track untracked entity as deleted: [object Object]'),
+    );
+  });
+
   it('should emit flush events', async () => {
     // arrange
     const entity = { id: faker.string.uuid(), name: faker.person.fullName() };
