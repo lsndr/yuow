@@ -1,5 +1,5 @@
 export enum EntityState {
-  ADDED,
+  NEW,
   LOADED,
   DELETED,
 }

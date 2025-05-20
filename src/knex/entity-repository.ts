@@ -1,6 +1,6 @@
 import type { Knex } from 'knex';
 import type { RepositoryConstructor } from '../core';
-import { EntityState, Repository } from '../core';
+import { Repository } from '../core';
 import type {
   EntityDataMapper,
   EntityDataMapperConstructor,
@@ -38,7 +38,11 @@ export function createRepository<E extends object>(
     public async find(where: (qb: Knex.QueryBuilder) => any) {
       const result = await this.mapper.find(where);
 
-      return this.trackAll(result, EntityState.LOADED);
+      if (result) {
+        this.changeTracker.trackLoaded(result);
+      }
+
+      return result;
     }
 
     protected override extractIdentity(entity: E): unknown {

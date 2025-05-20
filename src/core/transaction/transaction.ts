@@ -22,7 +22,7 @@ export enum TransactionState {
   INITIALIZED = 'INITIALIZED',
   BEGUN = 'BEGUN',
   COMMITTED = 'COMMITTED',
-  ROLLED_BACK = 'ROLLE_DBACK',
+  ROLLED_BACK = 'ROLLED_DBACK',
 }
 
 export abstract class Transaction<

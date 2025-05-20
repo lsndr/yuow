@@ -6,5 +6,6 @@ export * from './persistence.error';
 export * from './repository';
 export * from './run-error';
 export * from './unit-of-work';
-export * from './entity-state';
+export * from './change-tracker/change-tracker';
+export * from './change-tracker/computed-changes';
 export { type AsyncEventEmitterHandler } from './async-event-emitter';

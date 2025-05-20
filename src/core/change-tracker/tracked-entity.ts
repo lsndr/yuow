@@ -1,19 +1,19 @@
 import { serialize } from 'node:v8';
-import type { EntityState } from './entity-state';
+import { type EntityState } from './entity-state';
 
-export class EntityWrapper<E extends object> {
-  public readonly entity: E;
+export class TrackedEntity<E extends object> {
+  public readonly ref: E;
   public state: EntityState;
   private snapshot: Buffer;
 
-  public constructor(entity: E, state: EntityState) {
-    this.entity = entity;
+  public constructor(ref: E, state: EntityState) {
+    this.ref = ref;
     this.state = state;
 
     this.snapshot = this.createSnapshot();
   }
 
-  public verify(): boolean {
+  public revalidate(): boolean {
     const oldSnapshot = this.snapshot;
     const newSnapshot = this.createSnapshot();
 
@@ -23,6 +23,6 @@ export class EntityWrapper<E extends object> {
   }
 
   private createSnapshot() {
-    return serialize(this.entity);
+    return serialize(this.ref);
   }
 }
