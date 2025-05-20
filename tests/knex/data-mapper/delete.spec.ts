@@ -87,9 +87,7 @@ describe('Knex – Data Mapper – Delete', () => {
         }),
       );
 
-      const entity = (await dataMapper.find((qb) =>
-        qb.where('id', id),
-      )) as Entity;
+      const entity = (await dataMapper.find((qb) => qb.where('id', id)))!;
 
       // act
       const result = await dataMapper.delete(entity);

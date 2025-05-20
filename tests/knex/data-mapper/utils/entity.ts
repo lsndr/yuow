@@ -1,7 +1,7 @@
-export type EntityState = {
+export interface EntityState {
   id: string;
   name: string;
-};
+}
 
 export class Entity {
   private readonly state: EntityState;

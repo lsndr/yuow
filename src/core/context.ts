@@ -12,8 +12,8 @@ export interface ContextEvents<
   T extends Transaction<TE>,
   TE extends TransactionEvents = InferTransactionEvents<T>,
 > {
-  beforeFlush: Repository<object, T, TE>;
-  afterFlush: Repository<object, T, TE>;
+  beforeFlush: Repository<any, T, TE>;
+  afterFlush: Repository<any, T, TE>;
 }
 
 export class Context<

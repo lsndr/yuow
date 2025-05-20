@@ -183,7 +183,7 @@ describe('Knex – Transaction Events', () => {
 
     // act
     const act = () =>
-      uow.run(async (ctx) => {
+      uow.run((ctx) => {
         ctx.transaction.on('beforeBegin', onBeforeBegin);
         ctx.transaction.on('afterBegin', onAfterBegin);
         ctx.transaction.on('beforeCommit', onBeforeCommit);

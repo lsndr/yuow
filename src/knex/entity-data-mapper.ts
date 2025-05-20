@@ -86,7 +86,7 @@ export function createDataMapper<E extends object>(
 
       const result = await this.knex.insert(data).into(this.table);
 
-      return (result[0] || 0) > 0;
+      return (result[0] ?? 0) > 0;
     }
 
     public async update(entity: E): Promise<boolean> {
