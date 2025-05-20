@@ -94,9 +94,7 @@ describe('Knex – Data Mapper – Update', () => {
           name: faker.person.fullName(),
         }),
       );
-      const entity = (await dataMapper.find((qb) =>
-        qb.where('id', id),
-      )) as Entity;
+      const entity = (await dataMapper.find((qb) => qb.where('id', id)))!;
 
       // act
       const newName = faker.person.fullName();

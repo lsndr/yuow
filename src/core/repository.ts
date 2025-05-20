@@ -12,18 +12,16 @@ import {
 } from './async-event-emitter';
 import { EntityState } from './change-tracker/entity-state';
 
-export interface RepositoryConstructor<
+export type RepositoryConstructor<
   R,
   T extends Transaction<TE>,
   TE extends TransactionEvents = InferTransactionEvents<T>,
-> {
-  new (transaction: T): R;
-}
+> = new (transaction: T) => R;
 
-export type RepositoryEvents<E extends object> = {
+export interface RepositoryEvents<E extends object> {
   beforeFlsuh: ChangeTracker<E>;
   afterFlush: ChangeTracker<E>;
-};
+}
 
 export abstract class Repository<
   E extends object,

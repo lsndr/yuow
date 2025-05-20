@@ -34,8 +34,6 @@ export class ChangeTracker<E extends object> {
         case EntityState.DELETED:
           this.trackDeleted(entity);
           break;
-        default:
-          throw new Error(`Unknown entity state: ${state}`);
       }
     }
   }
@@ -89,7 +87,7 @@ export class ChangeTracker<E extends object> {
         this.identityMap.put(new TrackedEntity(entity, EntityState.NEW));
       } else if (trackedEntity.state !== EntityState.NEW) {
         throw new Error(
-          `Can not track entity as new because it is already ${trackedEntity.state}: ${entity}`,
+          `Can not track entity as new because it is already ${trackedEntity.state}: ${JSON.stringify(entity)}`,
         );
       }
     }
@@ -120,7 +118,9 @@ export class ChangeTracker<E extends object> {
       const trackedEntity = this.identityMap.get(entity);
 
       if (!trackedEntity) {
-        throw new Error(`Can not track untracked entity as deleted: ${entity}`);
+        throw new Error(
+          `Can not track untracked entity as deleted: ${JSON.stringify(entity)}`,
+        );
       } else if (trackedEntity.state === EntityState.NEW) {
         this.identityMap.delete(entity);
       } else {

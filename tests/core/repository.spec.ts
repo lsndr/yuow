@@ -10,7 +10,7 @@ describe('Core – Repository', () => {
   let transactionMock: TransactionMock;
   let uow: Uow<EngineMock>;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     transactionMock = new TransactionMock();
     engineMock = new EngineMock(transactionMock);
 
@@ -142,7 +142,9 @@ describe('Core – Repository', () => {
 
     // assert
     await expect(act).rejects.toThrow(
-      new Error('Can not track untracked entity as deleted: [object Object]'),
+      new Error(
+        `Can not track untracked entity as deleted: ${JSON.stringify(entity)}`,
+      ),
     );
   });
 

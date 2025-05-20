@@ -8,7 +8,7 @@ describe('Core – Unit of Work', () => {
   let transactionMock: TransactionMock;
   let uow: Uow<EngineMock>;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     transactionMock = new TransactionMock();
     engineMock = new EngineMock(transactionMock);
 
