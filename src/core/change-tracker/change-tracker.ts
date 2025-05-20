@@ -1,34 +1,43 @@
-import { WeakIdentityMap } from 'weak-identity-map';
 import { TrackedEntity } from './tracked-entity';
 import { EntityState } from './entity-state';
 import { type ComputedChanges } from './computed-changes';
+import { IdentityMap } from './identity-map';
 
 export class ChangeTracker<E extends object> {
-  private readonly identityMap = new WeakIdentityMap<
-    unknown,
-    TrackedEntity<E>
-  >();
+  private readonly identityMap: IdentityMap<E>;
 
-  public constructor(
-    private readonly extractIdentity: (entity: E) => unknown,
-  ) {}
-
-  public trackNew(entity: E): void;
-  public trackNew(entities: E[]): void;
-  public trackNew(entityOrEntities: E | E[]): void {
-    this.track(entityOrEntities, EntityState.NEW);
+  public constructor(extractIdentity: (entity: E) => unknown) {
+    this.identityMap = new IdentityMap(extractIdentity);
   }
 
-  public trackLoaded(entity: E): void;
-  public trackLoaded(entities: E[]): void;
-  public trackLoaded(entityOrEntities: E | E[]): void {
-    this.track(entityOrEntities, EntityState.LOADED);
+  public isTracked(entity: E): false | EntityState {
+    const trackedEntity = this.identityMap.get(entity);
+
+    return !trackedEntity ? false : trackedEntity.state;
   }
 
-  public trackDeleted(entity: E): void;
-  public trackDeleted(entities: E[]): void;
-  public trackDeleted(entityOrEntities: E | E[]): void {
-    this.track(entityOrEntities, EntityState.DELETED);
+  public track(entity: E, state: EntityState): void;
+  public track(entities: E[], state: EntityState): void;
+  public track(entityOrEntities: E | E[], state: EntityState): void {
+    const entities = Array.isArray(entityOrEntities)
+      ? entityOrEntities
+      : [entityOrEntities];
+
+    for (const entity of entities) {
+      switch (state) {
+        case EntityState.NEW:
+          this.trackNew(entity);
+          break;
+        case EntityState.LOADED:
+          this.trackLoaded(entity);
+          break;
+        case EntityState.DELETED:
+          this.trackDeleted(entity);
+          break;
+        default:
+          throw new Error(`Unknown entity state: ${state}`);
+      }
+    }
   }
 
   public untrack(entity: E): void;
@@ -39,8 +48,7 @@ export class ChangeTracker<E extends object> {
       : [entityOrEntities];
 
     for (const entity of entities) {
-      const identity = this.extractIdentity(entity);
-      this.identityMap.delete(identity);
+      this.identityMap.delete(entity);
     }
   }
 
@@ -69,17 +77,54 @@ export class ChangeTracker<E extends object> {
     };
   }
 
-  private track(entity: E | E[], state: EntityState) {
-    const entities = Array.isArray(entity) ? entity : [entity];
+  private trackNew(entityOrEntities: E | E[]): void {
+    const entities = Array.isArray(entityOrEntities)
+      ? entityOrEntities
+      : [entityOrEntities];
 
     for (const entity of entities) {
-      const identity = this.extractIdentity(entity);
-      const trackedEntity = this.identityMap.get(identity);
+      const trackedEntity = this.identityMap.get(entity);
 
       if (!trackedEntity) {
-        this.identityMap.set(identity, new TrackedEntity(entity, state));
+        this.identityMap.put(new TrackedEntity(entity, EntityState.NEW));
+      } else if (trackedEntity.state !== EntityState.NEW) {
+        throw new Error(
+          `Can not track entity as new because it is already ${trackedEntity.state}: ${entity}`,
+        );
+      }
+    }
+  }
+
+  private trackLoaded(entityOrEntities: E | E[]): void {
+    const entities = Array.isArray(entityOrEntities)
+      ? entityOrEntities
+      : [entityOrEntities];
+
+    for (const entity of entities) {
+      const trackedEntity = this.identityMap.get(entity);
+
+      if (!trackedEntity) {
+        this.identityMap.put(new TrackedEntity(entity, EntityState.LOADED));
       } else {
-        trackedEntity.state = state;
+        trackedEntity.state = EntityState.LOADED;
+      }
+    }
+  }
+
+  private trackDeleted(entityOrEntities: E | E[]): void {
+    const entities = Array.isArray(entityOrEntities)
+      ? entityOrEntities
+      : [entityOrEntities];
+
+    for (const entity of entities) {
+      const trackedEntity = this.identityMap.get(entity);
+
+      if (!trackedEntity) {
+        throw new Error(`Can not track untracked entity as deleted: ${entity}`);
+      } else if (trackedEntity.state === EntityState.NEW) {
+        this.identityMap.delete(entity);
+      } else {
+        trackedEntity.state = EntityState.DELETED;
       }
     }
   }

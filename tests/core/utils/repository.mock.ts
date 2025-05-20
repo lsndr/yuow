@@ -1,4 +1,4 @@
-import { Repository } from '../../../src/core';
+import { Repository, type EntityState } from '../../../src/core';
 import { type TransactionMock } from './transaction.mock';
 
 export class RepositoryMock extends Repository<object, TransactionMock> {
@@ -9,5 +9,9 @@ export class RepositoryMock extends Repository<object, TransactionMock> {
 
   public constructor(transaction: TransactionMock) {
     super(transaction);
+  }
+
+  public track(entity: object, state: EntityState): void {
+    this.changeTracker.track(entity, state);
   }
 }

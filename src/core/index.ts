@@ -8,4 +8,5 @@ export * from './run-error';
 export * from './unit-of-work';
 export * from './change-tracker/change-tracker';
 export * from './change-tracker/computed-changes';
+export * from './change-tracker/entity-state';
 export { type AsyncEventEmitterHandler } from './async-event-emitter';
