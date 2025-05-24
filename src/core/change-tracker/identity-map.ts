@@ -21,7 +21,7 @@ export class IdentityMap<E extends object> {
 
     if (entity !== trackedEntity.ref) {
       throw new Error(
-        `Different entities have the same identity. \r\n\r\nEntity: \r\n${JSON.stringify(entity)}\r\nTracked Entity:\r\n${JSON.stringify(trackedEntity.ref)}`,
+        `Different entities have the same identity: "${String(identity)}". \r\n\r\nEntity: \r\n${JSON.stringify(entity)}\r\nTracked Entity:\r\n${JSON.stringify(trackedEntity.ref)}`,
       );
     }
 

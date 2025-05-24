@@ -54,6 +54,7 @@ export class ChangeTracker<E extends object> {
     const created: E[] = [];
     const updated: E[] = [];
     const deleted: E[] = [];
+    const stale: E[] = [];
 
     for (const trackedEntity of this.identityMap.values()) {
       if (trackedEntity.state === EntityState.NEW) {
@@ -65,6 +66,8 @@ export class ChangeTracker<E extends object> {
         updated.push(trackedEntity.ref);
       } else if (trackedEntity.state === EntityState.DELETED) {
         deleted.push(trackedEntity.ref);
+      } else {
+        stale.push(trackedEntity.ref);
       }
     }
 
@@ -72,6 +75,7 @@ export class ChangeTracker<E extends object> {
       created,
       updated,
       deleted,
+      stale,
     };
   }
 

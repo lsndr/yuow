@@ -77,7 +77,7 @@ export abstract class Repository<
   }
 
   public async flush(): Promise<void> {
-    if (this.transaction.state !== TransactionState.BEGUN) {
+    if (this.transaction.state === TransactionState.INITIALIZED) {
       await this.transaction.begin();
     }
 

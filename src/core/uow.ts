@@ -16,6 +16,7 @@ import type {
   InferTransactionEvents,
   InferTransactionOptions,
 } from './transaction/utilts';
+import { ContextProvider } from './context-provider';
 
 interface RunConfig<O> {
   readonly attempts: number;
@@ -28,7 +29,7 @@ export type Unit<
   R,
   T extends Transaction<TE>,
   TE extends TransactionEvents = InferTransactionEvents<T>,
-> = (uow: Context<T, TE>) => R | Promise<R>;
+> = (context: Context<T, TE>) => R | Promise<R>;
 
 export interface UowEvents<
   T extends Transaction<TE>,
@@ -84,7 +85,9 @@ export class Uow<
       await this.eventEmitter.emit('beforeRun', { attempt, context });
 
       try {
-        const result = await unit(context);
+        const result = await ContextProvider.create(context, async () =>
+          unit(context),
+        );
 
         await context.flush();
 
