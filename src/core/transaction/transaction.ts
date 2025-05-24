@@ -1,7 +1,4 @@
-import {
-  AsyncEventEmitter,
-  type AsyncEventEmitterHandler,
-} from '../async-event-emitter';
+import { Broadcaster } from '../broadcaster';
 
 export interface TransactionEvents {
   beforeBegin: undefined;
@@ -14,10 +11,6 @@ export interface TransactionEvents {
   afterRollback: undefined;
 }
 
-export type TransactionEventListener<E extends keyof TransactionEvents> = (
-  payload: TransactionEvents[E],
-) => void | Promise<void>;
-
 export enum TransactionState {
   INITIALIZED = 'INITIALIZED',
   BEGUN = 'BEGUN',
@@ -26,10 +19,9 @@ export enum TransactionState {
 }
 
 export abstract class Transaction<
-  T extends TransactionEvents = TransactionEvents,
-> {
+  TE extends TransactionEvents = TransactionEvents,
+> extends Broadcaster<TE> {
   private _state: TransactionState = TransactionState.INITIALIZED;
-  private readonly eventEmitter = new AsyncEventEmitter<T>();
 
   protected abstract doBegin(): Promise<void>;
   protected abstract doCommit(): Promise<void>;
@@ -42,55 +34,40 @@ export abstract class Transaction<
   public async begin(): Promise<void> {
     this.assertState(TransactionState.INITIALIZED);
 
-    await this.eventEmitter.emit('beforeBegin', undefined);
+    await super.emit('beforeBegin', undefined);
 
     await this.doBegin();
     this._state = TransactionState.BEGUN;
 
-    await this.eventEmitter.emit('afterBegin', undefined);
+    await super.emit('afterBegin', undefined);
   }
 
   public async commit(): Promise<void> {
     this.assertState(TransactionState.BEGUN);
 
-    await this.eventEmitter.emit('beforeCommit', undefined);
+    await super.emit('beforeCommit', undefined);
 
     await this.doCommit();
     this._state = TransactionState.COMMITTED;
 
-    await this.eventEmitter.emit('afterCommit', undefined);
+    await super.emit('afterCommit', undefined);
   }
 
   public async rollback(): Promise<void> {
     this.assertState(TransactionState.BEGUN);
 
-    await this.eventEmitter.emit('beforeRollback', undefined);
+    await super.emit('beforeRollback', undefined);
 
     await this.doRollback();
     this._state = TransactionState.ROLLED_BACK;
 
-    await this.eventEmitter.emit('afterRollback', undefined);
+    await super.emit('afterRollback', undefined);
   }
 
-  public on<E extends keyof T>(
-    event: E,
-    listener: AsyncEventEmitterHandler<T[E]>,
-  ): void {
-    this.eventEmitter.on(event, listener);
-  }
-
-  public off<E extends keyof T>(
-    event: E,
-    listener: AsyncEventEmitterHandler<T[E]>,
-  ): void {
-    this.eventEmitter.off(event, listener);
-  }
-
-  protected emit<E extends keyof Omit<T, keyof TransactionEvents>>(
-    event: E,
-    payload: T[E],
-  ): Promise<void> {
-    return this.eventEmitter.emit(event, payload);
+  protected override emit<
+    E extends keyof (TE & Record<keyof TransactionEvents, never>),
+  >(event: keyof TE, payload: TE[E]): Promise<void> {
+    return super.emit(event, payload);
   }
 
   private assertState(state: TransactionState) {

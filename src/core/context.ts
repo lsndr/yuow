@@ -1,7 +1,4 @@
-import {
-  AsyncEventEmitter,
-  type AsyncEventEmitterHandler,
-} from './async-event-emitter';
+import { Broadcaster } from './broadcaster';
 import type { Repository, RepositoryConstructor } from './repository';
 import type { Transaction, TransactionEvents } from './transaction/transaction';
 import type { InferTransactionEvents } from './transaction/utilts';
@@ -19,18 +16,18 @@ export interface ContextEvents<
 export class Context<
   T extends Transaction<TE>,
   TE extends TransactionEvents = InferTransactionEvents<T>,
-> {
+> extends Broadcaster<ContextEvents<T, TE>> {
   public readonly transaction: T;
-  private readonly eventEmitter: AsyncEventEmitter<ContextEvents<T, TE>>;
   private readonly repositories: Map<
     RepositoryConstructor<Repository<any, T, TE>, T, TE>,
     Repository<any, T, TE>
   >;
 
   public constructor(transaction: T) {
+    super();
+
     this.transaction = transaction;
     this.repositories = new Map();
-    this.eventEmitter = new AsyncEventEmitter();
   }
 
   public getRepository<
@@ -49,25 +46,11 @@ export class Context<
 
   public async flush(): Promise<void> {
     for (const repository of this.repositories.values()) {
-      await this.eventEmitter.emit('beforeFlush', repository);
+      await this.emit('beforeFlush', repository);
 
       await repository.flush();
 
-      await this.eventEmitter.emit('afterFlush', repository);
+      await this.emit('afterFlush', repository);
     }
-  }
-
-  public on<E extends keyof ContextEvents<T, TE>>(
-    event: E,
-    listener: AsyncEventEmitterHandler<ContextEvents<T, TE>[E]>,
-  ): void {
-    this.eventEmitter.on(event, listener);
-  }
-
-  public off<E extends keyof ContextEvents<T, TE>>(
-    event: E,
-    listener: AsyncEventEmitterHandler<ContextEvents<T, TE>[E]>,
-  ): void {
-    this.eventEmitter.off(event, listener);
   }
 }

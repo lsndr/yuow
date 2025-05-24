@@ -6,11 +6,8 @@ import {
 } from './transaction/transaction';
 import type { InferTransactionEvents } from './transaction/utilts';
 import { ChangeTracker } from './change-tracker/change-tracker';
-import {
-  AsyncEventEmitter,
-  type AsyncEventEmitterHandler,
-} from './async-event-emitter';
 import { EntityState } from './change-tracker/entity-state';
+import { Broadcaster } from './broadcaster';
 
 export type RepositoryConstructor<
   R,
@@ -27,17 +24,17 @@ export abstract class Repository<
   E extends object,
   T extends Transaction<TE>,
   TE extends TransactionEvents = InferTransactionEvents<T>,
-> {
+> extends Broadcaster<RepositoryEvents<E>> {
   protected readonly transaction: T;
   protected readonly changeTracker: ChangeTracker<E>;
-  private readonly eventEmitter: AsyncEventEmitter<RepositoryEvents<E>>;
 
   public constructor(transaction: T) {
+    super();
+
     this.transaction = transaction;
     this.changeTracker = new ChangeTracker<E>((entity: E) =>
       this.extractIdentity(entity),
     );
-    this.eventEmitter = new AsyncEventEmitter();
   }
 
   protected abstract extractIdentity(entity: E): unknown;
@@ -47,20 +44,6 @@ export abstract class Repository<
   protected abstract doDelete(entity: E): Promise<boolean>;
 
   protected abstract doInsert(entity: E): Promise<boolean>;
-
-  public on<M extends keyof RepositoryEvents<E>>(
-    event: M,
-    listener: AsyncEventEmitterHandler<RepositoryEvents<E>[M]>,
-  ): void {
-    this.eventEmitter.on(event, listener);
-  }
-
-  public off<M extends keyof RepositoryEvents<E>>(
-    event: M,
-    listener: AsyncEventEmitterHandler<RepositoryEvents<E>[M]>,
-  ): void {
-    this.eventEmitter.off(event, listener);
-  }
 
   public add(entity: E): void {
     if (
@@ -81,7 +64,7 @@ export abstract class Repository<
       await this.transaction.begin();
     }
 
-    await this.eventEmitter.emit('beforeFlsuh', this.changeTracker);
+    await this.emit('beforeFlsuh', this.changeTracker);
 
     const changes = this.changeTracker.compute();
 
@@ -92,7 +75,7 @@ export abstract class Repository<
     this.changeTracker.track(changes.created, EntityState.LOADED);
     this.changeTracker.untrack(changes.deleted);
 
-    await this.eventEmitter.emit('afterFlush', this.changeTracker);
+    await this.emit('afterFlush', this.changeTracker);
   }
 
   private async flushInserts(entities: E[]): Promise<void> {
