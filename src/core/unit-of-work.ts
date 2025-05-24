@@ -5,10 +5,6 @@ import {
   type Transaction,
   type TransactionEvents,
 } from './transaction/transaction';
-import {
-  AsyncEventEmitter,
-  type AsyncEventEmitterHandler,
-} from './async-event-emitter';
 import type { Engine } from './transaction/engine';
 import { PersistenceError } from './persistence.error';
 import type {
@@ -16,6 +12,7 @@ import type {
   InferTransactionEvents,
   InferTransactionOptions,
 } from './transaction/utilts';
+import { Broadcaster } from './broadcaster';
 
 interface RunConfig<O> {
   readonly attempts: number;
@@ -43,23 +40,9 @@ export class Uow<
   T extends Transaction<TE> = InferEngineTransaction<E>,
   TO = InferTransactionOptions<E>,
   TE extends TransactionEvents = InferTransactionEvents<T>,
-> {
-  private readonly eventEmitter = new AsyncEventEmitter<UowEvents<T, TE>>();
-
-  public constructor(public readonly engine: E) {}
-
-  public on<E extends keyof UowEvents<T, TE>>(
-    event: E,
-    listener: AsyncEventEmitterHandler<UowEvents<T, TE>[E]>,
-  ): void {
-    this.eventEmitter.on(event, listener);
-  }
-
-  public off<E extends keyof UowEvents<T, TE>>(
-    event: E,
-    listener: AsyncEventEmitterHandler<UowEvents<T, TE>[E]>,
-  ): boolean {
-    return this.eventEmitter.off(event, listener);
+> extends Broadcaster<UowEvents<T, TE>> {
+  public constructor(public readonly engine: E) {
+    super();
   }
 
   public async run<R>(
@@ -81,7 +64,7 @@ export class Uow<
         config.transaction,
       );
       const context = new Context<T, TE>(transaction);
-      await this.eventEmitter.emit('beforeRun', { attempt, context });
+      await this.emit('beforeRun', { attempt, context });
 
       try {
         const result = await unit(context);
@@ -92,7 +75,7 @@ export class Uow<
           await transaction.commit();
         }
 
-        await this.eventEmitter.emit('afterRun', { attempt, context });
+        await this.emit('afterRun', { attempt, context });
 
         return result;
       } catch (error) {
@@ -100,7 +83,7 @@ export class Uow<
           await transaction.rollback();
         }
 
-        await this.eventEmitter.emit('afterRun', { attempt, context, error });
+        await this.emit('afterRun', { attempt, context, error });
 
         if (!(error instanceof PersistenceError)) {
           throw error;
