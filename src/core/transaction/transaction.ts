@@ -11,10 +11,6 @@ export interface TransactionEvents {
   afterRollback: undefined;
 }
 
-export type TransactionEventListener<E extends keyof TransactionEvents> = (
-  payload: TransactionEvents[E],
-) => void | Promise<void>;
-
 export enum TransactionState {
   INITIALIZED = 'INITIALIZED',
   BEGUN = 'BEGUN',
