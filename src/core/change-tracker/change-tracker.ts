@@ -1,6 +1,6 @@
 import { TrackedEntity } from './tracked-entity';
 import { EntityState } from './entity-state';
-import { type ComputedChanges } from './computed-changes';
+import { ComputedChanges } from './computed-changes';
 import { IdentityMap } from './identity-map';
 
 export class ChangeTracker<E extends object> {
@@ -54,6 +54,7 @@ export class ChangeTracker<E extends object> {
     const created: E[] = [];
     const updated: E[] = [];
     const deleted: E[] = [];
+    const stale: E[] = [];
 
     for (const trackedEntity of this.identityMap.values()) {
       if (trackedEntity.state === EntityState.NEW) {
@@ -65,14 +66,17 @@ export class ChangeTracker<E extends object> {
         updated.push(trackedEntity.ref);
       } else if (trackedEntity.state === EntityState.DELETED) {
         deleted.push(trackedEntity.ref);
+      } else {
+        stale.push(trackedEntity.ref);
       }
     }
 
-    return {
+    return new ComputedChanges({
       created,
       updated,
       deleted,
-    };
+      stale,
+    });
   }
 
   private trackNew(entityOrEntities: E | E[]): void {
