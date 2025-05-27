@@ -1,0 +1,217 @@
+import { faker } from '@faker-js/faker';
+import { ChangeTracker } from './change-tracker';
+import { EntityState } from './entity-state';
+
+interface Entity {
+  id: string;
+  name?: string;
+}
+
+describe(ChangeTracker, () => {
+  describe('track', () => {
+    it('should fail to track entities with same identifier', () => {
+      // arrange
+      const tracker = new ChangeTracker<Entity>((entity) => entity.id);
+      const entity1 = { id: faker.string.uuid() };
+      const entity2 = { id: entity1.id };
+
+      // act
+      const act = () => {
+        tracker.track(entity1, EntityState.NEW);
+        tracker.track(entity2, EntityState.NEW);
+      };
+
+      // assert
+      expect(act).toThrow(
+        new Error(
+          `2 different entities have the same identifier. \r\n\r\nEntity: \r\n${JSON.stringify(entity2)}\r\nTracked Entity:\r\n${JSON.stringify(entity1)}`,
+        ),
+      );
+    });
+
+    describe(EntityState.NEW, () => {
+      it(`should track entity as ${EntityState.NEW} `, () => {
+        // arramge
+        const tracker = new ChangeTracker<Entity>((entity) => entity.id);
+        const entity = { id: faker.string.uuid() };
+
+        // act
+        tracker.track(entity, EntityState.NEW);
+
+        // assert
+        expect(tracker.isTracked(entity)).toBe(EntityState.NEW);
+      });
+
+      it(`should fail to track ${EntityState.LOADED} entity as ${EntityState.NEW}`, () => {
+        // arrange
+        const tracker = new ChangeTracker<Entity>((entity) => entity.id);
+        const entity = { id: faker.string.uuid() };
+        tracker.track(entity, EntityState.LOADED);
+
+        // act
+        const act = () => tracker.track(entity, EntityState.NEW);
+
+        // assert
+        expect(act).toThrow(
+          new Error(
+            `Can not track entity as ${EntityState.NEW} because it is already in ${EntityState.LOADED} state: ${JSON.stringify(entity)}`,
+          ),
+        );
+      });
+
+      it(`should fail to track ${EntityState.DELETED} as ${EntityState.NEW}`, () => {
+        // arrange
+        const tracker = new ChangeTracker<Entity>((entity) => entity.id);
+        const entity = { id: faker.string.uuid() };
+        tracker.track(entity, EntityState.LOADED);
+        tracker.track(entity, EntityState.DELETED);
+
+        // act
+        const act = () => tracker.track(entity, EntityState.NEW);
+
+        // assert
+        expect(act).toThrow(
+          new Error(
+            `Can not track entity as ${EntityState.NEW} because it is already in ${EntityState.DELETED} state: ${JSON.stringify(entity)}`,
+          ),
+        );
+      });
+    });
+
+    describe(EntityState.LOADED, () => {
+      it(`should track entity as ${EntityState.LOADED}`, () => {
+        // arrange
+        const tracker = new ChangeTracker<Entity>((entity) => entity.id);
+        const entity = { id: faker.string.uuid() };
+
+        // act
+        tracker.track(entity, EntityState.LOADED);
+
+        // assert
+        expect(tracker.isTracked(entity)).toBe(EntityState.LOADED);
+      });
+
+      it.each([EntityState.NEW, EntityState.DELETED])(
+        `should track %s entity as ${EntityState.LOADED}`,
+        (state) => {
+          // arrange
+          const tracker = new ChangeTracker<Entity>((entity) => entity.id);
+          const entity = { id: faker.string.uuid() };
+          tracker.track(entity, EntityState.NEW); // Workaround to track DELETED state
+          tracker.track(entity, state);
+
+          // act
+          tracker.track(entity, EntityState.LOADED);
+
+          // assert
+          expect(tracker.isTracked(entity)).toBe(EntityState.LOADED);
+        },
+      );
+    });
+
+    describe(EntityState.DELETED, () => {
+      it(`should untrack ${EntityState.NEW} entity`, () => {
+        // arrange
+        const tracker = new ChangeTracker<Entity>((entity) => entity.id);
+        const entity = { id: faker.string.uuid() };
+        tracker.track(entity, EntityState.NEW);
+
+        // act
+        tracker.track(entity, EntityState.DELETED);
+
+        // assert
+        expect(tracker.isTracked(entity)).toBe(false);
+      });
+
+      it(`should track ${EntityState.LOADED} entity as ${EntityState.DELETED}`, () => {
+        // arrange
+        const tracker = new ChangeTracker<Entity>((entity) => entity.id);
+        const entity = { id: faker.string.uuid() };
+        tracker.track(entity, EntityState.LOADED);
+
+        // act
+        tracker.track(entity, EntityState.DELETED);
+
+        // assert
+        expect(tracker.isTracked(entity)).toBe(EntityState.DELETED);
+      });
+
+      it(`should fail to track untracked entity as ${EntityState.DELETED}`, () => {
+        // arrange
+        const tracker = new ChangeTracker<Entity>((entity) => entity.id);
+        const entity = { id: faker.string.uuid() };
+
+        // act
+        const act = () => tracker.track(entity, EntityState.DELETED);
+
+        // assert
+        expect(act).toThrow(
+          new Error(
+            `Can not track untracked entity as deleted: ${JSON.stringify(entity)}`,
+          ),
+        );
+      });
+    });
+  });
+
+  describe('compute', () => {
+    it('should compute changes', () => {
+      // arrange
+      const tracker = new ChangeTracker<Entity>((entity) => entity.id);
+
+      // New and then deleted entity – should not be in changes
+      const newAndDeleted = { id: faker.string.uuid() };
+      tracker.track(newAndDeleted, EntityState.NEW);
+      tracker.track(newAndDeleted, EntityState.DELETED);
+
+      // Loaded entity but not changed – should be in stale
+      const loadedUnchanged = { id: faker.string.uuid() };
+      tracker.track(loadedUnchanged, EntityState.LOADED);
+
+      // Loaded entity with changes – should be in updated
+      const loadedChanged = {
+        id: faker.string.uuid(),
+        name: faker.person.firstName(),
+      };
+      tracker.track(loadedChanged, EntityState.LOADED);
+      loadedChanged.name = faker.person.firstName();
+
+      // New entity – should be in created
+      const created = { id: faker.string.uuid() };
+      tracker.track(created, EntityState.NEW);
+
+      // Loaded and deleted – should be in deleted
+      const loadedAndDeleted = { id: faker.string.uuid() };
+      tracker.track(loadedAndDeleted, EntityState.LOADED);
+      tracker.track(loadedAndDeleted, EntityState.DELETED);
+
+      // act
+      const changes = tracker.compute();
+
+      // assert
+      expect(changes.created).toEqual([created]);
+      expect(changes.updated).toEqual([loadedChanged]);
+      expect(changes.deleted).toEqual([loadedAndDeleted]);
+      expect(changes.stale).toEqual([loadedUnchanged]);
+    });
+  });
+
+  describe('untrack', () => {
+    it.each([EntityState.NEW, EntityState.LOADED, EntityState.DELETED])(
+      'should untrack %s entity',
+      (state) => {
+        // arrange
+        const tracker = new ChangeTracker<Entity>((entity) => entity.id);
+        const entity = { id: faker.string.uuid() };
+        tracker.track(entity, EntityState.NEW); // Workaround to track DELETED state
+        tracker.track(entity, state);
+
+        // act
+        tracker.untrack(entity);
+
+        // assert
+        expect(tracker.isTracked(entity)).toBe(false);
+      },
+    );
+  });
+});

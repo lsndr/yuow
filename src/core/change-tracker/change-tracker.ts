@@ -91,7 +91,7 @@ export class ChangeTracker<E extends object> {
         this.identityMap.put(new TrackedEntity(entity, EntityState.NEW));
       } else if (trackedEntity.state !== EntityState.NEW) {
         throw new Error(
-          `Can not track entity as new because it is already ${trackedEntity.state}: ${JSON.stringify(entity)}`,
+          `Can not track entity as ${EntityState.NEW} because it is already in ${trackedEntity.state} state: ${JSON.stringify(entity)}`,
         );
       }
     }

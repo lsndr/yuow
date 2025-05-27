@@ -24,6 +24,9 @@ export type EntityDataMapperConstructor<E extends object> = new (
   knexOrTransaction: Knex | KnexTransaction,
 ) => EntityDataMapper<E>;
 
+/**
+ * @internal
+ */
 export function createDataMapper<E extends object>(
   options: EntityDataMapperOptions<E>,
 ): EntityDataMapperConstructor<E> {

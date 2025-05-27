@@ -1,16 +1,20 @@
+import type { AsyncEventEmitterEvents } from './async-event-emitter';
 import { Broadcaster } from './broadcaster';
 import type { Repository, RepositoryConstructor } from './repository';
-import type { Transaction, TransactionEvents } from './transaction/transaction';
-import type { InferTransactionEvents } from './transaction/utilts';
+import type {
+  Transaction,
+  TransactionEvents,
+  InferTransactionEvents,
+} from './transaction';
 
 type InferEntity<R> = R extends Repository<infer E, any, any> ? E : never;
 
 export interface ContextEvents<
   T extends Transaction<TE>,
   TE extends TransactionEvents = InferTransactionEvents<T>,
-> {
-  beforeFlush: Repository<any, T, TE>;
-  afterFlush: Repository<any, T, TE>;
+> extends AsyncEventEmitterEvents {
+  beforeFlush: [];
+  afterFlush: [];
 }
 
 export class Context<
@@ -45,12 +49,12 @@ export class Context<
   }
 
   public async flush(): Promise<void> {
+    await this.emit('beforeFlush');
+
     for (const repository of this.repositories.values()) {
-      await this.emit('beforeFlush', repository);
-
       await repository.flush();
-
-      await this.emit('afterFlush', repository);
     }
+
+    await this.emit('afterFlush');
   }
 }

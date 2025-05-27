@@ -82,13 +82,11 @@ describe('Knex – Uow Events', () => {
     });
 
     // assert
-    expect(onBeforeRun).toHaveBeenCalledExactlyOnceWith({
+    expect(onBeforeRun).toHaveBeenCalledExactlyOnceWith(expect.any(Context), {
       attempt: 1,
-      context: expect.any(Context),
     });
-    expect(onAfterRun).toHaveBeenCalledExactlyOnceWith({
+    expect(onAfterRun).toHaveBeenCalledExactlyOnceWith(expect.any(Context), {
       attempt: 1,
-      context: expect.any(Context),
       error: undefined,
     });
   });
@@ -133,32 +131,26 @@ describe('Knex – Uow Events', () => {
 
     // assert
     expect(onBeforeRun).toHaveBeenCalledTimes(3);
-    expect(onBeforeRun).toHaveBeenNthCalledWith(1, {
+    expect(onBeforeRun).toHaveBeenNthCalledWith(1, expect.any(Context), {
       attempt: 1,
-      context: expect.any(Context),
     });
-    expect(onBeforeRun).toHaveBeenNthCalledWith(2, {
+    expect(onBeforeRun).toHaveBeenNthCalledWith(2, expect.any(Context), {
       attempt: 2,
-      context: expect.any(Context),
     });
-    expect(onBeforeRun).toHaveBeenNthCalledWith(3, {
+    expect(onBeforeRun).toHaveBeenNthCalledWith(3, expect.any(Context), {
       attempt: 3,
-      context: expect.any(Context),
     });
     expect(onAfterRun).toHaveBeenCalledTimes(3);
-    expect(onAfterRun).toHaveBeenNthCalledWith(1, {
+    expect(onAfterRun).toHaveBeenNthCalledWith(1, expect.any(Context), {
       attempt: 1,
-      context: expect.any(Context),
       error: expect.any(PersistenceError),
     });
-    expect(onAfterRun).toHaveBeenNthCalledWith(2, {
+    expect(onAfterRun).toHaveBeenNthCalledWith(2, expect.any(Context), {
       attempt: 2,
-      context: expect.any(Context),
       error: expect.any(PersistenceError),
     });
-    expect(onAfterRun).toHaveBeenNthCalledWith(3, {
+    expect(onAfterRun).toHaveBeenNthCalledWith(3, expect.any(Context), {
       attempt: 3,
-      context: expect.any(Context),
       error: undefined,
     });
   });

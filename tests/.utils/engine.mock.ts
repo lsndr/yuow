@@ -1,4 +1,4 @@
-import type { Engine } from '../../../src/core';
+import { type Engine } from '../../src/core';
 import type { TransactionMock } from './transaction.mock';
 
 export class EngineMock implements Engine<TransactionMock, never> {

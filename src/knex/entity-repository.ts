@@ -23,6 +23,9 @@ export interface EntityRepository<E extends object>
 export type EntityRepositoryConstructor<E extends object> =
   RepositoryConstructor<EntityRepository<E>, KnexTransaction>;
 
+/**
+ * @internal
+ */
 export function createRepository<E extends object>(
   options: EntityRepositoryOptions<E>,
 ): EntityRepositoryConstructor<E> {
