@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker';
 import { Transaction, TransactionState } from './transaction';
 import 'jest-extended';
 
@@ -5,6 +6,10 @@ export class TestTransaction extends Transaction {
   public readonly doBegin = jest.fn();
   public readonly doCommit = jest.fn();
   public readonly doRollback = jest.fn();
+
+  public async emitTestEvent(eventName: string): Promise<void> {
+    await this.emit(eventName);
+  }
 }
 
 describe(Transaction, () => {
@@ -79,6 +84,21 @@ describe(Transaction, () => {
       expect(beforeRollback).toHaveBeenCalledTimes(1);
       expect(afterRollback).toHaveBeenCalledTimes(1);
       expect(beforeRollback).toHaveBeenCalledBefore(afterRollback);
+    });
+  });
+
+  describe('emit', () => {
+    it('should emit custom events', async () => {
+      // arrange
+      const eventName = faker.word.verb();
+      const eventHandler = jest.fn();
+      transaction.on(eventName, eventHandler);
+
+      // act
+      await transaction.emitTestEvent(eventName);
+
+      // assert
+      expect(eventHandler).toHaveBeenCalledTimes(1);
     });
   });
 });
