@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { TransactionMock } from '../../tests/.utils/transaction.mock';
+import { TransactionMock } from '../../tests/utils/transaction.mock';
 import { Repository } from './repository';
 import 'jest-extended';
 import { ChangeTracker, EntityState } from './change-tracker';

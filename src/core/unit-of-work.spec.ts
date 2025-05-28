@@ -1,6 +1,6 @@
 import { Uow } from './unit-of-work';
-import { EngineMock } from '../../tests/.utils/engine.mock';
-import { TransactionMock } from '../../tests/.utils/transaction.mock';
+import { EngineMock } from '../../tests/utils/engine.mock';
+import { TransactionMock } from '../../tests/utils/transaction.mock';
 import { Context } from './context';
 import 'jest-extended';
 import { faker } from '@faker-js/faker';

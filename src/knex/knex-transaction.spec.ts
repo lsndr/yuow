@@ -13,7 +13,7 @@ describe(KnexTransaction, () => {
       connection: ':memory:',
       useNullAsDefault: true,
       migrations: {
-        directory: resolve(__dirname, '../../tests/.utils/entities/migrations'),
+        directory: resolve(__dirname, '../../tests/utils/entities/migrations'),
       },
     });
     transaction = new KnexTransaction(knex);
