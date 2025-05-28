@@ -32,7 +32,7 @@ export default defineConfig(
     },
   },
   {
-    files: ['**/*.ts'],
+    files: ['**/*.ts', './tests/**/.utils/**/*.ts'],
     languageOptions: {
       parserOptions: {
         project: './tsconfig.eslint.json',

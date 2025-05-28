@@ -7,15 +7,11 @@ export interface KnexTransactionOptions {
 }
 
 export class KnexTransaction extends Transaction {
-  private _knex?: Knex;
+  private readonly _knex: Knex;
   private trx?: Knex.Transaction;
 
   public get knex(): Knex {
     const knex = this.trx ?? this._knex;
-
-    if (!knex) {
-      throw new Error('Knex not intialized');
-    }
 
     return knex;
   }

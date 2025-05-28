@@ -5,6 +5,10 @@ export class ObjectOperator {
     const keys = path.split('.');
 
     return keys.reduce<unknown>((value, key) => {
+      if (value === undefined) {
+        return undefined;
+      }
+
       return (value as any)[key];
     }, this.object);
   }
