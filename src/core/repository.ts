@@ -1,13 +1,13 @@
+import type { AsyncEventEmitterEvents } from './async-event-emitter';
+import { Broadcaster } from './broadcaster';
+import { ChangeTracker, EntityState } from './change-tracker';
 import { PersistenceError } from './persistence.error';
 import {
   TransactionState,
   type Transaction,
   type TransactionEvents,
-} from './transaction/transaction';
-import type { InferTransactionEvents } from './transaction/utilts';
-import { ChangeTracker } from './change-tracker/change-tracker';
-import { EntityState } from './change-tracker/entity-state';
-import { Broadcaster } from './broadcaster';
+  type InferTransactionEvents,
+} from './transaction';
 
 export type RepositoryConstructor<
   R,
@@ -15,9 +15,10 @@ export type RepositoryConstructor<
   TE extends TransactionEvents = InferTransactionEvents<T>,
 > = new (transaction: T) => R;
 
-export interface RepositoryEvents<E extends object> {
-  beforeFlsuh: ChangeTracker<E>;
-  afterFlush: ChangeTracker<E>;
+export interface RepositoryEvents<E extends object>
+  extends AsyncEventEmitterEvents {
+  beforeFlush: [ChangeTracker<E>];
+  afterFlush: [ChangeTracker<E>];
 }
 
 export abstract class Repository<
@@ -64,7 +65,7 @@ export abstract class Repository<
       await this.transaction.begin();
     }
 
-    await this.emit('beforeFlsuh', this.changeTracker);
+    await this.emit('beforeFlush', this.changeTracker);
 
     const changes = this.changeTracker.compute();
 

@@ -15,7 +15,7 @@ export class ComputedChanges<E extends object> {
     this.created = state.created;
     this.updated = state.updated;
     this.deleted = state.deleted;
-    this.stale = state.deleted;
+    this.stale = state.stale;
   }
 
   public count(): number {

@@ -23,8 +23,8 @@ export abstract class Broadcaster<E extends AsyncEventEmitterEvents> {
 
   protected async emit<K extends keyof E>(
     event: K,
-    payload: E[K],
+    ...args: E[K]
   ): Promise<void> {
-    await this.eventEmitter.emit(event, payload);
+    await this.eventEmitter.emit(event, args);
   }
 }

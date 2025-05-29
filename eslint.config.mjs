@@ -97,6 +97,19 @@ export default defineConfig(
           accessibility: 'explicit',
         },
       ],
+      'import-x/order': [
+        'error',
+        {
+          groups: [
+            'index',
+            ['sibling', 'parent'],
+            'internal',
+            'external',
+            'builtin',
+          ],
+          alphabetize: { order: 'asc' },
+        },
+      ],
     },
   },
 );

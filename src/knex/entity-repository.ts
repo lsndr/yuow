@@ -1,13 +1,13 @@
-import type { Knex } from 'knex';
 import type { RepositoryConstructor } from '../core';
-import { EntityState, Repository } from '../core';
 import type {
   EntityDataMapper,
   EntityDataMapperConstructor,
 } from './entity-data-mapper';
 import type { EntityPropertiesMap } from './entity-properties-map';
-import { ObjectOperator } from './object-operator';
 import type { KnexTransaction } from './knex-transaction';
+import { EntityState, Repository } from '../core';
+import { ObjectOperator } from './object-operator';
+import type { Knex } from 'knex';
 
 export interface EntityRepositoryOptions<E extends object> {
   readonly identity: string | readonly string[];
@@ -23,6 +23,9 @@ export interface EntityRepository<E extends object>
 export type EntityRepositoryConstructor<E extends object> =
   RepositoryConstructor<EntityRepository<E>, KnexTransaction>;
 
+/**
+ * @internal
+ */
 export function createRepository<E extends object>(
   options: EntityRepositoryOptions<E>,
 ): EntityRepositoryConstructor<E> {
@@ -38,11 +41,15 @@ export function createRepository<E extends object>(
     public async find(where: (qb: Knex.QueryBuilder) => any) {
       const result = await this.mapper.find(where);
 
-      if (result) {
+      if (!result) {
+        return;
+      }
+
+      if (!this.changeTracker.isTracked(result)) {
         this.changeTracker.track(result, EntityState.LOADED);
       }
 
-      return result;
+      return this.changeTracker.getTracked(result);
     }
 
     protected override extractIdentity(entity: E): unknown {

@@ -1,8 +1,8 @@
-import type { Knex } from 'knex';
-import { WeakVersionTracker } from '../core/weak-version-tracker';
 import type { EntityPropertiesMap } from './entity-properties-map';
-import { ObjectOperator } from './object-operator';
 import { KnexTransaction } from './knex-transaction';
+import { ObjectOperator } from './object-operator';
+import { WeakVersionTracker } from '../core/weak-version-tracker';
+import type { Knex } from 'knex';
 
 export interface EntityDataMapperOptions<E extends object> {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type -- Required for entity constructor
@@ -24,6 +24,9 @@ export type EntityDataMapperConstructor<E extends object> = new (
   knexOrTransaction: Knex | KnexTransaction,
 ) => EntityDataMapper<E>;
 
+/**
+ * @internal
+ */
 export function createDataMapper<E extends object>(
   options: EntityDataMapperOptions<E>,
 ): EntityDataMapperConstructor<E> {
@@ -48,11 +51,17 @@ export function createDataMapper<E extends object>(
     ): Promise<E | undefined> {
       const qb = this.knex.queryBuilder();
 
-      const record = await qb.select('*').from(this.table).where(where).first();
+      const records = await qb.select('*').from(this.table).where(where);
 
-      if (!record) {
+      if (records.length == 0) {
         return;
+      } else if (records.length > 1) {
+        throw new Error(
+          `Expected one record, but found ${records.length} for entity ${this.entityConstructor.name}`,
+        );
       }
+
+      const record = records[0];
 
       const entity = Object.create(this.entityConstructor.prototype);
       await this.hydrate(entity, record);

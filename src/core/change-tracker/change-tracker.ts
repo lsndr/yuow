@@ -1,19 +1,33 @@
-import { TrackedEntity } from './tracked-entity';
-import { EntityState } from './entity-state';
 import { ComputedChanges } from './computed-changes';
-import { IdentityMap } from './identity-map';
+import { EntityState } from './entity-state';
+import { TrackedEntity } from './tracked-entity';
+import { WeakIdentityMap } from 'weak-identity-map';
 
 export class ChangeTracker<E extends object> {
-  private readonly identityMap: IdentityMap<E>;
+  private readonly identityMap = new WeakIdentityMap<
+    unknown,
+    TrackedEntity<E>
+  >();
 
-  public constructor(extractIdentity: (entity: E) => unknown) {
-    this.identityMap = new IdentityMap(extractIdentity);
-  }
+  public constructor(
+    private readonly extractIdentity: (entity: E) => unknown,
+  ) {}
 
   public isTracked(entity: E): false | EntityState {
-    const trackedEntity = this.identityMap.get(entity);
+    const trackedEntity = this.identityMap.get(this.extractIdentity(entity));
 
     return !trackedEntity ? false : trackedEntity.state;
+  }
+
+  public getTracked(entity: E): E {
+    const identity = this.extractIdentity(entity);
+    const trackedEntity = this.identityMap.get(identity);
+
+    if (!trackedEntity) {
+      throw new Error(`Entity is not tracked: ${JSON.stringify(entity)}`);
+    }
+
+    return trackedEntity.ref;
   }
 
   public track(entity: E, state: EntityState): void;
@@ -46,7 +60,7 @@ export class ChangeTracker<E extends object> {
       : [entityOrEntities];
 
     for (const entity of entities) {
-      this.identityMap.delete(entity);
+      this.identityMap.delete(this.extractIdentity(entity));
     }
   }
 
@@ -85,13 +99,21 @@ export class ChangeTracker<E extends object> {
       : [entityOrEntities];
 
     for (const entity of entities) {
-      const trackedEntity = this.identityMap.get(entity);
+      const identity = this.extractIdentity(entity);
+      const trackedEntity = this.identityMap.get(identity);
 
       if (!trackedEntity) {
-        this.identityMap.put(new TrackedEntity(entity, EntityState.NEW));
+        this.identityMap.set(
+          identity,
+          new TrackedEntity(entity, EntityState.NEW),
+        );
       } else if (trackedEntity.state !== EntityState.NEW) {
         throw new Error(
-          `Can not track entity as new because it is already ${trackedEntity.state}: ${JSON.stringify(entity)}`,
+          `Can not track entity as ${EntityState.NEW} because it is already in ${trackedEntity.state} state: ${JSON.stringify(entity)}`,
+        );
+      } else if (trackedEntity.ref !== entity) {
+        throw new Error(
+          `Can not track entity as ${EntityState.NEW} because there is already tracked entity with similar identity.\r\n\r\nNew entity: ${JSON.stringify(entity)}\r\nTracked entity: ${JSON.stringify(trackedEntity.ref)}`,
         );
       }
     }
@@ -103,10 +125,18 @@ export class ChangeTracker<E extends object> {
       : [entityOrEntities];
 
     for (const entity of entities) {
-      const trackedEntity = this.identityMap.get(entity);
+      const identity = this.extractIdentity(entity);
+      const trackedEntity = this.identityMap.get(identity);
 
       if (!trackedEntity) {
-        this.identityMap.put(new TrackedEntity(entity, EntityState.LOADED));
+        this.identityMap.set(
+          identity,
+          new TrackedEntity(entity, EntityState.LOADED),
+        );
+      } else if (trackedEntity.ref !== entity) {
+        throw new Error(
+          `Can not track entity as ${EntityState.LOADED} because there is already tracked entity with similar identity.\r\n\r\nNew entity: ${JSON.stringify(entity)}\r\nTracked entity: ${JSON.stringify(trackedEntity.ref)}`,
+        );
       } else {
         trackedEntity.state = EntityState.LOADED;
       }
@@ -119,14 +149,19 @@ export class ChangeTracker<E extends object> {
       : [entityOrEntities];
 
     for (const entity of entities) {
-      const trackedEntity = this.identityMap.get(entity);
+      const identity = this.extractIdentity(entity);
+      const trackedEntity = this.identityMap.get(identity);
 
       if (!trackedEntity) {
         throw new Error(
-          `Can not track untracked entity as deleted: ${JSON.stringify(entity)}`,
+          `Can not track untracked entity as ${EntityState.DELETED}: ${JSON.stringify(entity)}`,
+        );
+      } else if (trackedEntity.ref !== entity) {
+        throw new Error(
+          `Can not track entity as ${EntityState.DELETED} because there is already tracked entity with similar identity.\r\n\r\nNew entity: ${JSON.stringify(entity)}\r\nTracked entity: ${JSON.stringify(trackedEntity.ref)}`,
         );
       } else if (trackedEntity.state === EntityState.NEW) {
-        this.identityMap.delete(entity);
+        this.identityMap.delete(identity);
       } else {
         trackedEntity.state = EntityState.DELETED;
       }

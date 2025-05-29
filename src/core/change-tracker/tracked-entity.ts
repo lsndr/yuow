@@ -1,6 +1,9 @@
-import { serialize } from 'node:v8';
 import { type EntityState } from './entity-state';
+import { serialize } from 'node:v8';
 
+/**
+ * @internal
+ */
 export class TrackedEntity<E extends object> {
   public readonly ref: E;
   public state: EntityState;
