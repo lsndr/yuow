@@ -1,9 +1,9 @@
 import { Context } from './context';
-import { TransactionMock } from '../../tests/utils/transaction.mock';
 import {
   type RepositoryMockConstructor,
   createRepositoryMock,
 } from '../../tests/utils/repository.mock';
+import { TransactionMock } from '../../tests/utils/transaction.mock';
 import { faker } from '@faker-js/faker';
 import 'jest-extended';
 

@@ -1,13 +1,13 @@
-import type { Knex } from 'knex';
 import type { RepositoryConstructor } from '../core';
-import { EntityState, Repository } from '../core';
 import type {
   EntityDataMapper,
   EntityDataMapperConstructor,
 } from './entity-data-mapper';
 import type { EntityPropertiesMap } from './entity-properties-map';
-import { ObjectOperator } from './object-operator';
 import type { KnexTransaction } from './knex-transaction';
+import { EntityState, Repository } from '../core';
+import { ObjectOperator } from './object-operator';
+import type { Knex } from 'knex';
 
 export interface EntityRepositoryOptions<E extends object> {
   readonly identity: string | readonly string[];

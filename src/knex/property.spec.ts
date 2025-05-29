@@ -1,5 +1,5 @@
-import { faker } from '@faker-js/faker';
 import { Property } from './property';
+import { faker } from '@faker-js/faker';
 
 describe(Property, () => {
   let propertyName: string;

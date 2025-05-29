@@ -1,5 +1,5 @@
-import { faker } from '@faker-js/faker';
 import { Transaction, TransactionState } from './transaction';
+import { faker } from '@faker-js/faker';
 import 'jest-extended';
 
 export class TestTransaction extends Transaction {

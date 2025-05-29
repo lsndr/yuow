@@ -1,5 +1,5 @@
-import { serialize } from 'node:v8';
 import { type EntityState } from './entity-state';
+import { serialize } from 'node:v8';
 
 /**
  * @internal

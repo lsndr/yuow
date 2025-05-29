@@ -1,4 +1,7 @@
+import { type AsyncEventEmitterEvents } from './async-event-emitter';
+import { Broadcaster } from './broadcaster';
 import { Context } from './context';
+import { PersistenceError } from './persistence.error';
 import { RunError } from './run-error';
 import {
   TransactionState,
@@ -9,9 +12,6 @@ import {
   type InferTransactionEvents,
   type InferTransactionOptions,
 } from './transaction';
-import { PersistenceError } from './persistence.error';
-import { Broadcaster } from './broadcaster';
-import { type AsyncEventEmitterEvents } from './async-event-emitter';
 
 interface RunConfig<O> {
   readonly attempts: number;

@@ -1,7 +1,7 @@
-import { TrackedEntity } from './tracked-entity';
-import { EntityState } from './entity-state';
 import { ComputedChanges } from './computed-changes';
+import { EntityState } from './entity-state';
 import { IdentityMap } from './identity-map';
+import { TrackedEntity } from './tracked-entity';
 
 export class ChangeTracker<E extends object> {
   private readonly identityMap: IdentityMap<E>;

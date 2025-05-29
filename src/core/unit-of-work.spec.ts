@@ -1,11 +1,11 @@
+import { Context } from './context';
+import { PersistenceError } from './persistence.error';
+import { RunError } from './run-error';
 import { Uow } from './unit-of-work';
 import { EngineMock } from '../../tests/utils/engine.mock';
 import { TransactionMock } from '../../tests/utils/transaction.mock';
-import { Context } from './context';
-import 'jest-extended';
 import { faker } from '@faker-js/faker';
-import { PersistenceError } from './persistence.error';
-import { RunError } from './run-error';
+import 'jest-extended';
 
 describe(Uow, () => {
   let transaction: TransactionMock;

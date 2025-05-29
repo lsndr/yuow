@@ -1,40 +1,35 @@
-import { resolve } from 'path';
+import { RunError, Uow } from '../../../src/core';
+import {
+  type EntityRepositoryConstructor,
+  KnexEngine,
+  type Schema,
+} from '../../../src/knex';
+import { Entity } from '../../utils/entities/entity';
+import { createEntitySchema } from '../../utils/entities/entity.schema';
+import { createKnexConnection } from '../../utils/knex/connection';
 import { faker } from '@faker-js/faker/locale/yo_NG';
-import { knex } from 'knex';
-import type { Knex } from 'knex';
-import { KnexEngine } from '../../src/knex';
-import { RunError, Uow } from '../../src/core';
-import { EntityRepository } from './utils/entity.schema';
-import { Entity } from './utils/entity';
+import { type Knex } from 'knex';
 
-describe('Knex – Delete Existing Entity', () => {
+describe('Update Entity', () => {
   let db: Knex;
   let uow: Uow<KnexEngine>;
+  let schema: Schema<Entity>;
+  let EntityRepository: EntityRepositoryConstructor<Entity>;
 
   const createEntity = async () => {
-    const id = faker.string.uuid();
-    const name = faker.person.fullName();
-    const cards = [faker.finance.accountNumber()];
-    await uow.run((ctx) =>
-      ctx.getRepository(EntityRepository).add(new Entity({ id, name, cards })),
-    );
+    const entity = Entity.generate();
+    await uow.run((ctx) => ctx.getRepository(EntityRepository).add(entity));
 
-    return { id, name, cards };
+    return entity;
   };
 
   beforeEach(async () => {
-    db = knex({
-      client: 'sqlite3',
-      connection: ':memory:',
-      useNullAsDefault: true,
-      migrations: {
-        directory: resolve(__dirname, 'utils/migrations'),
-      },
-    });
+    const entity = createEntitySchema();
 
+    db = await createKnexConnection(entity.migration);
     uow = new Uow(new KnexEngine(db));
-
-    await db.migrate.up();
+    schema = entity.schema;
+    EntityRepository = entity.schema.createRepository();
   });
 
   afterEach(async () => {
@@ -44,24 +39,21 @@ describe('Knex – Delete Existing Entity', () => {
   describe.each([{ global: true }, { global: false }])(
     'Transaction Config: %j',
     (transaction) => {
-      it('should delete an existing entity', async () => {
+      it('should update an existing entity', async () => {
         // arrange
-        const { id } = await createEntity();
+        const { id, cards } = await createEntity();
+        const newName = faker.person.fullName();
 
         // act
         await uow.run(
           async (ctx) => {
-            const customerRepository = ctx.getRepository(EntityRepository);
+            const entity = await ctx
+              .getRepository(EntityRepository)
+              .find((qb) => qb.where('id', id));
 
-            const customer = await customerRepository.find((queryBuilder) =>
-              queryBuilder.where('id', id),
-            );
-
-            if (!customer) {
-              throw new Error('Customer not found');
+            if (entity) {
+              entity.name = newName;
             }
-
-            customerRepository.delete(customer);
           },
           { transaction },
         );
@@ -71,17 +63,22 @@ describe('Knex – Delete Existing Entity', () => {
           ctx.getRepository(EntityRepository).find((qb) => qb.where('id', id)),
         );
 
-        expect(entity).toBeUndefined();
+        expect(entity).toBeInstanceOf(Entity);
+        expect(entity?.id).toBe(id);
+        expect(entity?.name).toBe(newName);
+        expect(entity?.cards).toEqual(cards);
       });
     },
   );
 
   describe('High Concurrency', () => {
     const concurrentlyUpdate = (id: string) =>
-      db.raw(`UPDATE entity SET version = version + 1 WHERE id = '${id}'`);
+      db.raw(
+        `UPDATE "${schema.options.table}" SET version = version + 1 WHERE id = '${id}'`,
+      );
 
-    it.each([3, 7, 15])(
-      'should fail to delete an exisiting entity after %s attempts',
+    it.each([1, 5, 10])(
+      'should fail to update an exisiting entity after %s attempts',
       async (attempts) => {
         let attempt = 0;
         const { id, name, cards } = await createEntity();
@@ -96,7 +93,7 @@ describe('Knex – Delete Existing Entity', () => {
                 .find((qb) => qb.where('id', id));
 
               if (entity) {
-                ctx.getRepository(EntityRepository).delete(entity);
+                entity.name = faker.person.fullName();
               }
 
               if (attempt <= attempts) {
@@ -110,7 +107,7 @@ describe('Knex – Delete Existing Entity', () => {
 
         const record = await db
           .select('*')
-          .from('entity')
+          .from(schema.options.table)
           .where('id', id)
           .first();
 
@@ -125,10 +122,11 @@ describe('Knex – Delete Existing Entity', () => {
     );
 
     it.each([3, 7])(
-      'should update an exisiting customer on %s attempt',
+      'should update an exisiting entity on %s attempt',
       async (attempts) => {
         let attempt = 0;
-        const { id } = await createEntity();
+        const { id, cards } = await createEntity();
+        const newName = faker.person.fullName();
 
         await uow.run(
           async (ctx) => {
@@ -139,7 +137,7 @@ describe('Knex – Delete Existing Entity', () => {
               .find((qb) => qb.where('id', id));
 
             if (entity) {
-              ctx.getRepository(EntityRepository).delete(entity);
+              entity.name = newName;
             }
 
             if (attempt < attempts) {
@@ -151,11 +149,16 @@ describe('Knex – Delete Existing Entity', () => {
 
         const record = await db
           .select('*')
-          .from('entity')
+          .from(schema.options.table)
           .where('id', id)
           .first();
 
-        expect(record).toBe(undefined);
+        expect(record).toEqual({
+          id,
+          name: newName,
+          cards: JSON.stringify(cards),
+          version: attempts + 1,
+        });
         expect(attempt).toBe(attempts);
       },
     );

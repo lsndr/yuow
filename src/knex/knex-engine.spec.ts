@@ -1,6 +1,6 @@
 import { KnexEngine } from './knex-engine';
-import * as Knex from 'knex';
 import { KnexTransaction } from './knex-transaction';
+import * as Knex from 'knex';
 
 describe(KnexEngine, () => {
   let knex: Knex.Knex;

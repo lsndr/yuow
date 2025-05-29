@@ -1,9 +1,9 @@
+import { type TransactionMock } from './transaction.mock';
 import {
   Repository,
   type RepositoryConstructor,
   type EntityState,
 } from '../../src/core';
-import { type TransactionMock } from './transaction.mock';
 
 export type RepositoryMock = Repository<object, TransactionMock>;
 export type RepositoryMockConstructor = RepositoryConstructor<

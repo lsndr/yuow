@@ -1,3 +1,5 @@
+import { faker } from '@faker-js/faker';
+
 export interface EntityState {
   id: string;
   name: string;
@@ -5,25 +7,25 @@ export interface EntityState {
 }
 
 export class Entity {
-  private state: EntityState;
+  public id: string;
+  public name: string;
+  public cards: string[];
 
   public constructor(state: EntityState) {
-    this.state = state;
+    this.id = state.id;
+    this.name = state.name;
+    this.cards = state.cards;
   }
 
-  public get id(): string {
-    return this.state.id;
-  }
-
-  public get name(): string {
-    return this.state.name;
-  }
-
-  public get cards(): string[] {
-    return this.state.cards;
-  }
-
-  public changeName(name: string): void {
-    this.state.name = name;
+  public static generate(): Entity {
+    return new Entity({
+      id: faker.string.uuid(),
+      name: faker.person.fullName(),
+      cards: [
+        faker.finance.accountNumber(),
+        faker.finance.accountNumber(),
+        faker.finance.accountNumber(),
+      ],
+    });
   }
 }

@@ -1,29 +1,25 @@
-import { resolve } from 'path';
+import { Uow } from '../../../src/core';
+import {
+  type EntityRepositoryConstructor,
+  KnexEngine,
+} from '../../../src/knex';
+import { Entity } from '../../utils/entities/entity';
+import { createEntitySchema } from '../../utils/entities/entity.schema';
+import { createKnexConnection } from '../../utils/knex/connection';
 import { faker } from '@faker-js/faker/locale/yo_NG';
-import { knex } from 'knex';
 import type { Knex } from 'knex';
-import { KnexEngine } from '../../src/knex';
-import { Uow } from '../../src/core';
-import { EntityRepository } from './utils/entity.schema';
-import { Entity } from './utils/entity';
 
-describe('Knex – Find Existing Entity', () => {
+describe('Find Entity', () => {
   let db: Knex;
   let uow: Uow<KnexEngine>;
+  let EntityRepository: EntityRepositoryConstructor<Entity>;
 
   beforeEach(async () => {
-    db = knex({
-      client: 'sqlite3',
-      connection: ':memory:',
-      useNullAsDefault: true,
-      migrations: {
-        directory: resolve(__dirname, 'utils/migrations'),
-      },
-    });
+    const entity = createEntitySchema();
 
+    db = await createKnexConnection(entity.migration);
     uow = new Uow(new KnexEngine(db));
-
-    await db.migrate.up();
+    EntityRepository = entity.schema.createRepository();
   });
 
   afterEach(async () => {

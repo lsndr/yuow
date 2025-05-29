@@ -1,5 +1,5 @@
-import { WeakIdentityMap } from 'weak-identity-map';
 import { type TrackedEntity } from './tracked-entity';
+import { WeakIdentityMap } from 'weak-identity-map';
 
 export class IdentityMap<E extends object> {
   private readonly identityMap = new WeakIdentityMap<

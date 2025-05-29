@@ -1,24 +1,22 @@
-import * as Knex from 'knex';
-import { resolve } from 'path';
 import { KnexTransaction } from './knex-transaction';
+import { type Schema } from './schema';
+import { type Entity } from '../../tests/utils/entities/entity';
+import { createEntitySchema } from '../../tests/utils/entities/entity.schema';
+import { createKnexConnection } from '../../tests/utils/knex/connection';
 import { faker } from '@faker-js/faker';
+import { type Knex } from 'knex';
 
 describe(KnexTransaction, () => {
   let transaction: KnexTransaction;
-  let knex: Knex.Knex;
+  let knex: Knex;
+  let schema: Schema<Entity>;
 
   beforeEach(async () => {
-    knex = Knex.knex({
-      client: 'sqlite3',
-      connection: ':memory:',
-      useNullAsDefault: true,
-      migrations: {
-        directory: resolve(__dirname, '../../tests/utils/entities/migrations'),
-      },
-    });
-    transaction = new KnexTransaction(knex);
+    const entity = createEntitySchema();
 
-    await knex.migrate.latest();
+    schema = entity.schema;
+    knex = await createKnexConnection(entity.migration);
+    transaction = new KnexTransaction(knex);
   });
 
   afterEach(() => knex.destroy());
@@ -51,13 +49,15 @@ describe(KnexTransaction, () => {
       };
 
       await transaction.begin();
-      await transaction.knex('entity').insert(data);
+      await transaction.knex(schema.options.table).insert(data);
 
       // act
       await transaction.commit();
 
       // assert
-      const result = await knex('entity').where({ id: data.id }).first();
+      const result = await knex(schema.options.table)
+        .where({ id: data.id })
+        .first();
       expect(result).toEqual(data);
     });
   });
@@ -73,13 +73,15 @@ describe(KnexTransaction, () => {
       };
 
       await transaction.begin();
-      await transaction.knex('entity').insert(data);
+      await transaction.knex(schema.options.table).insert(data);
 
       // act
       await transaction.rollback();
 
       // assert
-      const result = await knex('entity').where({ id: data.id }).first();
+      const result = await knex(schema.options.table)
+        .where({ id: data.id })
+        .first();
       expect(result).toBeUndefined();
     });
   });

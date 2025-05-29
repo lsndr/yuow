@@ -1,6 +1,6 @@
-import { faker } from '@faker-js/faker';
 import { ChangeTracker } from './change-tracker';
 import { EntityState } from './entity-state';
+import { faker } from '@faker-js/faker';
 
 interface Entity {
   id: string;

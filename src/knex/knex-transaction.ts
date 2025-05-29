@@ -1,5 +1,5 @@
-import type { Knex } from 'knex';
 import { Transaction } from '../core';
+import type { Knex } from 'knex';
 
 export interface KnexTransactionOptions {
   readonly global?: boolean;
