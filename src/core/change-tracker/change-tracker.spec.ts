@@ -8,6 +8,36 @@ interface Entity {
 }
 
 describe(ChangeTracker, () => {
+  describe('getTracked', () => {
+    it('should return reference to tracked entity', () => {
+      // arrange
+      const tracker = new ChangeTracker<Entity>((entity) => entity.id);
+      const trackedEntity = { id: faker.string.uuid() };
+
+      tracker.track(trackedEntity, EntityState.NEW);
+
+      // act
+      const result = tracker.getTracked({ id: trackedEntity.id });
+
+      // assert
+      expect(result).toBe(trackedEntity);
+    });
+
+    it('should throw if entity is not tracked', () => {
+      // arrange
+      const tracker = new ChangeTracker<Entity>((entity) => entity.id);
+      const entity = { id: faker.string.uuid() };
+
+      // act
+      const act = () => tracker.getTracked(entity);
+
+      // assert
+      expect(act).toThrow(
+        new Error(`Entity is not tracked: ${JSON.stringify(entity)}`),
+      );
+    });
+  });
+
   describe('track', () => {
     it('should fail to track entities with same identifier', () => {
       // arrange
@@ -24,13 +54,13 @@ describe(ChangeTracker, () => {
       // assert
       expect(act).toThrow(
         new Error(
-          `2 different entities have the same identifier. \r\n\r\nEntity: \r\n${JSON.stringify(entity2)}\r\nTracked Entity:\r\n${JSON.stringify(entity1)}`,
+          `Can not track entity as NEW because there is already tracked entity with similar identity.\r\n\r\nNew entity: ${JSON.stringify(entity2)}\r\nTracked entity: ${JSON.stringify(entity1)}`,
         ),
       );
     });
 
     describe(EntityState.NEW, () => {
-      it(`should track entity as ${EntityState.NEW} `, () => {
+      it(`should track entity as ${EntityState.NEW}`, () => {
         // arramge
         const tracker = new ChangeTracker<Entity>((entity) => entity.id);
         const entity = { id: faker.string.uuid() };
@@ -147,7 +177,7 @@ describe(ChangeTracker, () => {
         // assert
         expect(act).toThrow(
           new Error(
-            `Can not track untracked entity as deleted: ${JSON.stringify(entity)}`,
+            `Can not track untracked entity as ${EntityState.DELETED}: ${JSON.stringify(entity)}`,
           ),
         );
       });

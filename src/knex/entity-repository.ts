@@ -41,11 +41,15 @@ export function createRepository<E extends object>(
     public async find(where: (qb: Knex.QueryBuilder) => any) {
       const result = await this.mapper.find(where);
 
-      if (result) {
+      if (!result) {
+        return;
+      }
+
+      if (!this.changeTracker.isTracked(result)) {
         this.changeTracker.track(result, EntityState.LOADED);
       }
 
-      return result;
+      return this.changeTracker.getTracked(result);
     }
 
     protected override extractIdentity(entity: E): unknown {
