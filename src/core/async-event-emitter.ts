@@ -2,8 +2,14 @@ export type AsyncEventEmitterHandler<P extends unknown[]> = (
   ...args: P
 ) => Promise<void> | void;
 
+/**
+ * @internal
+ */
 export type AsyncEventEmitterEvents = Record<any, unknown[]>;
 
+/**
+ * @internal
+ */
 export class AsyncEventEmitter<E extends AsyncEventEmitterEvents> {
   private listeners = new Map<keyof E, Set<AsyncEventEmitterHandler<any>>>();
 
