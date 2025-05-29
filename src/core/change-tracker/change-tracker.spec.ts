@@ -8,10 +8,15 @@ interface Entity {
 }
 
 describe(ChangeTracker, () => {
+  let tracker: ChangeTracker<Entity>;
+
+  beforeEach(() => {
+    tracker = new ChangeTracker<Entity>((entity) => entity.id);
+  });
+
   describe('getTracked', () => {
     it('should return reference to tracked entity', () => {
       // arrange
-      const tracker = new ChangeTracker<Entity>((entity) => entity.id);
       const trackedEntity = { id: faker.string.uuid() };
 
       tracker.track(trackedEntity, EntityState.NEW);
@@ -25,7 +30,6 @@ describe(ChangeTracker, () => {
 
     it('should throw if entity is not tracked', () => {
       // arrange
-      const tracker = new ChangeTracker<Entity>((entity) => entity.id);
       const entity = { id: faker.string.uuid() };
 
       // act
@@ -41,7 +45,6 @@ describe(ChangeTracker, () => {
   describe('track', () => {
     it('should fail to track entities with same identifier', () => {
       // arrange
-      const tracker = new ChangeTracker<Entity>((entity) => entity.id);
       const entity1 = { id: faker.string.uuid() };
       const entity2 = { id: entity1.id };
 
@@ -59,10 +62,29 @@ describe(ChangeTracker, () => {
       );
     });
 
+    it.each([EntityState.NEW, EntityState.LOADED])(
+      'should fail to track entity as %s if there is already tracked entity with similar id',
+      (state) => {
+        // arrange
+        const entity1 = { id: faker.string.uuid() };
+        const entity2 = { id: entity1.id };
+        tracker.track(entity1, EntityState.NEW);
+
+        // act
+        const act = () => tracker.track(entity2, state);
+
+        // assert
+        expect(act).toThrow(
+          new Error(
+            `Can not track entity as ${state} because there is already tracked entity with similar identity.\r\n\r\nNew entity: ${JSON.stringify(entity2)}\r\nTracked entity: ${JSON.stringify(entity1)}`,
+          ),
+        );
+      },
+    );
+
     describe(EntityState.NEW, () => {
       it(`should track entity as ${EntityState.NEW}`, () => {
         // arramge
-        const tracker = new ChangeTracker<Entity>((entity) => entity.id);
         const entity = { id: faker.string.uuid() };
 
         // act
@@ -74,7 +96,6 @@ describe(ChangeTracker, () => {
 
       it(`should fail to track ${EntityState.LOADED} entity as ${EntityState.NEW}`, () => {
         // arrange
-        const tracker = new ChangeTracker<Entity>((entity) => entity.id);
         const entity = { id: faker.string.uuid() };
         tracker.track(entity, EntityState.LOADED);
 
@@ -91,7 +112,6 @@ describe(ChangeTracker, () => {
 
       it(`should fail to track ${EntityState.DELETED} as ${EntityState.NEW}`, () => {
         // arrange
-        const tracker = new ChangeTracker<Entity>((entity) => entity.id);
         const entity = { id: faker.string.uuid() };
         tracker.track(entity, EntityState.LOADED);
         tracker.track(entity, EntityState.DELETED);
@@ -111,7 +131,6 @@ describe(ChangeTracker, () => {
     describe(EntityState.LOADED, () => {
       it(`should track entity as ${EntityState.LOADED}`, () => {
         // arrange
-        const tracker = new ChangeTracker<Entity>((entity) => entity.id);
         const entity = { id: faker.string.uuid() };
 
         // act
@@ -125,7 +144,6 @@ describe(ChangeTracker, () => {
         `should track %s entity as ${EntityState.LOADED}`,
         (state) => {
           // arrange
-          const tracker = new ChangeTracker<Entity>((entity) => entity.id);
           const entity = { id: faker.string.uuid() };
           tracker.track(entity, EntityState.NEW); // Workaround to track DELETED state
           tracker.track(entity, state);
@@ -142,7 +160,6 @@ describe(ChangeTracker, () => {
     describe(EntityState.DELETED, () => {
       it(`should untrack ${EntityState.NEW} entity`, () => {
         // arrange
-        const tracker = new ChangeTracker<Entity>((entity) => entity.id);
         const entity = { id: faker.string.uuid() };
         tracker.track(entity, EntityState.NEW);
 
@@ -155,7 +172,6 @@ describe(ChangeTracker, () => {
 
       it(`should track ${EntityState.LOADED} entity as ${EntityState.DELETED}`, () => {
         // arrange
-        const tracker = new ChangeTracker<Entity>((entity) => entity.id);
         const entity = { id: faker.string.uuid() };
         tracker.track(entity, EntityState.LOADED);
 
@@ -168,7 +184,6 @@ describe(ChangeTracker, () => {
 
       it(`should fail to track untracked entity as ${EntityState.DELETED}`, () => {
         // arrange
-        const tracker = new ChangeTracker<Entity>((entity) => entity.id);
         const entity = { id: faker.string.uuid() };
 
         // act
@@ -187,7 +202,6 @@ describe(ChangeTracker, () => {
   describe('compute', () => {
     it('should compute changes', () => {
       // arrange
-      const tracker = new ChangeTracker<Entity>((entity) => entity.id);
 
       // New and then deleted entity – should not be in changes
       const newAndDeleted = { id: faker.string.uuid() };
@@ -231,7 +245,6 @@ describe(ChangeTracker, () => {
       'should untrack %s entity',
       (state) => {
         // arrange
-        const tracker = new ChangeTracker<Entity>((entity) => entity.id);
         const entity = { id: faker.string.uuid() };
         tracker.track(entity, EntityState.NEW); // Workaround to track DELETED state
         tracker.track(entity, state);
