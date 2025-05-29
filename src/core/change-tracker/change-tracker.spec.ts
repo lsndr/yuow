@@ -62,7 +62,7 @@ describe(ChangeTracker, () => {
       );
     });
 
-    it.each([EntityState.NEW, EntityState.LOADED])(
+    it.each([EntityState.NEW, EntityState.LOADED, EntityState.DELETED])(
       'should fail to track entity as %s if there is already tracked entity with similar id',
       (state) => {
         // arrange
