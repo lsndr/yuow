@@ -19,6 +19,32 @@ export class ChangeTracker<E extends object> {
     return !trackedEntity ? false : trackedEntity.state;
   }
 
+  public getTrackedOrTrack(entity: E, state: EntityState): E;
+  public getTrackedOrTrack(entities: E[], state: EntityState): E[];
+  public getTrackedOrTrack(
+    entityOrEntities: E | E[],
+    state: EntityState,
+  ): E | E[] {
+    const entities = Array.isArray(entityOrEntities)
+      ? entityOrEntities
+      : [entityOrEntities];
+
+    const trackedEntities: E[] = [];
+
+    for (const entity of entities) {
+      if (!this.isTracked(entity)) {
+        this.track(entity, state);
+        trackedEntities.push(entity);
+      } else {
+        trackedEntities.push(this.getTracked(entity));
+      }
+    }
+
+    return Array.isArray(entityOrEntities)
+      ? trackedEntities
+      : trackedEntities[0]!;
+  }
+
   public getTracked(entity: E): E {
     const identity = this.extractIdentity(entity);
     const trackedEntity = this.identityMap.get(identity);

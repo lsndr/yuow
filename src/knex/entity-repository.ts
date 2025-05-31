@@ -45,11 +45,7 @@ export function createRepository<E extends object>(
         return;
       }
 
-      if (!this.changeTracker.isTracked(result)) {
-        this.changeTracker.track(result, EntityState.LOADED);
-      }
-
-      return this.changeTracker.getTracked(result);
+      return this.changeTracker.getTrackedOrTrack(result, EntityState.LOADED);
     }
 
     protected override extractIdentity(entity: E): unknown {
