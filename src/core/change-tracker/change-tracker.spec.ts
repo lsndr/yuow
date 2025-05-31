@@ -14,6 +14,38 @@ describe(ChangeTracker, () => {
     tracker = new ChangeTracker<Entity>((entity) => entity.id);
   });
 
+  describe('getTrackedOrTrack', () => {
+    it('should return tracked entity if there is alredy one with same identity', () => {
+      // arrane
+      const entity = { id: faker.string.uuid() };
+      tracker.track(entity, EntityState.NEW);
+
+      // act
+      const trackedEntity = tracker.getTrackedOrTrack(
+        { id: entity.id },
+        EntityState.LOADED,
+      );
+
+      // assert
+      expect(trackedEntity).toBe(entity);
+    });
+
+    it.each([EntityState.NEW, EntityState.LOADED])(
+      'should track entity as %s',
+      (state) => {
+        // arrane
+        const entity = { id: faker.string.uuid() };
+
+        // act
+        const trackedEntity = tracker.getTrackedOrTrack(entity, state);
+
+        // assert
+        expect(trackedEntity).toBe(entity);
+        expect(tracker.isTracked(entity)).toBe(state);
+      },
+    );
+  });
+
   describe('getTracked', () => {
     it('should return reference to tracked entity', () => {
       // arrange
