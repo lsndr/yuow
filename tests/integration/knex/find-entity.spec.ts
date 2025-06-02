@@ -1,4 +1,4 @@
-import { Uow } from '../../../src/core';
+import { Context, Transactional, Uow, UowContext } from '../../../src/core';
 import {
   type EntityRepositoryConstructor,
   KnexEngine,
@@ -29,6 +29,19 @@ describe('Find Entity', () => {
   describe.each([{ global: true }, { global: false }])(
     'Transaction Config: %j',
     (transaction) => {
+      let testService: TestService;
+
+      class TestService {
+        @Transactional({ transaction })
+        public test<R>(unit: () => R): R {
+          return unit();
+        }
+      }
+
+      beforeEach(() => {
+        testService = new TestService();
+      });
+
       it('should find existing entity', async () => {
         // arrange
         const id = faker.string.uuid();
@@ -40,12 +53,12 @@ describe('Find Entity', () => {
         );
 
         // act
-        const result = await uow.run(
-          (ctx) =>
-            ctx
-              .getRepository(EntityRepository)
-              .find((queryBuilder) => queryBuilder.where('id', id)),
-          { transaction },
+        const result = await UowContext.create(uow, () =>
+          testService.test(() =>
+            Context.getRepository(EntityRepository).find((queryBuilder) =>
+              queryBuilder.where('id', id),
+            ),
+          ),
         );
 
         // assert
@@ -54,7 +67,7 @@ describe('Find Entity', () => {
         expect(result?.name).toBe(name);
       });
 
-      it("should fail to find entity if it doesn't exist", async () => {
+      it("should not find entity if it doesn't exist", async () => {
         // arrange
         await uow.run((ctx) =>
           ctx.getRepository(EntityRepository).add(
@@ -67,14 +80,12 @@ describe('Find Entity', () => {
         );
 
         // act
-        const result = await uow.run(
-          (ctx) =>
-            ctx
-              .getRepository(EntityRepository)
-              .find((queryBuilder) =>
-                queryBuilder.where('id', crypto.randomUUID()),
-              ),
-          { transaction },
+        const result = await UowContext.create(uow, () =>
+          testService.test(() =>
+            Context.getRepository(EntityRepository).find((queryBuilder) =>
+              queryBuilder.where('id', crypto.randomUUID()),
+            ),
+          ),
         );
 
         // assert
@@ -87,16 +98,17 @@ describe('Find Entity', () => {
         await uow.run((ctx) =>
           ctx.getRepository(EntityRepository).add(
             new Entity({
-              id: faker.string.uuid(),
+              id,
               name: faker.person.fullName(),
               cards: [],
             }),
           ),
         );
 
-        await uow.run(
-          async (ctx) => {
-            const entityRepository = ctx.getRepository(EntityRepository);
+        // act
+        const [entity1, entity2] = await UowContext.create(uow, () =>
+          testService.test(async () => {
+            const entityRepository = Context.getRepository(EntityRepository);
 
             const entity1 = await entityRepository.find((qb) =>
               qb.where('id', id),
@@ -105,10 +117,12 @@ describe('Find Entity', () => {
               qb.where('id', id),
             );
 
-            expect(entity1).toBe(entity2);
-          },
-          { transaction },
+            return [entity1, entity2] as const;
+          }),
         );
+
+        expect(entity1).toBeInstanceOf(Entity);
+        expect(entity1).toBe(entity2);
       });
     },
   );

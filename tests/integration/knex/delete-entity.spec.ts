@@ -1,4 +1,10 @@
-import { RunError, Uow } from '../../../src/core';
+import {
+  Context,
+  RunError,
+  Transactional,
+  Uow,
+  UowContext,
+} from '../../../src/core';
 import {
   type EntityRepositoryConstructor,
   KnexEngine,
@@ -38,26 +44,34 @@ describe('Delete Entity', () => {
   describe.each([{ global: true }, { global: false }])(
     'Transaction Config: %j',
     (transaction) => {
+      let testService: TestService;
+
+      class TestService {
+        @Transactional({ transaction })
+        public test<R>(unit: () => R): R {
+          return unit();
+        }
+      }
+
+      beforeEach(() => {
+        testService = new TestService();
+      });
+
       it('should delete an existing entity', async () => {
         // arrange
         const { id } = await createEntity();
 
         // act
-        await uow.run(
-          async (ctx) => {
-            const entityRepository = ctx.getRepository(EntityRepository);
+        await UowContext.create(uow, () =>
+          testService.test(async () => {
+            const entityRepository = Context.getRepository(EntityRepository);
 
-            const entity = await entityRepository.find((queryBuilder) =>
+            const entity = (await entityRepository.find((queryBuilder) =>
               queryBuilder.where('id', id),
-            );
-
-            if (!entity) {
-              throw new Error('Entity not found');
-            }
+            ))!;
 
             entityRepository.delete(entity);
-          },
-          { transaction },
+          }),
         );
 
         // assert

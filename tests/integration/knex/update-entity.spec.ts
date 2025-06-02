@@ -1,4 +1,10 @@
-import { RunError, Uow } from '../../../src/core';
+import {
+  Context,
+  RunError,
+  Transactional,
+  Uow,
+  UowContext,
+} from '../../../src/core';
 import {
   type EntityRepositoryConstructor,
   KnexEngine,
@@ -39,23 +45,33 @@ describe('Update Entity', () => {
   describe.each([{ global: true }, { global: false }])(
     'Transaction Config: %j',
     (transaction) => {
+      let testService: TestService;
+
+      class TestService {
+        @Transactional({ transaction })
+        public test<R>(unit: () => R): R {
+          return unit();
+        }
+      }
+
+      beforeEach(() => {
+        testService = new TestService();
+      });
+
       it('should update an existing entity', async () => {
         // arrange
         const { id, cards } = await createEntity();
         const newName = faker.person.fullName();
 
         // act
-        await uow.run(
-          async (ctx) => {
-            const entity = await ctx
-              .getRepository(EntityRepository)
-              .find((qb) => qb.where('id', id));
+        await UowContext.create(uow, () =>
+          testService.test(async () => {
+            const entity = (await Context.getRepository(EntityRepository).find(
+              (qb) => qb.where('id', id),
+            ))!;
 
-            if (entity) {
-              entity.name = newName;
-            }
-          },
-          { transaction },
+            entity.name = newName;
+          }),
         );
 
         // assert

@@ -1,4 +1,4 @@
-import { Uow } from '../../../src/core';
+import { Context, Transactional, Uow, UowContext } from '../../../src/core';
 import {
   type EntityRepositoryConstructor,
   KnexEngine,
@@ -27,6 +27,19 @@ describe('Create Entity', () => {
   describe.each([{ global: true }, { global: false }])(
     'Transaction Config: %j',
     (transaction) => {
+      let testService: TestService;
+
+      class TestService {
+        @Transactional({ transaction })
+        public test(unit: () => void) {
+          unit();
+        }
+      }
+
+      beforeEach(() => {
+        testService = new TestService();
+      });
+
       it('should persist a new entity', async () => {
         // arrange
         const id = faker.string.uuid();
@@ -37,13 +50,12 @@ describe('Create Entity', () => {
         ];
 
         // act
-        await uow.run(
-          (ctx) => {
-            ctx
-              .getRepository(EntityRepository)
-              .add(new Entity({ id, name, cards }));
-          },
-          { transaction },
+        await UowContext.create(uow, () =>
+          testService.test(() => {
+            Context.getRepository(EntityRepository).add(
+              new Entity({ id, name, cards }),
+            );
+          }),
         );
 
         // assert
