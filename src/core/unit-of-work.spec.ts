@@ -1,7 +1,7 @@
 import { Context } from './context';
 import { PersistenceError } from './persistence.error';
 import { RunError } from './run-error';
-import { Uow } from './unit-of-work';
+import { Uow } from './uow';
 import { EngineMock } from '../../tests/utils/engine.mock';
 import { TransactionMock } from '../../tests/utils/transaction.mock';
 import { faker } from '@faker-js/faker';

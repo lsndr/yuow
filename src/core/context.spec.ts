@@ -1,4 +1,5 @@
 import { Context } from './context';
+import { ContextProvider } from './context-provider';
 import {
   type RepositoryMockConstructor,
   createRepositoryMock,
@@ -21,6 +22,18 @@ describe(Context, () => {
     RepositoryMock2 = createRepositoryMock();
   });
 
+  describe('self.getRepository', () => {
+    it('should return a new repository instance', () => {
+      // act
+      const repository = ContextProvider.create(context, () =>
+        Context.getRepository(RepositoryMock1),
+      );
+
+      // assert
+      expect(repository).toBeInstanceOf(RepositoryMock1);
+    });
+  });
+
   describe('getRepository', () => {
     it('should return a new repository instance', () => {
       // act
@@ -37,6 +50,28 @@ describe(Context, () => {
 
       // assert
       expect(repository1).toBe(repository2);
+    });
+  });
+
+  describe('self.flush', () => {
+    it('should flush changes', async () => {
+      // arrange
+      const repository = context.getRepository(RepositoryMock1);
+
+      RepositoryMock1.doInsert.mockResolvedValue(true);
+
+      const entity = {
+        id: faker.string.uuid(),
+        name: faker.person.fullName(),
+      };
+
+      repository.add(entity);
+
+      // act
+      await ContextProvider.create(context, () => Context.flush());
+
+      // assert
+      expect(RepositoryMock1.doInsert).toHaveBeenCalledExactlyOnceWith(entity);
     });
   });
 
@@ -83,6 +118,18 @@ describe(Context, () => {
       expect(beforeFlush).toHaveBeenCalledTimes(1);
       expect(afterFlush).toHaveBeenCalledTimes(1);
       expect(beforeFlush).toHaveBeenCalledBefore(afterFlush);
+    });
+  });
+
+  describe('self.get', () => {
+    it('should return the current context', () => {
+      // act
+      const currentContext = ContextProvider.create(context, () =>
+        Context.get(),
+      );
+
+      // assert
+      expect(currentContext).toBe(context);
     });
   });
 });

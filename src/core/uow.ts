@@ -1,6 +1,7 @@
 import { type AsyncEventEmitterEvents } from './async-event-emitter';
 import { Broadcaster } from './broadcaster';
 import { Context } from './context';
+import { ContextProvider } from './context-provider';
 import { PersistenceError } from './persistence.error';
 import { RunError } from './run-error';
 import {
@@ -24,7 +25,7 @@ export type Unit<
   R,
   T extends Transaction<TE>,
   TE extends TransactionEvents = InferTransactionEvents<T>,
-> = (uow: Context<T, TE>) => R | Promise<R>;
+> = (context: Context<T, TE>) => R | Promise<R>;
 
 export interface UowEvents<
   T extends Transaction<TE>,
@@ -66,7 +67,9 @@ export class Uow<
       await this.emit('beforeRun', context, { attempt });
 
       try {
-        const result = await unit(context);
+        const result = await ContextProvider.create(context, async () =>
+          unit(context),
+        );
 
         await context.flush();
 
