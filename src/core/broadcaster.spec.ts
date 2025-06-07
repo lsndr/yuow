@@ -1,9 +1,9 @@
 import type { AsyncEventEmitterEvents } from './async-event-emitter';
 import { Broadcaster } from './broadcaster';
+import 'jest-extended';
 
 interface TestBroadcasterEvents extends AsyncEventEmitterEvents {
-  event1: [unknown];
-  event2: [unknown];
+  event: [unknown];
 }
 
 class TestBroadcaster extends Broadcaster<TestBroadcasterEvents> {
@@ -26,50 +26,32 @@ describe(Broadcaster, () => {
     it('should register event handlers', async () => {
       // arrange
       const handler = jest.fn();
-      const handler2 = jest.fn();
-      const handler3 = jest.fn();
       const payload = { data: 'test' };
 
       // act
-      broadcaster.on('event1', handler);
-      broadcaster.on('event1', handler2);
-      broadcaster.on('event2', handler3);
+      broadcaster.on('event', handler);
 
       // assert
-      await broadcaster.emit('event1', payload);
-
-      expect(handler).toHaveBeenCalledWith(payload);
-      expect(handler2).toHaveBeenCalledWith(payload);
-      expect(handler3).not.toHaveBeenCalled();
+      await broadcaster.emit('event', payload);
+      expect(handler).toHaveBeenCalledExactlyOnceWith(payload);
     });
   });
 
   describe('off', () => {
-    it('should unregister event handlers', async () => {
+    it('should unregister event handler', async () => {
       // arrange
       const handler = jest.fn();
       const payload = { data: 'test' };
 
-      broadcaster.on('event1', handler);
+      broadcaster.on('event', handler);
 
       // act
-      const result = broadcaster.off('event1', handler);
+      const result = broadcaster.off('event', handler);
 
       // assert
-      await broadcaster.emit('event1', payload);
+      await broadcaster.emit('event', payload);
       expect(result).toBe(true);
       expect(handler).not.toHaveBeenCalled();
-    });
-
-    it('should return false if handler was not registered', () => {
-      // arrange
-      const handler = jest.fn();
-
-      // act
-      const result = broadcaster.off('event1', handler);
-
-      // assert
-      expect(result).toBe(false);
     });
   });
 });

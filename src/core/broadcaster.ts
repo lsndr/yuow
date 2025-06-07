@@ -25,6 +25,6 @@ export abstract class Broadcaster<E extends AsyncEventEmitterEvents> {
     event: K,
     ...args: E[K]
   ): Promise<void> {
-    await this.eventEmitter.emit(event, args);
+    await this.eventEmitter.emit(event, ...args);
   }
 }

@@ -13,7 +13,10 @@ export type AsyncEventEmitterEvents = Record<any, unknown[]>;
 export class AsyncEventEmitter<E extends AsyncEventEmitterEvents> {
   private listeners = new Map<keyof E, Set<AsyncEventEmitterHandler<any>>>();
 
-  public async emit<K extends keyof E>(event: K, payload: E[K]): Promise<void> {
+  public async emit<K extends keyof E>(
+    event: K,
+    ...payload: E[K]
+  ): Promise<void> {
     const handlers = this.listeners.get(event) ?? new Set();
 
     for (const handler of handlers) {
