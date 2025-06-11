@@ -1,8 +1,3 @@
-# ⚠️ WARNING: Documentation Outdated! ⚠️
-
-> 🚨 **The documentation and examples below are outdated.**  
-> Please check the `tests` folder for up-to-date usage examples!
-
 # Yuow
 
 [![codecov](https://codecov.io/gh/lsndr/yuow/branch/alpha/graph/badge.svg?token=U33MY3DYHK)](https://codecov.io/gh/lsndr/yuow)
@@ -11,7 +6,7 @@
 [![npm downloads](https://img.shields.io/npm/dt/yuow.svg)](https://www.npmjs.com/package/yuow)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/lsndr/yuow/blob/master/LICENSE.md)
 
-`Yuow` is a generic implementation of Unit of Work, Repository and IdentityMap patterns built on top of [Knex](http://knexjs.org/) library.
+`Yuow` is a generic implementation of Unit of Work and Repository patterns. It's not a replacement for your current ORM, but a great addition to it.
 
 With `Yuow` you can build a truly isolated domain model.
 
@@ -22,43 +17,62 @@ With `Yuow` you can build a truly isolated domain model.
 
 ## Quick Start
 
-See [examples folder](https://github.com/lsndr/yuow/tree/master/examples/)
-
 ```
   npm install yuow
 ```
 
-`Yuow` requires you to implement [Data Mapper](#data-mapper) and [Repository](#repository) for each your model.
+`Youw` supports [Knex](https://knexjs.org/) out of the box, but you can intergate with any ORM or other database driver.
+In order to start, you should implement [Repository](#repository) for each of your model.
+
+This an example code of how to use `Yuow` with Knex:
 
 ```typescript
-import { uowFactory } from 'yuow';
+import { Uow, UowContext } from 'yuow/core';
+import { KnexEngine } from 'yuow/knex';
 
-const uow = uowFactory(/* pass knex instance here */);
+const uow = new Uow(new KnexEngine(/* put knex instance here */));
 
-await uow(async (ctx) => {
-  const userRepository = ctx.getRepository(UserRepository);
-  const user = await userRepository.findById(userId);
-
-  if (!user) {
-    throw new Error('User not found');
-  }
-
-  user.changeName(name);
-
-  return {
-    id: user.id,
-    name: user.name,
-  };
+app.use((next) => {
+  return UowContext.create(uow, next);
 });
 ```
+
+And then in your application code initialize repository and use it to store your domain entity:
+
+```typescript
+import { Transactional, Context } from 'yuow/core';
+
+class OrderController {
+  @Post('/orders')
+  @Transactional()
+  createOrder() {
+    const repository = Context.getRepository(OrderRepository);
+    
+    const order = new Order({
+      id: crypto.randomUUID(),
+    });
+    
+    repository.add(order);
+  }
+  
+  
+  @Post('/orders/:id/cancel')
+  @Transactional()
+  createOrder(id: string) {
+    const repository = Context.getRepository(OrderRepository);
+    const order = await repository.findById(id);
+    
+    order.cancel();
+  }
+}
+````
 
 ## Options
 
 ```typescript
 uow(unit, {
-  globalTransaction: false,
-  isolationLevel: 'read commited',
   retries: 3,
+  transaction:
 });
 ```
 
@@ -243,19 +257,14 @@ It's necessary to always return a boolean result of an operation. Depending on t
 >
 > – [Martin Fowler](https://martinfowler.com/eaaCatalog/repository.html)
 
-`Yuow` requires you to create a simple repository in order to perform entities manipulation.
+In `Yuow` data mapper and repository responsibilities are merged together for simplicity. But you are free to encapsulate data mapping logic into a separate class.
 
-Only two methods and properties are required: `extractIdentity` and `[Repository.DataMapper]`. Also, you should mirror your selection methods from data mapper.
+In order to implement repository, you have to extend abstract `Repository` class and implement 4 methods `extractIdentity`, `doInsert`, `doUpdate` and `doDelete`. Also, even though it's not required, you should to write selection methods on your own:
 
 ```typescript
-import { Repository } from 'yuow';
-import { CustomerDataMapper } from './data-mappers/customer.data-mapper';
-import { Customer } from './model/customer';
+import { type KnexTransaction } from 'yuow/knex';
 
-export class CustomerRepository extends Repository<
-  Customer,
-  CustomerDataMapper
-> {
+export class OrderRepository extends Repository<Order, KnexTransaction>> {
   protected [Repository.DataMapper] = /* Implement */;
 
   protected extractIdentity(customer: Customer) {
