@@ -63,15 +63,15 @@ export function createRepository<E extends object>(
       return JSON.stringify(identities);
     }
 
-    protected doInsert(entity: E): Promise<boolean> {
+    protected flushInsert(entity: E): Promise<boolean> {
       return this.mapper.insert(entity);
     }
 
-    protected doUpdate(entity: E): Promise<boolean> {
+    protected flushUpdate(entity: E): Promise<boolean> {
       return this.mapper.update(entity);
     }
 
-    protected doDelete(entity: E): Promise<boolean> {
+    protected flushDelete(entity: E): Promise<boolean> {
       return this.mapper.delete(entity);
     }
   };
