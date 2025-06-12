@@ -266,11 +266,6 @@ class OrderRepository extends Repository<Order, KnexTransaction> {
 
   // ...
 }
-```
-
-}
-
-```
 
 ## License
 
