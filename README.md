@@ -11,8 +11,9 @@
 With `Yuow` you can build a truly isolated domain model.
 
 1. [Quick Start](#quick-start)
-1. [Options](#options)
-1. [Repository](#repository)
+2. [Repository](#repository)
+3. [Run Options](#run-options)
+4. [Versioning](#versioning)
 
 ## Quick Start
 
@@ -65,6 +66,8 @@ class OrderController {
 }
 ```
 
+The example above implies that you already have a `Order` entity and `OrderRepository` implemented. Check the [Repository](#repository) section for more details on how to implement a repository.
+
 ## Repository
 
 > A Repository mediates between the domain and data mapping layers, acting like an in-memory domain object collection
@@ -76,6 +79,7 @@ In `Yuow` data mapper and repository responsibilities are merged together for si
 In order to implement repository, you have to extend abstract `Repository` class and implement 4 methods `extractIdentity`, `flushInsert`, `flushUpdate` and `flushDelete`. Also, even though it's not required, you should write selection methods on your own:
 
 ```typescript
+import { Repository } from 'yuow/core';
 import { type KnexTransaction } from 'yuow/knex';
 
 export class OrderRepository extends Repository<Order, KnexTransaction>> {
@@ -134,13 +138,13 @@ async find(id: string): Promise<Order | undefined> {
   }
 
   // 3. Hydrate Order entity
-  const customer = new Order({
+  const order = new Order({
     id: record.id,
     name: record.name,
   });
 
   // 4. Store entity in identity map and return
-  return this.changeTracker.getTrackedOrTrack(result, EntityState.LOADED);;
+  return this.changeTracker.getTrackedOrTrack(result, EntityState.LOADED);
 }
 ````
 
@@ -160,12 +164,12 @@ async flushInsert(order: Order) {
     })
     .into('orders');
 
-  // 3. Return result
+  // 2. Return result
   return (result[0] || 0) > 0;
 }
 
 async flushUpdate(order: Order) {
-  // 2. Update
+  // 1. Update
   const result = await this.knex('orders')
     .update({
       id: order.id,
@@ -173,24 +177,102 @@ async flushUpdate(order: Order) {
     })
     .where('orders.id', order.id);
 
-  // 3. Return result
+  // 2. Return result
   return result > 0;
 }
 
 async flushDelete(order: Order) {
-  // 2. Delete
+  // 1. Delete
   const result = await this.knex
     .delete()
     .from('orders')
     .where('orders.id', order.id);
 
-  // 3. Return result
+  // 2. Return result
   return result > 0;
 }
 
 It's necessary to always return a boolean result if operation is successful. Depending on the result, `Youw` decides whether to throw `PersistenceError` and retry an operation.
 ```
 
+## Run Options
+
+```typescript
+@Transactional({
+  retries: 3,
+  transaction: { /* transaction options */ }
+})
+createOrder() { /* ... */ }
+```
+
+### retries
+
+`retries` specifies how many times unit of work must be retried before it throws an error. Retries are perfromed only if `PersistenceError` is thrown. Check out [Repository](#repository) section to see when it's thrown.
+
+This is useful when you use `version` field fpr optimistic concurrency control.
+
+### transaction
+
+`transaction` is an object that contains transaction options. Its structure depends on engine you use. For example, if you use `KnexEngine`, it should contain `isolationLevel` and `global` properties.
+
+```typescript
+{
+  isolationLevel: 'read committed' | 'repeatable read' | 'serializable',
+  global: false
+}
+```
+
+## Versioning
+
+`Yuow` provides a simple versioning mechanism to help you handle optimistic concurrency control:
+
+```typescript
+import { Repository, WeakVersionTracker } from 'yuow/core';
+
+class OrderRepository extends Repository<Order, KnexTransaction> {
+  private readonly versionTracker = new WeakVersionTracker<Order>();
+
+  // ...
+
+  async flushInsert(order: Order) {
+    // 1. Insert
+    const result = await this.knex
+      .insert({
+        id: order.id,
+        name: order.name,
+        version: 1,
+      })
+      .into('orders');
+
+    // 2. Return result
+    return (result[0] || 0) > 0;
+  }
+
+  protected flushUpdate(order: Order) {
+    const version = this.versionTracker.increaseVersion(entity);
+
+    const result = await this.knex('orders')
+      .update({
+        id: order.id,
+        name: order.name,
+        version: version,
+      })
+      .where('orders.id', order.id)
+      .andWhere('version', version - 1);
+
+    // 2. Return result
+    return result > 0;
+  }
+
+  // ...
+}
+```
+
+}
+
+```
+
 ## License
 
 Yuow is [MIT licensed](LICENSE.md).
+```
