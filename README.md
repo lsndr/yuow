@@ -11,9 +11,8 @@
 With `Yuow` you can build a truly isolated domain model.
 
 1. [Quick Start](#quick-start)
-2. [Options](#options)
-3. [Data Mapper](#data-mapper)
-4. [Repository](#repository)
+1. [Options](#options)
+1. [Repository](#repository)
 
 ## Quick Start
 
@@ -21,7 +20,7 @@ With `Yuow` you can build a truly isolated domain model.
   npm install yuow
 ```
 
-`Youw` supports [Knex](https://knexjs.org/) out of the box, but you can intergate with any ORM or other database driver.
+`Youw` supports [Knex](https://knexjs.org/) out of the box, but you can intergate with any other database driver or ORM.
 In order to start, you should implement [Repository](#repository) for each of your model.
 
 This an example code of how to use `Yuow` with Knex:
@@ -47,209 +46,24 @@ class OrderController {
   @Transactional()
   createOrder() {
     const repository = Context.getRepository(OrderRepository);
-    
+
     const order = new Order({
       id: crypto.randomUUID(),
     });
-    
+
     repository.add(order);
   }
-  
-  
+
   @Post('/orders/:id/cancel')
   @Transactional()
-  createOrder(id: string) {
+  createOrder(@Param('id') id: string) {
     const repository = Context.getRepository(OrderRepository);
     const order = await repository.findById(id);
-    
+
     order.cancel();
   }
 }
-````
-
-## Options
-
-```typescript
-uow(unit, {
-  retries: 3,
-  transaction:
-});
 ```
-
-### globalTransaction
-
-`Yuow` offers two ways to handle transactions. By default `globalTransaction` is `false`, which means that only computed changes will be queried inside a database transaction. This approach works well if you want to implement an optimistic concurency control.
-
-If you pass `true`, all database interactions inside unit of work will be wrapped with one global transaction. This is helpful in case you need a pessimistic concurency control.
-
-### retries
-
-`retries` specifies how many times unit of work must be retried before it throws an error. Retries are perfromed only if `PersistenceError` is thrown. Check out [Data Mapper](#data-mapper) section to see when it's thrown.
-
-When `globalTransaction` is set to `false`, retries is equal `3` by default, otherwise it is `0`.
-
-### isolationLevel
-
-You can set the same isolation level as provided by Knex library.
-
-## Data Mapper
-
-> The Data Mapper is a layer of software that separates the in-memory objects from the database. Its responsibility is to transfer data between the two and also to isolate them from each other
->
-> – [Martin Fowler](https://martinfowler.com/eaaCatalog/dataMapper.html)
-
-### Implementation
-
-Your data mapper must extend an abstract `DataMapper` class exported from `Yuow` package.
-
-There are only three required abstract methods: `insert`, `update` and `delete`. Selection is also a necessary operation, but it is not as trivial as others, so you will need to implement it on your own.
-
-```typescript
-import { DataMapper } from 'yuow';
-import { Customer } from './model/customer';
-
-export class CustomerDataMapper extends DataMapper<Customer> {
-  async findById(id: string): Promise<Customer | undefined> {
-    //  There can be different variations of selection: findOne, findMany, findByName and e.t.c. You can implement any of them.
-  }
-
-  async insert(customer: Customer): Promise<boolean> {
-    // Implement
-  }
-
-  async update(customer: Customer): Promise<boolean> {
-    // Implement
-  }
-
-  async delete(customer: Customer): Promise<boolean> {
-    // Implement
-  }
-}
-```
-
-### Selection
-
-In order to load an entity from database, create any method that hydarate your entities and return them in any form: it can be a single entity, an array of entities, a map of entites and e.t.c.
-
-In this example, we create a `findById` method that returns `Customer` entity or `undefined`.
-
-```typescript
-async findById(id: string): Promise<Cutomer | undefined> {
-  // 1. Request a record from database
-  const record = await this.knex
-    .select('*')
-    .from('customers')
-    .where('id', id)
-    .first();
-
-  // 2. Return undefined if a record was not found
-  if (!record) {
-    return;
-  }
-
-  // 3. Hydrate Customer entity
-  const customer = new CustomerHydrator({
-    id: record.id,
-    name: record.name,
-  });;
-
-  // 4. Remember its version
-  this.setVersion(customer, record.version);
-
-  // 5. Return
-  return customer;
-}
-```
-
-As you can see, this is mostly a trivial operation. But some of the step can raise questions. Let's dive into them.
-
-#### Hydration
-
-You can decide to make constructors protected in order to protect your domain model invariants. This is neccessary if you want the domain model classes to describe exisiting analytic domain model as close as possible.
-
-In such cases hydrators can be used to "recover" your domain model state from database.
-
-Hydradors are just classes that extend your domain model and make constructors public.
-
-```typescript
-import { Customer, CustomerState } from './model/customer';
-
-export class CustomerHydrator extends Customer {
-  constructor(state: CustomerState) {
-    super(state);
-  }
-}
-```
-
-#### Versioning
-
-Versioning is a common approach to implement optimistic concurency control.
-
-Abstract DataMapper provides 3 methods that makes versioning easy: `setVersion`, `increaseVersion` and `getVersion`.
-
-This is an optional step and can be avoided of you are going to use pessimistic concurency control.
-
-### Insert, Delete, Update
-
-Insert, delete and update methods are necessary to be able to persist your domain model state.
-
-Those methods are pretty trivial and structurually the same.
-
-```typescript
-async insert(customer: Customer) {
-  // 1. Get version
-  const version = this.getVersion(customer);
-
-  // 2. Insert
-  const result = await this.knex
-    .insert({
-      id: customer.id,
-      name: customer.name,
-      version,
-    })
-    .into('customers');
-
-  // 3. Return result
-  return (result[0] || 0) > 0;
-}
-
-async update(customer: Customer) {
-  // 1. Increase version
-  const version = this.increaseVersion(customer);
-
-  // 2. Update
-  const result = await this.knex('customers')
-    .update({
-      id: customer.id,
-      name: customer.name,
-      version,
-    })
-    .where('customers.id', customer.id)
-    .andWhere('customers.version', version - 1);
-
-  // 3. Return result
-  return result > 0;
-}
-
-async delete(customer: Customer) {
-  // 1. Get version
-  const version = this.getVersion(customer);
-
-  // 2. Delete
-  const result = await this.knex
-    .delete()
-    .from('customers')
-    .where('customers.id', customer.id)
-    .andWhere('customers.version', version);
-
-  // 3. Return result
-  return result > 0;
-}
-```
-
-In the example above method `getVersion` is used to get a current version of an entity, if no version has been previusoly set using `setVersion` method it will return `1`. Method `increaseVersion` increaes version by one and returns it.
-
-It's necessary to always return a boolean result of an operation. Depending on the result, `Youw` decides whether to throw `PersistenceError` and retry an operation.
 
 ## Repository
 
@@ -259,57 +73,123 @@ It's necessary to always return a boolean result of an operation. Depending on t
 
 In `Yuow` data mapper and repository responsibilities are merged together for simplicity. But you are free to encapsulate data mapping logic into a separate class.
 
-In order to implement repository, you have to extend abstract `Repository` class and implement 4 methods `extractIdentity`, `doInsert`, `doUpdate` and `doDelete`. Also, even though it's not required, you should to write selection methods on your own:
+In order to implement repository, you have to extend abstract `Repository` class and implement 4 methods `extractIdentity`, `flushInsert`, `flushUpdate` and `flushDelete`. Also, even though it's not required, you should write selection methods on your own:
 
 ```typescript
 import { type KnexTransaction } from 'yuow/knex';
 
 export class OrderRepository extends Repository<Order, KnexTransaction>> {
-  protected [Repository.DataMapper] = /* Implement */;
-
-  protected extractIdentity(customer: Customer) {
+  async find(id: string>) {
     // Implement
   }
 
-  async findById(...args: Parameters<CustomerDataMapper['findById']>) {
+  protected extractIdentity(order: Order) {
+    // Implement
+  }
+
+  protected flushInsert(order: Order) {
+    // Implement
+  }
+
+  protected flushUpdate(order: Order) {
+    // Implement
+  }
+
+  protected flushDelete(order: Order) {
     // Implement
   }
 }
 ```
-
-### Repository.DataMapper
-
-Set it equal to your Data Mapper constructor as shown below:
-
-```typescript
-protected[Repository.DataMapper] = CustomerDataMapper;
-```
-
-Once it's done, you can directly access the data mappers' instance by referencing `this.mapper` property.
 
 ### extractIdentity
 
 To emulate a collection-like behaviour, a repository uses an Identity Map pattern to keep identity <–> entity references. Since, with `Yuow` your domain model can live truly isolated, it's necessary to give the repository information on how to extract identity from your entity.
 
 ```typescript
-protected extractIdentity(customer: Customer) {
-  return customer.id;
+protected extractIdentity(order: Order) {
+  return order.id;
 }
 ```
 
-### Mirroring selection
+### Selection
 
-To use selection methods from your data mapper, create a twin selection method and track result using `this.trackAll` method.
+In order to load an entity from database, you should create a method that hydarates your entity and returns it. Usually it's enough to have a single method that returns an entity by its identity, but you can implement any selection methods you need.
+
+````typescript
+
+In this example, we create a `find` method that returns `Order` entity or `undefined`.
 
 ```typescript
-async findById(...args: Parameters<CustomerDataMapper['findById']>) {
-  const result = await this.mapper.findById(...args);
+async find(id: string): Promise<Order | undefined> {
+  // 1. Request a record from database
+  const record = await this.knex
+    .select('*')
+    .from('orders')
+    .where('id', id)
+    .first();
 
-  return this.trackAll(result, 'loaded');
+  // 2. Return undefined if a record was not found
+  if (!record) {
+    return;
+  }
+
+  // 3. Hydrate Order entity
+  const customer = new Order({
+    id: record.id,
+    name: record.name,
+  });
+
+  // 4. Store entity in identity map and return
+  return this.changeTracker.getTrackedOrTrack(result, EntityState.LOADED);;
 }
-```
+````
 
-You can also use `this.track` and `this.untrack` to track/untrack each entity manually.
+### Insert, Delete, Update
+
+Insert, delete and update methods are necessary to be able to persist your domain model state.
+
+Those methods are pretty trivial and structurually the same.
+
+```typescript
+async flushInsert(order: Order) {
+  // 1. Insert
+  const result = await this.knex
+    .insert({
+      id: order.id,
+      name: order.name
+    })
+    .into('orders');
+
+  // 3. Return result
+  return (result[0] || 0) > 0;
+}
+
+async flushUpdate(order: Order) {
+  // 2. Update
+  const result = await this.knex('orders')
+    .update({
+      id: order.id,
+      name: order.name,
+    })
+    .where('orders.id', order.id);
+
+  // 3. Return result
+  return result > 0;
+}
+
+async flushDelete(order: Order) {
+  // 2. Delete
+  const result = await this.knex
+    .delete()
+    .from('orders')
+    .where('orders.id', order.id);
+
+  // 3. Return result
+  return result > 0;
+}
+
+It's necessary to always return a boolean result if operation is successful. Depending on the result, `Youw` decides whether to throw `PersistenceError` and retry an operation.
+```
 
 ## License
 
