@@ -235,7 +235,6 @@ class OrderRepository extends Repository<Order, KnexTransaction> {
   // ...
 
   async flushInsert(order: Order) {
-    // 1. Insert
     const result = await this.knex
       .insert({
         id: order.id,
@@ -244,7 +243,6 @@ class OrderRepository extends Repository<Order, KnexTransaction> {
       })
       .into('orders');
 
-    // 2. Return result
     return (result[0] || 0) > 0;
   }
 
@@ -260,7 +258,6 @@ class OrderRepository extends Repository<Order, KnexTransaction> {
       .where('orders.id', order.id)
       .andWhere('version', version - 1);
 
-    // 2. Return result
     return result > 0;
   }
 
