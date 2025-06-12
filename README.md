@@ -119,8 +119,6 @@ protected extractIdentity(order: Order) {
 
 In order to load an entity from database, you should create a method that hydarates your entity and returns it. Usually it's enough to have a single method that returns an entity by its identity, but you can implement any selection methods you need.
 
-````typescript
-
 In this example, we create a `find` method that returns `Order` entity or `undefined`.
 
 ```typescript
@@ -146,7 +144,7 @@ async find(id: string): Promise<Order | undefined> {
   // 4. Store entity in identity map and return
   return this.changeTracker.getTrackedOrTrack(result, EntityState.LOADED);
 }
-````
+```
 
 ### Insert, Delete, Update
 
@@ -191,9 +189,9 @@ async flushDelete(order: Order) {
   // 2. Return result
   return result > 0;
 }
+```
 
 It's necessary to always return a boolean result if operation is successful. Depending on the result, `Youw` decides whether to throw `PersistenceError` and retry an operation.
-```
 
 ## Run Options
 
