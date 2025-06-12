@@ -5,9 +5,9 @@ import { faker } from '@faker-js/faker';
 import 'jest-extended';
 
 class TestRepository extends Repository<object, TransactionMock> {
-  public readonly doInsert = jest.fn();
-  public readonly doUpdate = jest.fn();
-  public readonly doDelete = jest.fn();
+  public readonly flushInsert = jest.fn();
+  public readonly flushUpdate = jest.fn();
+  public readonly flushDelete = jest.fn();
   public readonly extractIdentity = jest
     .fn()
     .mockImplementation((entity) => entity.id);
@@ -30,14 +30,14 @@ describe(Repository, () => {
     it('should add a new entity', async () => {
       // arrange
       const entity = { id: faker.string.ulid(), name: faker.person.fullName() };
-      repository.doInsert.mockResolvedValue(true);
+      repository.flushInsert.mockResolvedValue(true);
 
       // act
       repository.add(entity);
 
       // assert
       await repository.flush();
-      expect(repository.doInsert).toHaveBeenCalledExactlyOnceWith(entity);
+      expect(repository.flushInsert).toHaveBeenCalledExactlyOnceWith(entity);
     });
 
     it('should recover deleted entity', async () => {
@@ -51,7 +51,7 @@ describe(Repository, () => {
 
       // assert
       await repository.flush();
-      expect(repository.doDelete).not.toHaveBeenCalled();
+      expect(repository.flushDelete).not.toHaveBeenCalled();
     });
   });
 
@@ -60,14 +60,14 @@ describe(Repository, () => {
       // arrange
       const entity = { id: faker.string.ulid(), name: faker.person.fullName() };
       repository.loadEntity(entity);
-      repository.doDelete.mockResolvedValue(true);
+      repository.flushDelete.mockResolvedValue(true);
 
       // act
       repository.delete(entity);
 
       // assert
       await repository.flush();
-      expect(repository.doDelete).toHaveBeenCalledExactlyOnceWith(entity);
+      expect(repository.flushDelete).toHaveBeenCalledExactlyOnceWith(entity);
     });
 
     it('should forget new entity', async () => {
@@ -80,7 +80,7 @@ describe(Repository, () => {
 
       // assert
       await repository.flush();
-      expect(repository.doDelete).not.toHaveBeenCalled();
+      expect(repository.flushDelete).not.toHaveBeenCalled();
     });
   });
 
@@ -120,19 +120,19 @@ describe(Repository, () => {
       };
       repository.loadEntity(loadedAndUnchanged);
 
-      repository.doInsert.mockResolvedValue(true);
-      repository.doUpdate.mockResolvedValue(true);
-      repository.doDelete.mockResolvedValue(true);
+      repository.flushInsert.mockResolvedValue(true);
+      repository.flushUpdate.mockResolvedValue(true);
+      repository.flushDelete.mockResolvedValue(true);
 
       // act
       await repository.flush();
 
       // assert
-      expect(repository.doInsert).toHaveBeenCalledExactlyOnceWith(newEntity);
-      expect(repository.doUpdate).toHaveBeenCalledExactlyOnceWith(
+      expect(repository.flushInsert).toHaveBeenCalledExactlyOnceWith(newEntity);
+      expect(repository.flushUpdate).toHaveBeenCalledExactlyOnceWith(
         loadedAndUpdated,
       );
-      expect(repository.doDelete).toHaveBeenCalledExactlyOnceWith(
+      expect(repository.flushDelete).toHaveBeenCalledExactlyOnceWith(
         loadedAndDeleted,
       );
     });

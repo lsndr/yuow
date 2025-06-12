@@ -10,27 +10,27 @@ export type RepositoryMockConstructor = RepositoryConstructor<
   RepositoryMock,
   TransactionMock
 > & {
-  doInsert: jest.Mock;
-  doUpdate: jest.Mock;
-  doDelete: jest.Mock;
+  flushInsert: jest.Mock;
+  flushUpdate: jest.Mock;
+  flushDelete: jest.Mock;
   extractIdentity: jest.Mock;
 };
 
 export function createRepositoryMock(): RepositoryMockConstructor {
-  const doInsert = jest.fn();
-  const doUpdate = jest.fn();
-  const doDelete = jest.fn();
+  const flushInsert = jest.fn();
+  const flushUpdate = jest.fn();
+  const flushDelete = jest.fn();
   const extractIdentity = jest.fn();
 
   const repository = class extends Repository<object, TransactionMock> {
-    public static readonly doInsert = doInsert;
-    public static readonly doUpdate = doUpdate;
-    public static readonly doDelete = doDelete;
+    public static readonly flushInsert = flushInsert;
+    public static readonly flushUpdate = flushUpdate;
+    public static readonly flushDelete = flushDelete;
     public static readonly extractIdentity = extractIdentity;
 
-    public readonly doInsert = doInsert;
-    public readonly doUpdate = doUpdate;
-    public readonly doDelete = doDelete;
+    public readonly flushInsert = flushInsert;
+    public readonly flushUpdate = flushUpdate;
+    public readonly flushDelete = flushDelete;
     public readonly extractIdentity = extractIdentity;
 
     public constructor(transaction: TransactionMock) {
@@ -38,9 +38,9 @@ export function createRepositoryMock(): RepositoryMockConstructor {
     }
 
     public static restore(): void {
-      this.doInsert.mockRestore();
-      this.doUpdate.mockRestore();
-      this.doDelete.mockRestore();
+      this.flushInsert.mockRestore();
+      this.flushUpdate.mockRestore();
+      this.flushDelete.mockRestore();
       this.extractIdentity.mockRestore();
 
       extractIdentity.mockImplementation((entity) => JSON.stringify(entity));

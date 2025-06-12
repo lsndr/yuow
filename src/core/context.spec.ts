@@ -58,7 +58,7 @@ describe(Context, () => {
       // arrange
       const repository = context.getRepository(RepositoryMock1);
 
-      RepositoryMock1.doInsert.mockResolvedValue(true);
+      RepositoryMock1.flushInsert.mockResolvedValue(true);
 
       const entity = {
         id: faker.string.uuid(),
@@ -71,7 +71,9 @@ describe(Context, () => {
       await ContextProvider.create(context, () => Context.flush());
 
       // assert
-      expect(RepositoryMock1.doInsert).toHaveBeenCalledExactlyOnceWith(entity);
+      expect(RepositoryMock1.flushInsert).toHaveBeenCalledExactlyOnceWith(
+        entity,
+      );
     });
   });
 
@@ -81,8 +83,8 @@ describe(Context, () => {
       const repository1 = context.getRepository(RepositoryMock1);
       const repository2 = context.getRepository(RepositoryMock2);
 
-      RepositoryMock1.doInsert.mockResolvedValue(true);
-      RepositoryMock2.doInsert.mockResolvedValue(true);
+      RepositoryMock1.flushInsert.mockResolvedValue(true);
+      RepositoryMock2.flushInsert.mockResolvedValue(true);
 
       const entity1 = {
         id: faker.string.uuid(),
@@ -100,8 +102,12 @@ describe(Context, () => {
       await context.flush();
 
       // assert
-      expect(RepositoryMock1.doInsert).toHaveBeenCalledExactlyOnceWith(entity1);
-      expect(RepositoryMock2.doInsert).toHaveBeenCalledExactlyOnceWith(entity2);
+      expect(RepositoryMock1.flushInsert).toHaveBeenCalledExactlyOnceWith(
+        entity1,
+      );
+      expect(RepositoryMock2.flushInsert).toHaveBeenCalledExactlyOnceWith(
+        entity2,
+      );
     });
 
     it('should emit beforeFlush and afterFlush events', async () => {

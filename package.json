@@ -1,6 +1,6 @@
 {
   "name": "yuow",
-  "version": "1.0.0-alpha.37",
+  "version": "1.0.0-alpha.38",
   "keywords": [
     "unit of work",
     "repository",
@@ -63,7 +63,7 @@
     "eslint-plugin-import-x": "^4.12.2",
     "husky": "^9.1.6",
     "jest": "^29.3.1",
-    "jest-extended": "^5.0.3",
+    "jest-extended": "^6.0.0",
     "lint-staged": "^16.1.0",
     "prettier": "^3.0.0",
     "rimraf": "^6.0.1",

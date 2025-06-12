@@ -40,11 +40,11 @@ export abstract class Repository<
 
   protected abstract extractIdentity(entity: E): unknown;
 
-  protected abstract doUpdate(entity: E): Promise<boolean>;
+  protected abstract flushUpdate(entity: E): Promise<boolean>;
 
-  protected abstract doDelete(entity: E): Promise<boolean>;
+  protected abstract flushDelete(entity: E): Promise<boolean>;
 
-  protected abstract doInsert(entity: E): Promise<boolean>;
+  protected abstract flushInsert(entity: E): Promise<boolean>;
 
   public add(entity: E): void {
     if (
@@ -81,7 +81,7 @@ export abstract class Repository<
 
   private async flushInserts(entities: E[]): Promise<void> {
     for (const entity of entities) {
-      const result = await this.doInsert(entity);
+      const result = await this.flushInsert(entity);
 
       if (!result) {
         throw new PersistenceError(
@@ -95,7 +95,7 @@ export abstract class Repository<
 
   private async flushUpdates(entities: E[]): Promise<void> {
     for (const entity of entities) {
-      const result = await this.doUpdate(entity);
+      const result = await this.flushUpdate(entity);
 
       if (!result) {
         throw new PersistenceError(
@@ -109,7 +109,7 @@ export abstract class Repository<
 
   private async flushDeletes(entities: E[]): Promise<void> {
     for (const entity of entities) {
-      const result = await this.doDelete(entity);
+      const result = await this.flushDelete(entity);
 
       if (!result) {
         throw new PersistenceError(
