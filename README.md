@@ -266,8 +266,8 @@ class OrderRepository extends Repository<Order, KnexTransaction> {
 
   // ...
 }
+```
 
 ## License
 
 Yuow is [MIT licensed](LICENSE.md).
-```
