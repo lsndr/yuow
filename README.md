@@ -6,7 +6,7 @@
 [![npm downloads](https://img.shields.io/npm/dt/yuow.svg)](https://www.npmjs.com/package/yuow)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/lsndr/yuow/blob/master/LICENSE.md)
 
-`Yuow` is a generic implementation of Unit of Work and Repository patterns. It's not a replacement for your current ORM, but a great addition to it escpecially if you use tactical DDD patterns.
+`Yuow` is a generic implementation of Unit of Work and Repository patterns. It's not a replacement for your current ORM, but a great addition to it especially if you use tactical DDD patterns.
 
 With `Yuow` you can build a truly isolated domain model.
 
@@ -21,7 +21,7 @@ With `Yuow` you can build a truly isolated domain model.
   npm install yuow
 ```
 
-`Youw` supports [Knex](https://knexjs.org/) out of the box, but you can intergate with any other database driver or ORM.
+`Yuow` supports [Knex](https://knexjs.org/) out of the box, but you can integrate with any other database driver or ORM.
 In order to start, you should implement [Repository](#repository) for each of your model.
 
 This an example code of how to use `Yuow` with Knex:
@@ -66,7 +66,7 @@ class OrderController {
 }
 ```
 
-The example above implies that you already have a `Order` entity and `OrderRepository` implemented. Check the [Repository](#repository) section for more details on how to implement a repository.
+The example above implies that you already have `Order` entity and `OrderRepository` implemented. Check the [Repository](#repository) section for more details on how to implement a repository.
 
 ## Repository
 
@@ -76,7 +76,7 @@ The example above implies that you already have a `Order` entity and `OrderRepos
 
 In `Yuow` data mapper and repository responsibilities are merged together for simplicity. But you are free to encapsulate data mapping logic into a separate class.
 
-In order to implement repository, you have to extend abstract `Repository` class and implement 4 methods `extractIdentity`, `flushInsert`, `flushUpdate` and `flushDelete`. Also, even though it's not required, you should write selection methods on your own:
+In order to create a repository, you have to extend abstract `Repository` class and implement 4 methods `extractIdentity`, `flushInsert`, `flushUpdate` and `flushDelete`. Also, even though it's not required, you should write selection methods on your own:
 
 ```typescript
 import { Repository } from 'yuow/core';
@@ -117,7 +117,7 @@ protected extractIdentity(order: Order) {
 
 ### Selection
 
-In order to load an entity from database, you should create a method that hydarates your entity and returns it. Usually it's enough to have a single method that returns an entity by its identity, but you can implement any selection methods you need.
+In order to load an entity from database, you should create a method that hydrates your entity and returns it. Usually it's enough to have a single method that returns an entity by its identity, but you can implement any selection methods you need.
 
 In this example, we create a `find` method that returns `Order` entity or `undefined`.
 
@@ -150,7 +150,7 @@ async find(id: string): Promise<Order | undefined> {
 
 Insert, delete and update methods are necessary to be able to persist your domain model state.
 
-Those methods are pretty trivial and structurually the same.
+Those methods are pretty trivial and structurually the same. The example above lacks concurrency control logic, so it's up to you how to implement it if you need it: you can use database means like row-level locks or use [versioning](#versioning).
 
 ```typescript
 async flushInsert(order: Order) {
@@ -191,7 +191,7 @@ async flushDelete(order: Order) {
 }
 ```
 
-It's necessary to always return a boolean result if operation is successful. Depending on the result, `Youw` decides whether to throw `PersistenceError` and retry an operation.
+It's necessary to always return a boolean result if operation is successful. Depending on the result, `Yuow` decides whether to throw `PersistenceError` and retry an operation.
 
 ## Run Options
 
@@ -205,9 +205,9 @@ createOrder() { /* ... */ }
 
 ### retries
 
-`retries` specifies how many times unit of work must be retried before it throws an error. Retries are perfromed only if `PersistenceError` is thrown. Check out [Repository](#repository) section to see when it's thrown.
+`retries` specifies how many times unit of work must be retried before it throws an error. Retries are performed only if `PersistenceError` is thrown. Check out [Repository](#repository) section to see when it's thrown.
 
-This is useful when you use `version` field fpr optimistic concurrency control.
+This is useful when you use `version` field for optimistic concurrency control.
 
 ### transaction
 
