@@ -222,7 +222,7 @@ This is useful when you use `version` field for optimistic concurrency control.
 
 ## Versioning
 
-`Yuow` provides a simple versioning mechanism to help you handle optimistic concurrency control:
+`Yuow` provides a simple versioning utility to help you handle optimistic concurrency control:
 
 ```typescript
 import { Repository, WeakVersionTracker } from 'yuow/core';
@@ -231,13 +231,37 @@ class OrderRepository extends Repository<Order, KnexTransaction> {
   private readonly versionTracker = new WeakVersionTracker<Order>();
 
   // ...
+  async find(id: string): Promise<Order | undefined> {
+    // 1. Request a record from database
+    const record = await this.knex
+      .select('*')
+      .from('orders')
+      .where('id', id)
+      .first();
+
+    // 2. Return undefined if a record was not found
+    if (!record) {
+      return;
+    }
+
+    // 3. Hydrate Order entity
+    const order = new Order({
+      id: record.id,
+      name: record.name,
+    });
+
+    // 4. Remember its version
+    this.versionTracker.setVersion(order, record.version);
+
+    // ...
+  }
 
   async flushInsert(order: Order) {
     const result = await this.knex
       .insert({
         id: order.id,
         name: order.name,
-        version: 1,
+        version: 1, // Initial version
       })
       .into('orders');
 
@@ -245,7 +269,7 @@ class OrderRepository extends Repository<Order, KnexTransaction> {
   }
 
   protected flushUpdate(order: Order) {
-    const version = this.versionTracker.increaseVersion(entity);
+    const version = this.versionTracker.increaseVersion(entity); // Call it in order to get new increased version number
 
     const result = await this.knex('orders')
       .update({
