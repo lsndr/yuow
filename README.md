@@ -14,6 +14,8 @@ With `Yuow`, you can build a truly isolated domain model.
 2. [Repository](#repository)
 3. [Run Options](#run-options)
 4. [Versioning](#versioning)
+5. [Engine](#engine)
+6. [License](#license)
 
 ## Quick Start
 
@@ -21,7 +23,7 @@ With `Yuow`, you can build a truly isolated domain model.
 npm install yuow
 ```
 
-`Yuow` supports [Knex](https://knexjs.org/) out of the box, but you can integrate with any other database driver or ORM.
+`Yuow` supports [Knex](https://knexjs.org/) out of the box, but you can [integrate with any other database driver or ORM](#engine).
 In order to get started, you should implement [Repository](#repository) for each of your models.
 
 This is an example of how to use `Yuow` with Knex:
@@ -211,7 +213,7 @@ This is useful when you use a `version` field for optimistic concurrency control
 
 ### transaction
 
-`transaction` is an object that contains transaction options. Its structure depends on the engine you use. For example, if you use `KnexEngine`, it should contain the `isolationLevel` and `global` properties.
+`transaction` is an object that contains transaction options. Its structure depends on the [engine](#engine) you use. For example, if you use `KnexEngine`, it should contain the `isolationLevel` and `global` properties.
 
 ```typescript
 {
@@ -286,6 +288,14 @@ class OrderRepository extends Repository<Order, KnexTransaction> {
   // ...
 }
 ```
+
+## Engine
+
+An `Engine` in` Yuow` abstracts the underlying transaction mechanism, allowing you to plug in different database drivers or ORMs while keeping your domain logic decoupled from persistence details.
+
+The `Engine` is responsible for creating and managing transactions, which are then used by repositories to persist changes.
+
+Out of the box, `Yuow` provides a `KnexEngine` that integrates with [Knex.js](https://knexjs.org/). You can use it as a starting point to implement your own engine for other database drivers or ORMs.
 
 ## License
 
