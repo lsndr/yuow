@@ -8,7 +8,7 @@
 
 `Yuow` is a generic implementation of Unit of Work and Repository patterns. It's not a replacement for your current ORM, but a great addition to it especially if you use tactical DDD patterns.
 
-With `Yuow` you can build a truly isolated domain model.
+With `Yuow`, you can build a truly isolated domain model.
 
 1. [Quick Start](#quick-start)
 2. [Repository](#repository)
@@ -18,13 +18,13 @@ With `Yuow` you can build a truly isolated domain model.
 ## Quick Start
 
 ```
-  npm install yuow
+npm install yuow
 ```
 
 `Yuow` supports [Knex](https://knexjs.org/) out of the box, but you can integrate with any other database driver or ORM.
-In order to start, you should implement [Repository](#repository) for each of your model.
+In order to get started, you should implement [Repository](#repository) for each of your models.
 
-This an example code of how to use `Yuow` with Knex:
+This is an example of how to use `Yuow` with Knex:
 
 ```typescript
 import { Uow, UowContext } from 'yuow/core';
@@ -37,7 +37,7 @@ app.use((next) => {
 });
 ```
 
-And then in your application code initialize repository and use it to store your domain entity:
+Then, in your application code, initialize the repository and use it to store your domain entity:
 
 ```typescript
 import { Transactional, Context } from 'yuow/core';
@@ -57,7 +57,7 @@ class OrderController {
 
   @Post('/orders/:id/cancel')
   @Transactional()
-  createOrder(@Param('id') id: string) {
+  cancelOrder(@Param('id') id: string) {
     const repository = Context.getRepository(OrderRepository);
     const order = await repository.findById(id);
 
@@ -66,7 +66,7 @@ class OrderController {
 }
 ```
 
-The example above implies that you already have `Order` entity and `OrderRepository` implemented. Check the [Repository](#repository) section for more details on how to implement a repository.
+The example above assumes that you already have the `Order` entity and `OrderRepository` implemented. See the [Repository](#repository) section for more details on how to implement a repository.
 
 ## Repository
 
@@ -74,16 +74,16 @@ The example above implies that you already have `Order` entity and `OrderReposit
 >
 > – [Martin Fowler](https://martinfowler.com/eaaCatalog/repository.html)
 
-In `Yuow` data mapper and repository responsibilities are merged together for simplicity. But you are free to encapsulate data mapping logic into a separate class.
+In `Yuow`, data mapper and repository responsibilities are merged together for simplicity. However, you are free to encapsulate data mapping logic into a separate class.
 
-In order to create a repository, you have to extend abstract `Repository` class and implement 4 methods `extractIdentity`, `flushInsert`, `flushUpdate` and `flushDelete`. Also, even though it's not required, you should write selection methods on your own:
+To create a repository, you have to extend abstract `Repository` class and implement 4 methods `extractIdentity`, `flushInsert`, `flushUpdate` and `flushDelete`. Also, even though it's not required, you should write your own selection methods:
 
 ```typescript
 import { Repository } from 'yuow/core';
 import { type KnexTransaction } from 'yuow/knex';
 
-export class OrderRepository extends Repository<Order, KnexTransaction>> {
-  async find(id: string>) {
+export class OrderRepository extends Repository<Order, KnexTransaction> {
+  async find(id: string) {
     // Implement
   }
 
@@ -107,7 +107,7 @@ export class OrderRepository extends Repository<Order, KnexTransaction>> {
 
 ### extractIdentity
 
-To emulate a collection-like behaviour, a repository uses an Identity Map pattern to keep identity <–> entity references. Since, with `Yuow` your domain model can live truly isolated, it's necessary to give the repository information on how to extract identity from your entity.
+To emulate a collection-like behavior, a repository uses the Identity Map pattern to keep identity <–> entity references. Since, with `Yuow`, your domain model can live truly isolated, it's necessary to provide the repository with information on how to extract identity from your entity:
 
 ```typescript
 protected extractIdentity(order: Order) {
@@ -117,9 +117,9 @@ protected extractIdentity(order: Order) {
 
 ### Selection
 
-In order to load an entity from database, you should create a method that hydrates your entity and returns it. Usually it's enough to have a single method that returns an entity by its identity, but you can implement any selection methods you need.
+To load an entity from database, you should create a method that hydrates your entity and returns it. Usually, it's enough to have a single method that returns an entity by its identity, but you can implement any selection methods you need.
 
-In this example, we create a `find` method that returns `Order` entity or `undefined`.
+In this example, we create a `find` method that returns an `Order` entity or `undefined`:
 
 ```typescript
 async find(id: string): Promise<Order | undefined> {
@@ -142,15 +142,15 @@ async find(id: string): Promise<Order | undefined> {
   });
 
   // 4. Store entity in identity map and return
-  return this.changeTracker.getTrackedOrTrack(result, EntityState.LOADED);
+  return this.changeTracker.getTrackedOrTrack(order, EntityState.LOADED);
 }
 ```
 
-### Insert, Delete, Update
+### flushInsert, flushDelete, flushUpdate
 
-Insert, delete and update methods are necessary to be able to persist your domain model state.
+Insert, delete, and update methods are necessary to persist your domain model state.
 
-Those methods are pretty trivial and structurually the same. The example above lacks concurrency control logic, so it's up to you how to implement it if you need it: you can use database means like row-level locks or use [versioning](#versioning).
+These methods are fairly straightforward and structurally similar. The example above lacks concurrency control logic, so it's up to you to implement if needed. You can use database mechanisms like row-level locks or implement [versioning](#versioning).
 
 ```typescript
 async flushInsert(order: Order) {
@@ -191,7 +191,7 @@ async flushDelete(order: Order) {
 }
 ```
 
-It's necessary to always return a boolean result if operation is successful. Depending on the result, `Yuow` decides whether to throw `PersistenceError` and retry an operation.
+It's necessary to always return a boolean result indicating whether the operation was successful. Depending on the result, `Yuow` decides whether to throw a `PersistenceError` and retry the operation.
 
 ## Run Options
 
@@ -205,13 +205,13 @@ createOrder() { /* ... */ }
 
 ### retries
 
-`retries` specifies how many times unit of work must be retried before it throws an error. Retries are performed only if `PersistenceError` is thrown. Check out [Repository](#repository) section to see when it's thrown.
+`retries` specifies how many times the unit of work must be retried before it throws an error. Retries are performed only if a `PersistenceError` is thrown. Check out the [Repository](#repository) section to learn when it's thrown.
 
-This is useful when you use `version` field for optimistic concurrency control.
+This is useful when you use a `version` field for optimistic concurrency control.
 
 ### transaction
 
-`transaction` is an object that contains transaction options. Its structure depends on engine you use. For example, if you use `KnexEngine`, it should contain `isolationLevel` and `global` properties.
+`transaction` is an object that contains transaction options. Its structure depends on the engine you use. For example, if you use `KnexEngine`, it should contain the `isolationLevel` and `global` properties.
 
 ```typescript
 {
@@ -222,7 +222,7 @@ This is useful when you use `version` field for optimistic concurrency control.
 
 ## Versioning
 
-`Yuow` provides a simple versioning utility to help you handle optimistic concurrency control:
+`Yuow` provides a simple versioning utility to help you to handle optimistic concurrency control:
 
 ```typescript
 import { Repository, WeakVersionTracker } from 'yuow/core';
@@ -269,7 +269,7 @@ class OrderRepository extends Repository<Order, KnexTransaction> {
   }
 
   protected flushUpdate(order: Order) {
-    const version = this.versionTracker.increaseVersion(entity); // Call it in order to get new increased version number
+    const version = this.versionTracker.increaseVersion(order); // Call it in order to get new increased version number
 
     const result = await this.knex('orders')
       .update({
