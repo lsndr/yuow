@@ -4,7 +4,8 @@
     "master",
     "next",
     { "name": "beta", "prerelease": true },
-    { "name": "alpha", "channel": "latest", "prerelease": "alpha" }
+    { "name": "alpha", "channel": "alpha", "prerelease": true },
+    { "name": "alpha", "channel": "latest", "prerelease": true }
   ],
   "plugins": [
     [
