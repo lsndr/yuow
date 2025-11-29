@@ -1,10 +1,11 @@
 import { KnexTransaction } from './knex-transaction';
 import { type Schema } from './schema';
-import { type Entity } from '../../tests/utils/entities/entity';
-import { createEntitySchema } from '../../tests/utils/entities/entity.schema';
-import { createKnexConnection } from '../../tests/utils/knex/connection';
+import { type Entity } from '../../tests/.config/entities/entity';
+import { createEntitySchema } from '../../tests/.config/entities/entity.schema';
+import { createKnexConnection } from '../../tests/.config/knex/connection';
 import { faker } from '@faker-js/faker';
 import { type Knex } from 'knex';
+import { beforeEach, describe, it, expect, afterEach } from 'vitest';
 
 describe(KnexTransaction, () => {
   let transaction: KnexTransaction;

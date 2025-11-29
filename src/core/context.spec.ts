@@ -3,10 +3,10 @@ import { ContextProvider } from './context-provider';
 import {
   type RepositoryMockConstructor,
   createRepositoryMock,
-} from '../../tests/utils/repository.mock';
-import { TransactionMock } from '../../tests/utils/transaction.mock';
+} from '../../tests/.config/repository.mock';
+import { TransactionMock } from '../../tests/.config/transaction.mock';
 import { faker } from '@faker-js/faker';
-import 'jest-extended';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 
 describe(Context, () => {
   let context: Context<TransactionMock>;
@@ -112,8 +112,8 @@ describe(Context, () => {
 
     it('should emit beforeFlush and afterFlush events', async () => {
       // arrange
-      const beforeFlush = jest.fn();
-      const afterFlush = jest.fn();
+      const beforeFlush = vi.fn();
+      const afterFlush = vi.fn();
       context.on('beforeFlush', beforeFlush);
       context.on('afterFlush', afterFlush);
 

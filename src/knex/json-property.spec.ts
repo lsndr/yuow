@@ -1,5 +1,6 @@
 import { JsonProperty } from './json-property';
 import { faker } from '@faker-js/faker';
+import { beforeEach, describe, it, expect } from 'vitest';
 
 describe(JsonProperty, () => {
   let propertyName: string;

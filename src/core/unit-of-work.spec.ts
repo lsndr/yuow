@@ -2,10 +2,10 @@ import { Context } from './context';
 import { PersistenceError } from './persistence.error';
 import { RunError } from './run-error';
 import { Uow } from './uow';
-import { EngineMock } from '../../tests/utils/engine.mock';
-import { TransactionMock } from '../../tests/utils/transaction.mock';
+import { EngineMock } from '../../tests/.config/engine.mock';
+import { TransactionMock } from '../../tests/.config/transaction.mock';
 import { faker } from '@faker-js/faker';
-import 'jest-extended';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 
 describe(Uow, () => {
   let transaction: TransactionMock;
@@ -22,7 +22,7 @@ describe(Uow, () => {
     it('should propagate a result', async () => {
       // arrange
       const unitResult = faker.hacker.phrase();
-      const unit = jest.fn().mockResolvedValue(unitResult);
+      const unit = vi.fn().mockResolvedValue(unitResult);
 
       // act
       const result = await uow.run(unit);
@@ -30,7 +30,7 @@ describe(Uow, () => {
       // assert
       expect(result).toBe(unitResult);
       expect(unit).toHaveBeenCalledExactlyOnceWith(expect.any(Context));
-      expect(unit.mock.calls[0][0].transaction).toBe(transaction);
+      expect(unit.mock.calls[0]?.[0].transaction).toBe(transaction);
     });
 
     it('should propagate an error', async () => {
@@ -54,7 +54,7 @@ describe(Uow, () => {
         faker.string.uuid(),
         'insert',
       );
-      const unit = jest.fn().mockRejectedValue(error);
+      const unit = vi.fn().mockRejectedValue(error);
 
       // act
       const act = () => uow.run(unit);
@@ -73,7 +73,7 @@ describe(Uow, () => {
           faker.string.uuid(),
           'insert',
         );
-        const unit = jest.fn().mockRejectedValue(error);
+        const unit = vi.fn().mockRejectedValue(error);
 
         // act
         const act = () => uow.run(unit, { attempts });
@@ -91,7 +91,7 @@ describe(Uow, () => {
       await transaction.begin();
 
       // act
-      await uow.run(jest.fn());
+      await uow.run(vi.fn());
 
       // assert
       expect(transaction.doCommit).toHaveBeenCalledTimes(1);
@@ -99,7 +99,7 @@ describe(Uow, () => {
 
     it('should not commit transaction if it was not started', async () => {
       // act
-      await uow.run(jest.fn());
+      await uow.run(vi.fn());
 
       // assert
       expect(transaction.doCommit).not.toHaveBeenCalled();
@@ -138,13 +138,13 @@ describe(Uow, () => {
 
     it('should emit beforeRun and afterRun events', async () => {
       // arrange
-      const beforeRun = jest.fn();
-      const afterRun = jest.fn();
+      const beforeRun = vi.fn();
+      const afterRun = vi.fn();
       uow.on('beforeRun', beforeRun);
       uow.on('afterRun', afterRun);
 
       // act
-      await uow.run(jest.fn());
+      await uow.run(vi.fn());
 
       // assert
       expect(beforeRun).toHaveBeenCalledExactlyOnceWith(expect.any(Context), {
@@ -157,8 +157,8 @@ describe(Uow, () => {
 
     it('should emit beforeRun and afterRun events when error occur', async () => {
       // arrange
-      const beforeRun = jest.fn();
-      const afterRun = jest.fn();
+      const beforeRun = vi.fn();
+      const afterRun = vi.fn();
       const error = new Error(`Error: ${faker.hacker.phrase()}`);
 
       uow.on('beforeRun', beforeRun);

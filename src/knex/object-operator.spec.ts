@@ -1,5 +1,6 @@
 import { ObjectOperator } from './object-operator';
 import { faker } from '@faker-js/faker';
+import { beforeEach, describe, it, expect } from 'vitest';
 
 interface Entity {
   name: string;

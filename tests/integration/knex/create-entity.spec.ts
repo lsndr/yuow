@@ -3,11 +3,12 @@ import {
   type EntityRepositoryConstructor,
   KnexEngine,
 } from '../../../src/knex';
-import { Entity } from '../../utils/entities/entity';
-import { createEntitySchema } from '../../utils/entities/entity.schema';
-import { createKnexConnection } from '../../utils/knex/connection';
+import { Entity } from '../../.config/entities/entity';
+import { createEntitySchema } from '../../.config/entities/entity.schema';
+import { createKnexConnection } from '../../.config/knex/connection';
 import { faker } from '@faker-js/faker';
 import type { Knex } from 'knex';
+import { beforeEach, describe, it, expect, afterEach } from 'vitest';
 
 describe('Create Entity', () => {
   let db: Knex;

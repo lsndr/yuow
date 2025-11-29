@@ -10,11 +10,12 @@ import {
   KnexEngine,
   type Schema,
 } from '../../../src/knex';
-import { Entity } from '../../utils/entities/entity';
-import { createEntitySchema } from '../../utils/entities/entity.schema';
-import { createKnexConnection } from '../../utils/knex/connection';
+import { Entity } from '../../.config/entities/entity';
+import { createEntitySchema } from '../../.config/entities/entity.schema';
+import { createKnexConnection } from '../../.config/knex/connection';
 import { faker } from '@faker-js/faker/locale/yo_NG';
 import { type Knex } from 'knex';
+import { beforeEach, describe, it, expect, afterEach } from 'vitest';
 
 describe('Update Entity', () => {
   let db: Knex;

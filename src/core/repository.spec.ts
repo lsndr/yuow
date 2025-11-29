@@ -1,14 +1,14 @@
 import { ChangeTracker, EntityState } from './change-tracker';
 import { Repository } from './repository';
-import { TransactionMock } from '../../tests/utils/transaction.mock';
+import { TransactionMock } from '../../tests/.config/transaction.mock';
 import { faker } from '@faker-js/faker';
-import 'jest-extended';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 
 class TestRepository extends Repository<object, TransactionMock> {
-  public readonly flushInsert = jest.fn();
-  public readonly flushUpdate = jest.fn();
-  public readonly flushDelete = jest.fn();
-  public readonly extractIdentity = jest
+  public readonly flushInsert = vi.fn();
+  public readonly flushUpdate = vi.fn();
+  public readonly flushDelete = vi.fn();
+  public readonly extractIdentity = vi
     .fn()
     .mockImplementation((entity) => entity.id);
 
@@ -139,8 +139,8 @@ describe(Repository, () => {
 
     it('should emit beforeFlush and afterFlush events', async () => {
       // arrange
-      const beforeFlush = jest.fn();
-      const afterFlush = jest.fn();
+      const beforeFlush = vi.fn();
+      const afterFlush = vi.fn();
       repository.on('beforeFlush', beforeFlush);
       repository.on('afterFlush', afterFlush);
 
