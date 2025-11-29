@@ -24,21 +24,27 @@ jobs:
           - node: 20.x
             script: build:tests
           - node: 22.x
-            script: test:coverage
-            coverage: true
-          - node: 22.x
-            script: lint
-          - node: 22.x
-            script: format
+            script: test
           - node: 22.x
             script: build
           - node: 22.x
+            script: build:tests
+          - node: 24.x
+            script: test:coverage
+            coverage: true
+          - node: 24.x
+            script: lint
+          - node: 24.x
+            script: format
+          - node: 24.x
+            script: build
+          - node: 24.x
             script: build:tests
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
           cache: 'npm'
