@@ -1,5 +1,6 @@
 import { EntityState } from './entity-state';
 import { TrackedEntity } from './tracked-entity';
+import { describe, it, expect } from 'vitest';
 
 describe(TrackedEntity, () => {
   describe('constructor', () => {

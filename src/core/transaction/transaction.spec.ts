@@ -1,11 +1,11 @@
 import { Transaction, TransactionState } from './transaction';
 import { faker } from '@faker-js/faker';
-import 'jest-extended';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 
 export class TestTransaction extends Transaction {
-  public readonly doBegin = jest.fn();
-  public readonly doCommit = jest.fn();
-  public readonly doRollback = jest.fn();
+  public readonly doBegin = vi.fn();
+  public readonly doCommit = vi.fn();
+  public readonly doRollback = vi.fn();
 
   public async emitTestEvent(eventName: string): Promise<void> {
     await this.emit(eventName);
@@ -28,8 +28,8 @@ describe(Transaction, () => {
   describe('begin', () => {
     it('should begin transaction', async () => {
       // arrange
-      const beforeBegin = jest.fn();
-      const afterBegin = jest.fn();
+      const beforeBegin = vi.fn();
+      const afterBegin = vi.fn();
       transaction.on('beforeBegin', beforeBegin);
       transaction.on('afterBegin', afterBegin);
 
@@ -49,8 +49,8 @@ describe(Transaction, () => {
     it('should commit transaction', async () => {
       // arrange
       await transaction.begin();
-      const beforeCommit = jest.fn();
-      const afterCommit = jest.fn();
+      const beforeCommit = vi.fn();
+      const afterCommit = vi.fn();
       transaction.on('beforeCommit', beforeCommit);
       transaction.on('afterCommit', afterCommit);
 
@@ -70,8 +70,8 @@ describe(Transaction, () => {
     it('should rollback transaction', async () => {
       // arrange
       await transaction.begin();
-      const beforeRollback = jest.fn();
-      const afterRollback = jest.fn();
+      const beforeRollback = vi.fn();
+      const afterRollback = vi.fn();
       transaction.on('beforeRollback', beforeRollback);
       transaction.on('afterRollback', afterRollback);
 
@@ -91,7 +91,7 @@ describe(Transaction, () => {
     it('should emit custom events', async () => {
       // arrange
       const eventName = faker.word.verb();
-      const eventHandler = jest.fn();
+      const eventHandler = vi.fn();
       transaction.on(eventName, eventHandler);
 
       // act

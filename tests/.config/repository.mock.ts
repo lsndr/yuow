@@ -4,23 +4,24 @@ import {
   type RepositoryConstructor,
   type EntityState,
 } from '../../src/core';
+import { vi, type Mock } from 'vitest';
 
 export type RepositoryMock = Repository<object, TransactionMock>;
 export type RepositoryMockConstructor = RepositoryConstructor<
   RepositoryMock,
   TransactionMock
 > & {
-  flushInsert: jest.Mock;
-  flushUpdate: jest.Mock;
-  flushDelete: jest.Mock;
-  extractIdentity: jest.Mock;
+  flushInsert: Mock;
+  flushUpdate: Mock;
+  flushDelete: Mock;
+  extractIdentity: Mock;
 };
 
 export function createRepositoryMock(): RepositoryMockConstructor {
-  const flushInsert = jest.fn();
-  const flushUpdate = jest.fn();
-  const flushDelete = jest.fn();
-  const extractIdentity = jest.fn();
+  const flushInsert = vi.fn();
+  const flushUpdate = vi.fn();
+  const flushDelete = vi.fn();
+  const extractIdentity = vi.fn();
 
   const repository = class extends Repository<object, TransactionMock> {
     public static readonly flushInsert = flushInsert;

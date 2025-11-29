@@ -1,6 +1,7 @@
 import { type EntityProperties } from './entity-properties-map';
 import { Property } from './property';
 import { Schema, type SchemaOptions } from './schema';
+import { beforeEach, describe, it, expect } from 'vitest';
 
 class Entity {
   public constructor(

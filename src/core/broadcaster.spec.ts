@@ -1,6 +1,6 @@
 import type { AsyncEventEmitterEvents } from './async-event-emitter';
 import { Broadcaster } from './broadcaster';
-import 'jest-extended';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 
 interface TestBroadcasterEvents extends AsyncEventEmitterEvents {
   event: [unknown];
@@ -25,7 +25,7 @@ describe(Broadcaster, () => {
   describe('on', () => {
     it('should register event handlers', async () => {
       // arrange
-      const handler = jest.fn();
+      const handler = vi.fn();
       const payload = { data: 'test' };
 
       // act
@@ -40,7 +40,7 @@ describe(Broadcaster, () => {
   describe('off', () => {
     it('should unregister event handler', async () => {
       // arrange
-      const handler = jest.fn();
+      const handler = vi.fn();
       const payload = { data: 'test' };
 
       broadcaster.on('event', handler);

@@ -1,11 +1,12 @@
 import { type EntityDataMapper } from './entity-data-mapper';
 import { type EntityRepository } from './entity-repository';
 import { KnexTransaction } from './knex-transaction';
-import { Entity } from '../../tests/utils/entities/entity';
-import { createEntitySchema } from '../../tests/utils/entities/entity.schema';
-import { createKnexConnection } from '../../tests/utils/knex/connection';
+import { Entity } from '../../tests/.config/entities/entity';
+import { createEntitySchema } from '../../tests/.config/entities/entity.schema';
+import { createKnexConnection } from '../../tests/.config/knex/connection';
 import { faker } from '@faker-js/faker';
 import { type Knex } from 'knex';
+import { beforeEach, describe, it, expect, afterEach } from 'vitest';
 
 describe('EntityRepository', () => {
   let knex: Knex;

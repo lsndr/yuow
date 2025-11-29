@@ -1,10 +1,11 @@
 import { type EntityDataMapper } from './entity-data-mapper';
 import { type Schema } from './schema';
-import { Entity } from '../../tests/utils/entities/entity';
-import { createEntitySchema } from '../../tests/utils/entities/entity.schema';
-import { createKnexConnection } from '../../tests/utils/knex/connection';
+import { Entity } from '../../tests/.config/entities/entity';
+import { createEntitySchema } from '../../tests/.config/entities/entity.schema';
+import { createKnexConnection } from '../../tests/.config/knex/connection';
 import { faker } from '@faker-js/faker';
 import { type Knex } from 'knex';
+import { beforeEach, describe, it, expect, afterEach } from 'vitest';
 
 describe('EntityDataMapper', () => {
   let entities: [Entity, Entity];

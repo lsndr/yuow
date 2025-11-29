@@ -1,6 +1,7 @@
 import { ChangeTracker } from './change-tracker';
 import { EntityState } from './entity-state';
 import { faker } from '@faker-js/faker';
+import { beforeEach, describe, it, expect } from 'vitest';
 
 interface Entity {
   id: string;
@@ -95,7 +96,7 @@ describe(ChangeTracker, () => {
     });
 
     it.each([EntityState.NEW, EntityState.LOADED, EntityState.DELETED])(
-      'should fail to track entity as %s if there is already tracked entity with similar id',
+      'should fail (.+) to track entity as %s if there is already tracked entity with similar id',
       (state) => {
         // arrange
         const entity1 = { id: faker.string.uuid() };
@@ -116,7 +117,7 @@ describe(ChangeTracker, () => {
 
     describe(EntityState.NEW, () => {
       it(`should track entity as ${EntityState.NEW}`, () => {
-        // arramge
+        // arrabge
         const entity = { id: faker.string.uuid() };
 
         // act
@@ -126,7 +127,7 @@ describe(ChangeTracker, () => {
         expect(tracker.isTracked(entity)).toBe(EntityState.NEW);
       });
 
-      it(`should fail to track ${EntityState.LOADED} entity as ${EntityState.NEW}`, () => {
+      it(`should fail % to track ${EntityState.LOADED} entity as ${EntityState.NEW}`, () => {
         // arrange
         const entity = { id: faker.string.uuid() };
         tracker.track(entity, EntityState.LOADED);

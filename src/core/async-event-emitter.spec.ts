@@ -3,7 +3,7 @@ import {
   type AsyncEventEmitterEvents,
 } from './async-event-emitter';
 import { faker } from '@faker-js/faker';
-import 'jest-extended';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 
 export interface TestBroadcasterEvents extends AsyncEventEmitterEvents {
   event1: [string, number];
@@ -20,9 +20,9 @@ describe(AsyncEventEmitter, () => {
   describe('on', () => {
     it('should register event handlers', async () => {
       // arrange
-      const handler = jest.fn();
-      const handler2 = jest.fn();
-      const handler3 = jest.fn();
+      const handler = vi.fn();
+      const handler2 = vi.fn();
+      const handler3 = vi.fn();
       const payload = [faker.word.sample(), faker.number.float()] as const;
 
       // act
@@ -42,7 +42,7 @@ describe(AsyncEventEmitter, () => {
   describe('off', () => {
     it('should unregister event handlers', async () => {
       // arrange
-      const handler = jest.fn();
+      const handler = vi.fn();
       const payload = ['test', 1] as const;
 
       emitter.on('event1', handler);
@@ -58,7 +58,7 @@ describe(AsyncEventEmitter, () => {
 
     it('should return false if handler was not registered', () => {
       // arrange
-      const handler = jest.fn();
+      const handler = vi.fn();
 
       // act
       const result = emitter.off('event1', handler);
