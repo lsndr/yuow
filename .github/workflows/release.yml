@@ -29,11 +29,11 @@ jobs:
           token: ${{ secrets.CI_GITHUB_TOKEN }}
           persist-credentials: false
 
-      - name: Setup Node.js 22
-        uses: actions/setup-node@v4
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v6
         with:
           cache: 'npm'
-          node-version: 22
+          node-version: 24
 
       - name: Install dependencies
         run: npm clean-install
@@ -52,5 +52,5 @@ jobs:
           # Wait for the dist-tags to be updated
           sleep 60
 
-          # Sync the alpha and latest dist-tags 
+          # Sync the alpha and latest dist-tags
           .scripts/sync-alpha-and-latest.sh
