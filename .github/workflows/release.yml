@@ -47,6 +47,9 @@ jobs:
 
       - name: Sync alpha and latest dist-tags
         run: |
+          # Authenticate
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
           # Wait for the dist-tags to be updated
           sleep 60
 
