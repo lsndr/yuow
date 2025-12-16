@@ -31,6 +31,10 @@
     "prepublishOnly": "npm run build",
     "prepare": "husky install"
   },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
   "repository": "lsndr/yuow",
   "license": "MIT",
   "author": {
