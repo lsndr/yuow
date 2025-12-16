@@ -46,6 +46,8 @@ jobs:
         run: npx semantic-release
 
       - name: Sync alpha and latest dist-tags
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           # Wait for the dist-tags to be updated
           sleep 60
