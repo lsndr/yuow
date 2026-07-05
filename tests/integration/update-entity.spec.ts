@@ -88,9 +88,8 @@ describe.each([
                 entity.name = faker.person.fullName();
               }
 
-              if (attempt <= attempts) {
-                await harness.bumpVersion(id);
-              }
+              // simulate concurrent update
+              await harness.bumpVersion(id);
             },
             { attempts, transaction: { global: false } },
           );
@@ -127,6 +126,7 @@ describe.each([
               entity.name = newName;
             }
 
+            // simulate concurrent update
             if (attempt < attempts) {
               await harness.bumpVersion(id);
             }
