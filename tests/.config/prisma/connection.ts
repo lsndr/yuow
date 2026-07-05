@@ -1,7 +1,6 @@
 import { PrismaClient } from './client';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { execSync } from 'child_process';
-import { rm } from 'fs/promises';
 import { resolve } from 'path';
 
 export class TestPrismaClient extends PrismaClient {
@@ -31,7 +30,6 @@ export class TestPrismaClient extends PrismaClient {
 
   public async teardown(): Promise<void> {
     await this.$disconnect();
-    await rm(this.dbPath, { force: true });
   }
 }
 

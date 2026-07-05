@@ -1,11 +1,14 @@
 import { buildMigrationSource, type Migration } from './migrations';
 import { knex, type Knex } from 'knex';
-import { resolve } from 'path';
+import { mkdir } from 'fs/promises';
+import { dirname, resolve } from 'path';
 
 export const createKnexConnection = async (
   ...migrations: Migration[]
 ): Promise<Knex> => {
   const dbPath = resolve(__dirname, `db/dev-${crypto.randomUUID()}.db`);
+
+  await mkdir(dirname(dbPath), { recursive: true });
 
   const client = knex({
     client: 'sqlite3',
