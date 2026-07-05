@@ -1,0 +1,15 @@
+generator client {
+  provider = "prisma-client"
+  output   = "client/lib"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Entity {
+  id      String @id
+  name    String
+  cards   String @default("[]")
+  version Int    @default(1)
+}

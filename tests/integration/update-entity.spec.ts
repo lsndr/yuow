@@ -1,47 +1,27 @@
-import {
-  Context,
-  RunError,
-  Transactional,
-  Uow,
-  UowContext,
-} from '../../../src/core';
-import {
-  type EntityRepositoryConstructor,
-  KnexEngine,
-  type Schema,
-} from '../../../src/knex';
-import { Entity } from '../../.config/entities/entity';
-import { createEntitySchema } from '../../.config/entities/entity.schema';
-import { createKnexConnection } from '../../.config/knex/connection';
-import { faker } from '@faker-js/faker/locale/yo_NG';
-import { type Knex } from 'knex';
+import { Context, RunError, Transactional, UowContext } from '../../src/core';
+import { Entity } from '../.config/entities/entity';
+import { createKnexHarness, createPrismaHarness } from '../.config/harness';
+import { faker } from '@faker-js/faker';
 import { beforeEach, describe, it, expect, afterEach } from 'vitest';
 
-describe('Update Entity', () => {
-  let db: Knex;
-  let uow: Uow<KnexEngine>;
-  let schema: Schema<Entity>;
-  let EntityRepository: EntityRepositoryConstructor<Entity>;
+describe.each([
+  ['knex', createKnexHarness],
+  ['prisma', createPrismaHarness],
+])('Update Entity (%s)', (_name, createHarness) => {
+  let harness: Awaited<ReturnType<typeof createHarness>>;
 
   const createEntity = async () => {
     const entity = Entity.generate();
-    await uow.run((ctx) => ctx.getRepository(EntityRepository).add(entity));
+    await harness.uow.run((ctx) => harness.getRepository(ctx).add(entity));
 
     return entity;
   };
 
   beforeEach(async () => {
-    const entity = createEntitySchema();
-
-    db = await createKnexConnection(entity.migration);
-    uow = new Uow(new KnexEngine(db));
-    schema = entity.schema;
-    EntityRepository = entity.schema.createRepository();
+    harness = await createHarness();
   });
 
-  afterEach(async () => {
-    await db.destroy();
-  });
+  afterEach(() => harness.teardown());
 
   describe.each([{ global: true }, { global: false }])(
     'Transaction Config: %j',
@@ -65,10 +45,11 @@ describe('Update Entity', () => {
         const newName = faker.person.fullName();
 
         // act
-        await UowContext.create(uow, () =>
+        await UowContext.create(harness.uow, () =>
           testService.test(async () => {
-            const entity = (await Context.getRepository(EntityRepository).find(
-              (qb) => qb.where('id', id),
+            const entity = (await harness.find(
+              harness.getRepository(Context),
+              id,
             ))!;
 
             entity.name = newName;
@@ -76,10 +57,9 @@ describe('Update Entity', () => {
         );
 
         // assert
-        const entity = await uow.run((ctx) =>
-          ctx.getRepository(EntityRepository).find((qb) => qb.where('id', id)),
+        const entity = await harness.uow.run((ctx) =>
+          harness.find(harness.getRepository(ctx), id),
         );
-
         expect(entity).toBeInstanceOf(Entity);
         expect(entity?.id).toBe(id);
         expect(entity?.name).toBe(newName);
@@ -89,45 +69,35 @@ describe('Update Entity', () => {
   );
 
   describe('High Concurrency', () => {
-    const concurrentlyUpdate = (id: string) =>
-      db.raw(
-        `UPDATE "${schema.options.table}" SET version = version + 1 WHERE id = '${id}'`,
-      );
-
     it.each([1, 5, 10])(
       'should fail to update an exisiting entity after %s attempts',
       async (attempts) => {
+        // arrange
         let attempt = 0;
         const { id, name, cards } = await createEntity();
 
+        // act
         const action = () =>
-          uow.run(
+          harness.uow.run(
             async (ctx) => {
               attempt++;
 
-              const entity = await ctx
-                .getRepository(EntityRepository)
-                .find((qb) => qb.where('id', id));
+              const entity = await harness.find(harness.getRepository(ctx), id);
 
               if (entity) {
                 entity.name = faker.person.fullName();
               }
 
               if (attempt <= attempts) {
-                await concurrentlyUpdate(id);
+                await harness.bumpVersion(id);
               }
             },
             { attempts, transaction: { global: false } },
           );
 
+        // assert
         await expect(action).rejects.toThrow(RunError);
-
-        const record = await db
-          .select('*')
-          .from(schema.options.table)
-          .where('id', id)
-          .first();
-
+        const record = await harness.readRecord(id);
         expect(record).toEqual({
           id,
           name,
@@ -141,35 +111,31 @@ describe('Update Entity', () => {
     it.each([3, 7])(
       'should update an exisiting entity on %s attempt',
       async (attempts) => {
+        // arrange
         let attempt = 0;
         const { id, cards } = await createEntity();
         const newName = faker.person.fullName();
 
-        await uow.run(
+        // act
+        await harness.uow.run(
           async (ctx) => {
             attempt++;
 
-            const entity = await ctx
-              .getRepository(EntityRepository)
-              .find((qb) => qb.where('id', id));
+            const entity = await harness.find(harness.getRepository(ctx), id);
 
             if (entity) {
               entity.name = newName;
             }
 
             if (attempt < attempts) {
-              await concurrentlyUpdate(id);
+              await harness.bumpVersion(id);
             }
           },
           { attempts, transaction: { global: false } },
         );
 
-        const record = await db
-          .select('*')
-          .from(schema.options.table)
-          .where('id', id)
-          .first();
-
+        // assert
+        const record = await harness.readRecord(id);
         expect(record).toEqual({
           id,
           name: newName,

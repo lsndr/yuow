@@ -15,13 +15,21 @@
     "./knex": {
       "types": "./dist/knex/index.d.ts",
       "default": "./dist/knex/index.js"
+    },
+    "./prisma": {
+      "types": "./dist/prisma/index.d.ts",
+      "default": "./dist/prisma/index.js"
     }
   },
   "description": "Generic implementation of Unit of Work and Repository patterns to build isolated domain model",
   "scripts": {
+    "postinstall": "npm run prisma:generate",
     "build": "rimraf ./dist && tsc -p ./tsconfig.build.json",
     "build:tests": "tsc -p ./tsconfig.test.json",
     "watch": "tsc --watch",
+    "prisma:generate": "prisma generate --schema tests/.config/prisma/schema.prisma",
+    "prisma:migrate:deploy": "prisma migrate deploy --schema tests/.config/prisma/schema.prisma --config tests/.config/prisma/prisma.config.ts",
+    "prisma:migrate:generate": "prisma migrate dev --schema tests/.config/prisma/schema.prisma --config tests/.config/prisma/prisma.config.ts",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "format": "prettier .",
@@ -47,7 +55,8 @@
     "**/*": "prettier --write --ignore-unknown"
   },
   "peerDependencies": {
-    "knex": "^0.95.0 || ^1.0.0 || ^2.0.0"
+    "@prisma/client": "^5.0.0",
+    "knex": "^0.95.0 || µ^1.0.0 || ^2.0.0"
   },
   "dependencies": {
     "weak-identity-map": "^1.0.2"
@@ -59,8 +68,11 @@
     "@eslint/compat": "^2.0.0",
     "@eslint/js": "^9.27.0",
     "@faker-js/faker": "^10.1.0",
+    "@prisma/adapter-better-sqlite3": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "@semantic-release/git": "^10.0.1",
     "@vitest/coverage-v8": "^4.0.14",
+    "better-sqlite3": "^12.11.1",
     "eslint": "^9.27.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-import-resolver-typescript": "^4.3.5",
@@ -68,6 +80,7 @@
     "husky": "^9.1.6",
     "lint-staged": "^16.1.0",
     "prettier": "^3.0.0",
+    "prisma": "^7.8.0",
     "rimraf": "^6.0.1",
     "semantic-release": "^25.0.2",
     "sqlite3": "^5.1.6",
