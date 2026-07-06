@@ -23,7 +23,6 @@
   },
   "description": "Generic implementation of Unit of Work and Repository patterns to build isolated domain model",
   "scripts": {
-    "postinstall": "npm run prisma:generate",
     "build": "rimraf ./dist && tsc -p ./tsconfig.build.json",
     "build:tests": "tsc -p ./tsconfig.test.json",
     "watch": "tsc --watch",
@@ -37,7 +36,7 @@
     "lint": "eslint --max-warnings=0",
     "lint:fix": "npm run lint -- --fix",
     "prepublishOnly": "npm run build",
-    "prepare": "husky install"
+    "prepare": "husky install && npm run prisma:generate"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
@@ -55,8 +54,8 @@
     "**/*": "prettier --write --ignore-unknown"
   },
   "peerDependencies": {
-    "@prisma/client": "^5.0.0",
-    "knex": "^0.95.0 || µ^1.0.0 || ^2.0.0"
+    "@prisma/client": "^7.0.0",
+    "knex": "^0.95.0 || ^1.0.0 || ^2.0.0"
   },
   "dependencies": {
     "weak-identity-map": "^1.0.2"
