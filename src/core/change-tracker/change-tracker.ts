@@ -1,13 +1,9 @@
 import { ComputedChanges } from './computed-changes';
 import { EntityState } from './entity-state';
 import { TrackedEntity } from './tracked-entity';
-import { WeakIdentityMap } from 'weak-identity-map';
 
 export class ChangeTracker<E extends object> {
-  private readonly identityMap = new WeakIdentityMap<
-    unknown,
-    TrackedEntity<E>
-  >();
+  private readonly identityMap = new Map<unknown, TrackedEntity<E>>();
 
   public constructor(
     private readonly extractIdentity: (entity: E) => unknown,
