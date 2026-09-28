@@ -1,3 +1,4 @@
+import { ContextProvider } from './context-provider';
 import type { RunOptions } from './uow';
 import { UowContext } from './uow-context';
 
@@ -13,11 +14,15 @@ export const Transactional = <TO = any>(
   ) => {
     const action = descriptor.value as (...args: any[]) => unknown;
 
-    descriptor.value = async (...args: any[]) => {
+    descriptor.value = async function (this: unknown, ...args: any[]) {
+      if (ContextProvider.has()) {
+        return action.apply(this, args);
+      }
+
       const uow = UowContext.uow();
 
       return uow.run(() => {
-        return action(...args);
+        return action.apply(this, args);
       }, options);
     };
   };
