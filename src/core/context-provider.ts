@@ -10,6 +10,10 @@ export class ContextProvider {
     return this.asyncLocalStorage.run(context, act);
   }
 
+  public static has(): boolean {
+    return this.asyncLocalStorage.getStore() !== undefined;
+  }
+
   public static get<T>(): T {
     const ctx = this.asyncLocalStorage.getStore();
 
