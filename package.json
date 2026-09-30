@@ -68,7 +68,7 @@
     "@prisma/client": "^7.8.0",
     "@semantic-release/git": "^10.0.1",
     "@vitest/coverage-v8": "^4.0.14",
-    "better-sqlite3": "^12.11.1",
+    "better-sqlite3": "^13.0.3",
     "eslint": "^9.27.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-import-resolver-typescript": "^4.3.5",
