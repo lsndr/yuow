@@ -5,3 +5,11 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
+    open-pull-requests-limit: 20
+
+  - package-ecosystem: 'github-actions'
+    target-branch: 'main'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    open-pull-requests-limit: 20
