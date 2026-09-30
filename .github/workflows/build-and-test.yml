@@ -39,7 +39,7 @@ jobs:
           - node: 24.x
             script: build:tests
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install Node.js ${{ matrix.node }}
         uses: actions/setup-node@v6
